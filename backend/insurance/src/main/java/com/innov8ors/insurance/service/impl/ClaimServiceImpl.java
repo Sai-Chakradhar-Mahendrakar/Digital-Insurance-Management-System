@@ -166,6 +166,4 @@ public class ClaimServiceImpl implements ClaimService {
 
         return builder.build();
     }
-
-
 }

@@ -18,4 +18,6 @@ public interface ClaimService {
     List<ClaimResponse> getAllClaims();
 
     List<ClaimResponse> getPendingClaims();
+
+    List<ClaimResponse> getApprovedClaims();
 }
