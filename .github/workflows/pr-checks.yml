@@ -11,8 +11,7 @@ on:
 jobs:
   frontend:
     name: Frontend Checks
-    runs-on: ubuntu-latest
-    if: hashFiles('frontend/package.json') != ''  
+    runs-on: ubuntu-latest 
     defaults:
       run:
         working-directory: ./frontend
