@@ -89,4 +89,13 @@ public class ClaimController {
         List<ClaimResponse> pendingClaims = claimService.getPendingClaims();
         return ResponseEntity.ok(pendingClaims);
     }
+    
+    @GetMapping("/admin/claims/approved")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ClaimResponse>> getApprovedClaims(){
+        log.info("Admin fetching all approved claims");
+
+        List<ClaimResponse> approvedClaims = claimService.getApprovedClaims();
+        return ResponseEntity.ok(approvedClaims);
+    }
 }
