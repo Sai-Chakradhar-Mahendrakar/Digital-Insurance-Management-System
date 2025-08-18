@@ -12,6 +12,7 @@ jobs:
   frontend:
     name: Frontend Checks
     runs-on: ubuntu-latest
+    if: hashFiles('frontend/package.json') != ''  
     defaults:
       run:
         working-directory: ./frontend
@@ -62,13 +63,13 @@ jobs:
           cache: 'maven'
         
       - name: Validate Maven project
-        run: mvn -B validate
+        run: mvn -B validate -X
 
       - name: Build with Maven
-        run: mvn -B clean
+        run: mvn -B clean -X
       
       - name: Compile
-        run: mvn -B compile
+        run: mvn -B compile -X
 
-      - name: Run Integration Tests
-        run: mvn verify 
+      - name: Verify
+        run: mvn -B verify -X
