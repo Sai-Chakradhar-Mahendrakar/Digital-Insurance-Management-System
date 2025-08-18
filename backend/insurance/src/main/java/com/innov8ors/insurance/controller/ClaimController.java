@@ -28,7 +28,6 @@ public class ClaimController {
     public ResponseEntity<ClaimResponse> submitClaim(
             @Valid @RequestBody ClaimCreateRequest request,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-
         log.info("Received claim submission request from user: {}", userPrincipal.getId());
 
         ClaimResponse response = claimService.submitClaim(request, userPrincipal.getId());
@@ -39,7 +38,6 @@ public class ClaimController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<ClaimResponse>> getUserClaims(
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-
         log.info("Fetching claims for user: {}", userPrincipal.getId());
 
         List<ClaimResponse> claims = claimService.getUserClaims(userPrincipal.getId());
@@ -51,7 +49,6 @@ public class ClaimController {
     public ResponseEntity<ClaimResponse> updateClaimStatus(
             @PathVariable Long claimId,
             @Valid @RequestBody ClaimStatusUpdateRequest request) {
-
         log.info("Admin updating claim status for claim ID: {} to status: {}", claimId, request.getStatus());
 
         ClaimResponse response = claimService.updateClaimStatus(claimId, request);
@@ -63,7 +60,6 @@ public class ClaimController {
     public ResponseEntity<ClaimResponse> getClaimById(
             @PathVariable Long claimId,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-
         log.info("Fetching claim ID: {} for user: {}", claimId, userPrincipal.getId());
 
         ClaimResponse response = claimService.getClaimByIdAndUserId(claimId, userPrincipal.getId());
@@ -73,7 +69,6 @@ public class ClaimController {
     @GetMapping("/admin/claims")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ClaimResponse>> getAllClaims() {
-
         log.info("Admin fetching all claims");
 
         List<ClaimResponse> claims = claimService.getAllClaims();
@@ -83,13 +78,12 @@ public class ClaimController {
     @GetMapping("/admin/claims/pending")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ClaimResponse>> getPendingClaims() {
-
         log.info("Admin fetching all pending claims");
 
         List<ClaimResponse> pendingClaims = claimService.getPendingClaims();
         return ResponseEntity.ok(pendingClaims);
     }
-    
+
     @GetMapping("/admin/claims/approved")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ClaimResponse>> getApprovedClaims(){
