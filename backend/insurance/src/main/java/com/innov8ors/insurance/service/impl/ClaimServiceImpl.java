@@ -138,6 +138,7 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ClaimResponse> getApprovedClaims() {
         log.info("Fetching all approved claims for admin");
 
