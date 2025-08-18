@@ -1,1 +1,12 @@
-/node_modules
+frontend/node_modules
+frontend/.vscode
+.idea
+.vscode
+*.log
+*.env
+*.DS_Store
+*.swp
+*.swo
+*.bak
+*.tmp
+*.pub
