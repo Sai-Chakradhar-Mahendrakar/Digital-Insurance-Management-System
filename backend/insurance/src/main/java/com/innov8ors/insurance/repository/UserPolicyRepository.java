@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserPolicyRepository extends JpaRepository<UserPolicy, Long> {
@@ -22,4 +23,6 @@ public interface UserPolicyRepository extends JpaRepository<UserPolicy, Long> {
     List<UserPolicy> findByStatusAndEndDateBefore(PolicyStatus status, LocalDateTime date);
 
     boolean existsByUserIdAndPolicyId(Long userId, Long policyId);
+
+    Optional<UserPolicy> findByIdAndUserId(Long id, Long userId);
 }
