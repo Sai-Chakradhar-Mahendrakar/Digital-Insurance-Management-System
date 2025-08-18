@@ -7,6 +7,7 @@ import com.innov8ors.insurance.response.LoginResponse;
 import com.innov8ors.insurance.response.UserCreateResponse;
 import com.innov8ors.insurance.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,7 @@ import static com.innov8ors.insurance.mapper.UserMapper.getRegisterResponseFromU
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "*")
 public class UserController {
     private final UserService userService;
 

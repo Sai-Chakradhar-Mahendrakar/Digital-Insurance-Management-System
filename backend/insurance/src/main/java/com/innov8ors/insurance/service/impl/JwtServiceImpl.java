@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -21,12 +22,15 @@ import java.util.function.Function;
 public class JwtServiceImpl implements TokenService {
     private final String secretkey;
 
-    public JwtServiceImpl() {
+    private final long expirationDuration;
+
+    public JwtServiceImpl(@Value("${jwt.token.expiration.duration:10800000}") long expirationDuration) {
 
         try {
             KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
             SecretKey sk = keyGen.generateKey();
             secretkey = Base64.getEncoder().encodeToString(sk.getEncoded());
+            this.expirationDuration = expirationDuration;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -40,7 +44,7 @@ public class JwtServiceImpl implements TokenService {
                 .addClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 60 * 60 * 30))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationDuration))
                 .signWith(getKey())
                 .compact();
     }

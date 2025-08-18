@@ -22,7 +22,6 @@ public class PolicyMapper {
 
     public static Policy getPolicyFromRequest(PolicyCreateRequest policyCreateRequest) {
         Policy policy = MAPPER.map(policyCreateRequest, Policy.class);
-        policy.setCreatedAt(LocalDateTime.now());
         return policy;
     }
 }
