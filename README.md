@@ -1,1 +1,1 @@
-# digital-insurance
+# Digital Insurance Management System
