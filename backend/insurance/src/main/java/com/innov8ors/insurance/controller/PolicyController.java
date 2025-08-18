@@ -4,6 +4,7 @@ import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.response.PolicyPaginatedResponse;
 import com.innov8ors.insurance.service.PolicyService;
 import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import static com.innov8ors.insurance.mapper.PolicyMapper.getResponseFromPoliciesPage;
 
 @RestController
+@CrossOrigin(origins = "*")
 public class PolicyController {
     private final PolicyService policyService;
 
