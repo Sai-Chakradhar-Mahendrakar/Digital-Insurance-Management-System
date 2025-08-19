@@ -5,8 +5,6 @@ import com.innov8ors.insurance.request.PolicyCreateRequest;
 import com.innov8ors.insurance.response.PolicyPaginatedResponse;
 import org.springframework.data.domain.Page;
 
-import java.time.LocalDateTime;
-
 import static com.innov8ors.insurance.util.InsuranceUtil.MAPPER;
 
 public class PolicyMapper {
@@ -21,7 +19,6 @@ public class PolicyMapper {
     }
 
     public static Policy getPolicyFromRequest(PolicyCreateRequest policyCreateRequest) {
-        Policy policy = MAPPER.map(policyCreateRequest, Policy.class);
-        return policy;
+        return MAPPER.map(policyCreateRequest, Policy.class);
     }
 }
