@@ -10,16 +10,26 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @Column(name = "title", nullable = false)
     private String title;
 
+    @Column(name = "message", nullable = false)
     private String message;
 
+    @Column(name = "notification_status", nullable = false)
     @Enumerated(EnumType.STRING)
     private NotificationStatus status;
 
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    //Relationship with user
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 
     public Notification() {}
 
@@ -44,4 +54,5 @@ public class Notification {
     public void setStatus(NotificationStatus status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
 }
