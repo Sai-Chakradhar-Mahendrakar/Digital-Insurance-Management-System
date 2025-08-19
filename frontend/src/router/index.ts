@@ -8,6 +8,7 @@ import HomeView from '@/views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import PoliciesView from '@/views/PoliciesView.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 
 // Admin Views
 import AdminLoginView from '@/views/admin/AdminLoginView.vue'
@@ -19,28 +20,44 @@ const routes = [
     path: '/',
     name: 'home',
     component: HomeView,
+    meta: {
+      title: 'Home',
+    },
   },
   {
     path: '/login',
     name: 'login',
     component: LoginView,
+    meta: {
+      title: 'Login',
+      guest: true,
+    },
   },
   {
     path: '/register',
     name: 'register',
     component: RegisterView,
+    meta: {
+      title: 'Register',
+      guest: true,
+    },
   },
   {
     path: '/policies',
     name: 'policies',
     component: PoliciesView,
+    meta: {
+      title: 'Insurance Policies',
+    },
   },
+
   // Admin Routes
   {
     path: '/admin/login',
     name: 'admin-login',
     component: AdminLoginView,
     meta: {
+      title: 'Admin Login',
       layout: 'admin',
       guest: true,
     },
@@ -55,6 +72,7 @@ const routes = [
     name: 'admin-dashboard',
     component: AdminDashboardView,
     meta: {
+      title: 'Admin Dashboard',
       requiresAdmin: true,
       layout: 'admin',
     },
@@ -64,15 +82,20 @@ const routes = [
     name: 'admin-policies',
     component: AdminPoliciesView,
     meta: {
+      title: 'Manage Policies',
       requiresAdmin: true,
       layout: 'admin',
     },
   },
-  // Catch all 404
+
+  // 404 Not Found - Must be last
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    redirect: '/',
+    component: NotFoundView,
+    meta: {
+      title: 'Page Not Found',
+    },
   },
 ]
 
@@ -81,7 +104,7 @@ const router = createRouter({
   routes,
 })
 
-// Navigation Guard
+// Navigation Guard (same as before)
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
@@ -89,7 +112,6 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAdmin) {
     const token = authStore.token
 
-    // Check if user is authenticated
     if (!authStore.isAuthenticated || !token) {
       console.warn('Admin access denied: Not authenticated')
       next({
@@ -99,7 +121,6 @@ router.beforeEach(async (to, from, next) => {
       return
     }
 
-    // Check if token is expired
     if (isTokenExpired(token)) {
       console.warn('Admin access denied: Token expired')
       authStore.logout()
@@ -110,7 +131,6 @@ router.beforeEach(async (to, from, next) => {
       return
     }
 
-    // Check if token has admin role
     if (!isAdminToken(token)) {
       console.error('Admin access denied: Insufficient permissions')
       next({
@@ -120,7 +140,6 @@ router.beforeEach(async (to, from, next) => {
       return
     }
 
-    // Verify admin role from store
     if (!authStore.isAdmin) {
       console.error('Admin access denied: User role is not ADMIN')
       next({
@@ -146,9 +165,8 @@ router.beforeEach(async (to, from, next) => {
   }
 })
 
-// After navigation
-router.afterEach((to, from) => {
-  // Update page title based on route
+// Update page title
+router.afterEach((to) => {
   const defaultTitle = 'Digital Insurance Management System'
   const routeTitle = to.meta.title as string
   document.title = routeTitle ? `${routeTitle} - ${defaultTitle}` : defaultTitle
