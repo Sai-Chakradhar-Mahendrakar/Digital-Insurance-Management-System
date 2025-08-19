@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -158,27 +159,27 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void testSuccessfulIsUserWithEmailExists() {
+    public void testSuccessfulValidateIfUserExists() {
         doReturn(true)
                 .when(userDao)
                 .userExistsByEmail(TEST_USER_EMAIL);
 
-        Boolean exists = userService.isUserWithEmailExists(TEST_USER_EMAIL);
+        Boolean exists = userService.validateIfUserExists(TEST_USER_EMAIL);
 
         assertNotNull(exists);
-        assertEquals(true, exists);
+        assertTrue(exists);
         verify(userDao).userExistsByEmail(TEST_USER_EMAIL);
         verifyNoMoreInteractions(userDao);
     }
 
     @Test
-    public void testFailureIsUserWithEmailExistsDueToNotFound() {
+    public void testFailureValidateIfUserExistsDueToNotFound() {
         doReturn(false)
                 .when(userDao)
                 .userExistsByEmail(TEST_USER_EMAIL);
 
         try {
-            userService.isUserWithEmailExists(TEST_USER_EMAIL);
+            userService.validateIfUserExists(TEST_USER_EMAIL);
             fail("Expected an exception to be thrown");
         } catch (Exception e) {
             assertInstanceOf(NotFoundException.class, e);

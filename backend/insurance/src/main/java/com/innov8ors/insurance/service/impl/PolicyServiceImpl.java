@@ -43,7 +43,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public Boolean isPolicyExists(Long policyId) {
+    public Boolean validateIfPolicyExists(Long policyId) {
         log.debug("Checking if policy exists with ID: {}", policyId);
         if(!policyDao.policyExistsById(policyId)) {
             log.info("Policy with ID {} does not exist", policyId);

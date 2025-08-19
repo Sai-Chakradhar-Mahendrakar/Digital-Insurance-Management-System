@@ -9,5 +9,5 @@ public interface PolicyService {
 
     Policy addPolicy(PolicyCreateRequest policyCreateRequest);
 
-    Boolean isPolicyExists(Long policyId);
+    Boolean validateIfPolicyExists(Long policyId);
 }

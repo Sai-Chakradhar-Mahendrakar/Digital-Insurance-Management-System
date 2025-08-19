@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.data.domain.Page;
 
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.POLICY_NOT_FOUND;
 import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_COVERAGE_AMOUNT;
 import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_DESCRIPTION;
 import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_DURATION_MONTHS;
@@ -22,6 +23,7 @@ import static com.innov8ors.insurance.util.TestUtil.getPolicy;
 import static com.innov8ors.insurance.util.TestUtil.getPolicyCreateRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -97,30 +99,30 @@ public class PolicyServiceImplTest {
     }
 
     @Test
-    public void testSuccessfulIsPolicyExists() {
+    public void testSuccessfulValidateIfPolicyExists() {
         doReturn(true)
                 .when(policyDao)
                 .policyExistsById(TEST_POLICY_ID);
 
-        Boolean exists = policyService.isPolicyExists(TEST_POLICY_ID);
+        Boolean exists = policyService.validateIfPolicyExists(TEST_POLICY_ID);
 
-        assertEquals(true, exists);
+        assertTrue(exists);
         verify(policyDao).policyExistsById(TEST_POLICY_ID);
         verifyNoMoreInteractions(policyDao);
     }
 
     @Test
-    public void testFailureIsPolicyExistsDueToNotFound() {
+    public void testFailureValidateIfPolicyExistsDueToNotFound() {
         doReturn(false)
                 .when(policyDao)
                 .policyExistsById(TEST_POLICY_ID);
 
         try {
-            policyService.isPolicyExists(TEST_POLICY_ID);
+            policyService.validateIfPolicyExists(TEST_POLICY_ID);
             fail("Expected NotFoundException to be thrown");
         } catch (Exception e) {
             assertInstanceOf(NotFoundException.class, e);
-            assertEquals("Policy not found", e.getMessage());
+            assertEquals(POLICY_NOT_FOUND, e.getMessage());
             verify(policyDao).policyExistsById(TEST_POLICY_ID);
             verifyNoMoreInteractions(policyDao);
         }

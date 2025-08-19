@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean isUserWithEmailExists(String email) {
+    public Boolean validateIfUserExists(String email) {
         log.debug("Checking if user exists with email: {}", email);
         if(!userDao.userExistsByEmail(email)) {
             log.info("User with email {} does not exist", email);

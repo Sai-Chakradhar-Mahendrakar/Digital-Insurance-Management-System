@@ -9,5 +9,5 @@ public interface UserService {
 
     String login(UserLoginRequest userLoginRequest);
 
-    Boolean isUserWithEmailExists(String email);
+    Boolean validateIfUserExists(String email);
 }
