@@ -2,24 +2,7 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100">
     <!-- Navigation Header -->
-    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 lg:px-8 py-4">
-        <nav class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center">
-              <span class="text-white font-bold text-sm">DI</span>
-            </div>
-            <h1 class="text-xl font-semibold text-slate-900 font-poppins">Digital Insurance</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <AppButton variant="ghost" @click="navigateTo('/login')" class="hidden md:inline-flex">
-              Login
-            </AppButton>
-            <AppButton variant="primary" @click="navigateTo('/register')"> Get Started </AppButton>
-          </div>
-        </nav>
-      </div>
-    </header>
+    <AppNavbar />
 
     <!-- Hero Section -->
     <main class="pt-16 pb-24">
@@ -34,6 +17,22 @@
             policies, track claims, and serve customers efficiently.
           </p>
 
+          <!-- Search Bar -->
+          <div class="max-w-2xl mx-auto mb-16">
+            <div class="relative">
+              <Search
+                class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400"
+              />
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Search policies, claims, or help topics..."
+                class="w-full pl-12 pr-4 py-4 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-blue-700 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all duration-200 ease-in-out font-inter shadow-sm"
+                @keyup.enter="handleSearch"
+              />
+            </div>
+          </div>
+
           <!-- Action Buttons -->
           <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <AppButton
@@ -43,16 +42,16 @@
               class="flex items-center space-x-2"
             >
               <Shield class="w-5 h-5" />
-              <span>View Policies</span>
+              <span>View My Policies</span>
             </AppButton>
             <AppButton
               variant="secondary"
               size="large"
-              @click="navigateTo('/login')"
+              @click="navigateTo('/policies')"
               class="flex items-center space-x-2"
             >
-              <LogIn class="w-5 h-5" />
-              <span>Login</span>
+              <Plus class="w-5 h-5" />
+              <span>New Policy</span>
             </AppButton>
           </div>
 
@@ -81,14 +80,23 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import AppNavbar from '@/components/layout/AppNavbar.vue'
 import AppButton from '@/components/common/AppButton.vue'
 import FeatureCard from '@/components/common/FeatureCard.vue'
-import { Shield, LogIn } from 'lucide-vue-next'
+import { Shield, Search, Plus } from 'lucide-vue-next'
 
 const router = useRouter()
+const searchQuery = ref('')
 
 const navigateTo = (path: string) => {
   router.push(path)
+}
+
+const handleSearch = () => {
+  if (searchQuery.value.trim()) {
+    router.push(`/policies?search=${encodeURIComponent(searchQuery.value)}`)
+  }
 }
 </script>
