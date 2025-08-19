@@ -4,13 +4,15 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.innov8ors.insurance.enums.PolicyStatus;
+import com.innov8ors.insurance.enums.UserPolicyStatus;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "user_policy")
@@ -31,9 +33,12 @@ public class UserPolicy {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
+    @Column(name = "last_payment_date")
+    private LocalDateTime lastPaymentDate;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PolicyStatus status;
+    private UserPolicyStatus status;
 
     @Column(name = "premium_paid", precision = 10, scale = 2)
     private BigDecimal premiumPaid;
@@ -45,15 +50,4 @@ public class UserPolicy {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "policy_id", insertable = false, updatable = false)
     private Policy policy;
-
-    public UserPolicy(Long userId, Long policyId, LocalDateTime startDate,
-                      LocalDateTime endDate, PolicyStatus status, BigDecimal premiumPaid) {
-        this.userId = userId;
-        this.policyId = policyId;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.status = status;
-        this.premiumPaid = premiumPaid;
-    }
-
 }

@@ -1,15 +1,16 @@
 package com.innov8ors.insurance.response;
 
-import com.innov8ors.insurance.enums.PolicyStatus;
+import com.innov8ors.insurance.enums.UserPolicyStatus;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserPolicyResponse {
@@ -19,6 +20,6 @@ public class UserPolicyResponse {
     private String policyType;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private PolicyStatus status;
+    private UserPolicyStatus status;
     private BigDecimal premiumPaid;
 }

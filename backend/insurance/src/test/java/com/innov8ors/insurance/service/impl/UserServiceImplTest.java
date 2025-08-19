@@ -5,6 +5,7 @@ import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.exception.UnauthorizedException;
 import com.innov8ors.insurance.repository.dao.UserDao;
 import com.innov8ors.insurance.request.UserLoginRequest;
+import com.innov8ors.insurance.response.UserRegisterResponse;
 import com.innov8ors.insurance.service.TokenService;
 import com.innov8ors.insurance.service.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -21,7 +22,6 @@ import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ADDRESS;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_EMAIL;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ID;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_NAME;
-import static com.innov8ors.insurance.util.TestUtil.TEST_USER_PASSWORD_HASH;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_PHONE;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ROLE;
 import static com.innov8ors.insurance.util.TestUtil.getUser;
@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -65,16 +66,20 @@ public class UserServiceImplTest {
         doReturn(getUser())
                 .when(userDao)
                 .persist(any(User.class));
+        doReturn(TEST_TOKEN)
+                .when(tokenService)
+                .generateToken(any(), any());
 
-        User user = userService.register(getUserCreateRequest());
+        UserRegisterResponse user = userService.register(getUserCreateRequest());
 
         assertNotNull(user);
         assertEquals(TEST_USER_ID, user.getId());
         assertEquals(TEST_USER_NAME, user.getName());
         assertEquals(TEST_USER_EMAIL, user.getEmail());
-        assertEquals(TEST_USER_PASSWORD_HASH, user.getPasswordHash());
         assertEquals(TEST_USER_PHONE, user.getPhone());
         assertEquals(TEST_USER_ADDRESS, user.getAddress());
+        verify(userDao).persist(any(User.class));
+        verify(tokenService).generateToken(TEST_USER_EMAIL, TEST_USER_ROLE.name());
     }
 
     @Test
@@ -83,7 +88,7 @@ public class UserServiceImplTest {
                 .when(userDao)
                 .persist(any(User.class));
 
-        User user = null;
+        UserRegisterResponse user = null;
         try {
             user = userService.register(getUserCreateRequest());
             fail("Expected an exception to be thrown");
@@ -151,5 +156,36 @@ public class UserServiceImplTest {
         assertNull(token);
         verify(userDao).getByEmail(TEST_USER_EMAIL);
         verifyNoMoreInteractions(userDao, tokenService);
+    }
+
+    @Test
+    public void testSuccessfulValidateIfUserExists() {
+        doReturn(true)
+                .when(userDao)
+                .userExistsByEmail(TEST_USER_EMAIL);
+
+        Boolean exists = userService.validateIfUserExists(TEST_USER_EMAIL);
+
+        assertNotNull(exists);
+        assertTrue(exists);
+        verify(userDao).userExistsByEmail(TEST_USER_EMAIL);
+        verifyNoMoreInteractions(userDao);
+    }
+
+    @Test
+    public void testFailureValidateIfUserExistsDueToNotFound() {
+        doReturn(false)
+                .when(userDao)
+                .userExistsByEmail(TEST_USER_EMAIL);
+
+        try {
+            userService.validateIfUserExists(TEST_USER_EMAIL);
+            fail("Expected an exception to be thrown");
+        } catch (Exception e) {
+            assertInstanceOf(NotFoundException.class, e);
+            assertEquals(USER_NOT_FOUND, e.getMessage());
+            verify(userDao).userExistsByEmail(TEST_USER_EMAIL);
+            verifyNoMoreInteractions(userDao);
+        }
     }
 }
