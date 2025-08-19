@@ -11,4 +11,8 @@ public interface UserDao extends UserRepository {
     default Optional<User> getByEmail(String email) {
         return findByEmail(email);
     }
+
+    default Boolean userExistsByEmail(String email) {
+        return existsByEmail(email);
+    }
 }
