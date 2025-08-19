@@ -66,3 +66,17 @@ jobs:
 
       - name: Verify
         run: mvn -B verify -X
+
+  docker:
+    name: Docker Build & Compose
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Docker Compose
+        run: docker-compose  --profile migrations -f docker/docker-compose.yml up -d --build
+
+      - name: Check running containers
+        run: docker ps -a
+
+      - name: Stop containers
+        if: always()
+        run: docker compose -f docker/docker-compose.yml down
