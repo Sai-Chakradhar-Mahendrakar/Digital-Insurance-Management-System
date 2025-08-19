@@ -22,4 +22,6 @@ public interface UserPolicyService {
     UserPolicy purchasePolicy(Long userId, PolicyPurchaseRequest request);
 
     UserPolicy makePayment(String userEmail, Long policyId);
+
+    public boolean isExistsByUserIdAndPolicyId(Long userId, Long policyId);
 }

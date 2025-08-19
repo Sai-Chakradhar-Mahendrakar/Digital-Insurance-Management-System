@@ -6,6 +6,8 @@ import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.mapper.UserPolicyMapper;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
+import com.innov8ors.insurance.repository.dao.UserDao;
+import com.innov8ors.insurance.repository.dao.PolicyDao;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import com.innov8ors.insurance.service.PolicyService;
@@ -28,17 +30,21 @@ import static com.innov8ors.insurance.util.Constant.UserPolicyConstants.START_DA
 public class UserPolicyServiceImpl implements UserPolicyService {
 
     private final UserPolicyDao userPolicyDao;
-
     private final UserService userService;
-
     private final PolicyService policyService;
+    private final UserDao userDao;
+    private final PolicyDao policyDao;
 
     public UserPolicyServiceImpl(UserPolicyDao userPolicyDao,
                                  UserService userService,
-                                 PolicyService policyService) {
+                                 PolicyService policyService,
+                                 UserDao userDao,
+                                 PolicyDao policyDao) {
         this.userPolicyDao = userPolicyDao;
         this.userService = userService;
         this.policyService = policyService;
+        this.userDao = userDao;
+        this.policyDao = policyDao;
     }
 
     @Transactional
@@ -54,8 +60,8 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         log.debug("Fetching policies for user: {}", userEmail);
         User user = userService.getByEmail(userEmail);
 
-        Page<UserPolicy> userPolicies = userPolicyDao.findByUserIdWithPolicy(user.getId(),
-                PageRequest.of(page, size, Sort.by(START_DATE_PLACEHOLDER).descending()));
+        Page<UserPolicy> userPolicies = userPolicyDao.findByUserIdWithPolicy(user.getId(), PageRequest.of(page, size, Sort.by(START_DATE_PLACEHOLDER).descending()));
+
 
         return userPolicies.map(UserPolicyMapper::convertToResponse);
     }
@@ -73,7 +79,16 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         UserPolicy userPolicy = getUserPolicy(userId, request, policy);
 
         log.info("Creating new user policy for user ID: {}, policy ID: {}", userId, request.getPolicyId());
-        return userPolicyDao.save(userPolicy);
+        userPolicy = userPolicyDao.save(userPolicy);
+
+        // Manually load the relationships
+        User user = userDao.findById(userId).orElse(null);
+        Policy policyEntity = policyDao.findById(request.getPolicyId()).orElse(null);
+
+        userPolicy.setUser(user);
+        userPolicy.setPolicy(policyEntity);
+
+        return userPolicy;
     }
 
     @Override
@@ -104,7 +119,7 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         });
     }
 
-    private boolean isExistsByUserIdAndPolicyId(Long userId, Long policyId) {
+    public boolean isExistsByUserIdAndPolicyId(Long userId, Long policyId) {
         return userPolicyDao.existsByUserIdAndPolicyId(userId, policyId);
     }
 }

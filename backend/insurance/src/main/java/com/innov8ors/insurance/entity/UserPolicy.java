@@ -43,11 +43,11 @@ public class UserPolicy {
     @Column(name = "premium_paid", precision = 10, scale = 2)
     private BigDecimal premiumPaid;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "policy_id", insertable = false, updatable = false)
     private Policy policy;
 }
