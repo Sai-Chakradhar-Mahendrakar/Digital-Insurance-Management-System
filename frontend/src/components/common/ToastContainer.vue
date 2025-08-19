@@ -75,33 +75,25 @@ import { CheckCircle, AlertCircle, AlertTriangle, Info, X, Zap } from 'lucide-vu
 
 const { toasts, removeToast } = useToast()
 
-// --- REFACTORED PROGRESS & ANIMATION LOGIC ---
-
-// 1. Reactive timestamp for smooth animations
 const currentTime = ref(Date.now())
 let animationFrameId: number
 
-// 2. Map to store metadata for each toast
 const toastMeta = ref(new Map())
 
-// 3. Animation loop using requestAnimationFrame
 const updateCurrentTime = () => {
   currentTime.value = Date.now()
   animationFrameId = requestAnimationFrame(updateCurrentTime)
 }
 
 onMounted(() => {
-  // Start the animation loop when the component is mounted
   updateCurrentTime()
 })
 
 onUnmounted(() => {
-  // Stop the animation loop to prevent memory leaks
   cancelAnimationFrame(animationFrameId)
   toastMeta.value.clear()
 })
 
-// 4. Watch for new toasts to track their start time
 watch(
   toasts,
   (newToasts) => {
@@ -113,8 +105,6 @@ watch(
   },
   { deep: true },
 )
-
-// --- HELPER FUNCTIONS ---
 
 const getIcon = (type: string) => {
   const icons = {
@@ -186,9 +176,8 @@ const getProgressWidth = (toast: Toast) => {
   if (!toast.duration || toast.duration <= 0) return 100
 
   const meta = toastMeta.value.get(toast.id)
-  if (!meta) return 100 // Return 100 if toast is not yet tracked
+  if (!meta) return 100 
 
-  // Use the reactive currentTime for calculation
   const elapsed = currentTime.value - meta.startTime
   const progress = Math.min(100, (elapsed / toast.duration) * 100)
 
@@ -197,12 +186,10 @@ const getProgressWidth = (toast: Toast) => {
 </script>
 
 <style scoped>
-/* Let Vue handle the active classes automatically.
-   The .toast-move class is essential for smooth re-ordering. */
 .toast-move,
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.4s cubic-bezier(0.55, 0, 0.1, 1);
+  transition: all 0s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
 .toast-enter-from,
@@ -211,7 +198,6 @@ const getProgressWidth = (toast: Toast) => {
   transform: scale(0.9) translateY(-30px);
 }
 
-/* Ensure leave animations don't disrupt layout */
 .toast-leave-active {
   position: absolute;
 }
