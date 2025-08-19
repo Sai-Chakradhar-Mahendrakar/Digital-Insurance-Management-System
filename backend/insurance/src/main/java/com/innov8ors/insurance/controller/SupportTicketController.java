@@ -4,6 +4,8 @@ import com.innov8ors.insurance.entity.SupportTicket;
 import com.innov8ors.insurance.enums.SupportTicketStatus;
 import com.innov8ors.insurance.request.SupportTicketCreateRequest;
 import com.innov8ors.insurance.service.SupportTicketService;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +14,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/support")
+@CrossOrigin(origins = "*")
+@Slf4j
 public class SupportTicketController {
 
     @Autowired
@@ -19,14 +23,19 @@ public class SupportTicketController {
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping
-    public SupportTicket createTicket(@RequestBody SupportTicketCreateRequest request) {
-        return supportTicketService.createTicket(request);
+    public SupportTicket createTicket(@Valid @RequestBody SupportTicketCreateRequest request) {
+        log.info("Creating support ticket for userId: {} with subject: {}", request.getUserId(), request.getSubject());
+        SupportTicket ticket = supportTicketService.createTicket(request);
+        log.info("Support ticket created with id: {}", ticket.getId());
+        return ticket;
     }
 
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @GetMapping("/user/{userId}")
     public List<SupportTicket> getTicketsByUser(@PathVariable Long userId) {
-        return supportTicketService.getTicketsByUser(userId);
+        log.info("Fetching support tickets for userId: {}", userId);
+        List<SupportTicket> tickets = supportTicketService.getTicketsByUser(userId);
+        log.info("Found {} tickets for userId: {}", tickets.size(), userId);
+        return tickets;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -34,7 +43,9 @@ public class SupportTicketController {
     public SupportTicket updateTicketStatus(
             @PathVariable Long ticketId,
             @RequestParam String response) {
-        return supportTicketService.updateTicketStatus(ticketId, response, SupportTicketStatus.RESOLVED);
+        log.info("Updating ticket status to RESOLVED for ticketId: {} with response: {}", ticketId, response);
+        SupportTicket ticket = supportTicketService.updateTicketStatus(ticketId, response, SupportTicketStatus.RESOLVED);
+        log.info("Ticket {} status updated to RESOLVED", ticketId);
+        return ticket;
     }
 }
-

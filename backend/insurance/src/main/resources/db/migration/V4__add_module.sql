@@ -5,7 +5,7 @@ CREATE TABLE public.support_ticket (
     claim_id BIGINT,
     subject VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    status VARCHAR(50) NOT NULL,
+    status VARCHAR(8) NOT NULL CHECK (status IN ('OPEN', 'RESOLVED')),
     response TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     resolved_at TIMESTAMP,
