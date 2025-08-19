@@ -5,7 +5,7 @@
     <AppNavbar />
 
     <!-- Hero Section -->
-    <main class="pt-16 pb-24">
+    <main class="pt-16 pb-8">
       <div class="max-w-7xl mx-auto px-4 lg:px-8">
         <div class="text-center">
           <h1 class="text-4xl lg:text-6xl font-bold text-slate-900 font-poppins mb-6">
@@ -18,7 +18,7 @@
           </p>
 
           <!-- Search Bar -->
-          <div class="max-w-2xl mx-auto mb-16">
+          <div class="max-w-2xl mx-auto mb-12">
             <div class="relative">
               <Search
                 class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400"
@@ -34,7 +34,7 @@
           </div>
 
           <!-- Action Buttons -->
-          <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <AppButton
               variant="primary"
               size="large"
@@ -44,19 +44,10 @@
               <Shield class="w-5 h-5" />
               <span>View My Policies</span>
             </AppButton>
-            <!-- <AppButton
-              variant="secondary"
-              size="large"
-              @click="navigateTo('/policies')"
-              class="flex items-center space-x-2"
-            >
-              <Plus class="w-5 h-5" />
-              <span>New Policy</span>
-            </AppButton> -->
           </div>
 
           <!-- Feature Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
             <FeatureCard
               title="Policy Management"
               description="Comprehensive policy lifecycle management from creation to renewal"

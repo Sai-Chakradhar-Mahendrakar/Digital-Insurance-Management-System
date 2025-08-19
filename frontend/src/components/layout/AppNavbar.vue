@@ -125,34 +125,6 @@
                 <!-- Menu Items -->
                 <div class="py-1">
                   <button
-                    @click="navigateTo('/profile')"
-                    class="w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-3"
-                  >
-                    <Settings class="w-4 h-4" />
-                    <span>Profile Settings</span>
-                  </button>
-                  <button
-                    @click="navigateTo('/policies')"
-                    class="w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-3"
-                  >
-                    <Shield class="w-4 h-4" />
-                    <span>All Policies</span>
-                  </button>
-                  <button
-                    @click="navigateTo('/my-policies')"
-                    class="w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-3"
-                  >
-                    <User class="w-4 h-4" />
-                    <span>My Policies</span>
-                  </button>
-                  <button
-                    @click="navigateTo('/billing')"
-                    class="w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-3"
-                  >
-                    <CreditCard class="w-4 h-4" />
-                    <span>Billing</span>
-                  </button>
-                  <button
                     @click="navigateTo('/help')"
                     class="w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-3"
                   >
