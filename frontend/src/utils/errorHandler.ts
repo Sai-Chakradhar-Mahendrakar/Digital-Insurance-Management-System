@@ -11,9 +11,3 @@ export const handleUnknownError = (error: unknown): string => {
   }
 }
 
-// Usage in auth.ts:
-import { handleUnknownError } from '@/utils/errorHandler'
-
-} catch (error: unknown) {
-  throw new Error(handleUnknownError(error))
-}
