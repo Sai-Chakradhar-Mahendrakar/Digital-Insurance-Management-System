@@ -6,7 +6,7 @@ export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
 export interface Toast {
   id: string
-  type: ToastType  // Changed from string to ToastType
+  type: ToastType 
   title: string
   message: string
   duration: number
@@ -17,7 +17,7 @@ const toasts = ref<Toast[]>([])
 
 export const useToast = () => {
   const addToast = (toast: Omit<Toast, 'id'>) => {
-    const id = Date.now().toString()
+    const id = Date.now().toString() 
     const newToast: Toast = {
       id,
       ...toast
