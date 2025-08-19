@@ -4,31 +4,39 @@ import com.innov8ors.insurance.entity.SupportTicket;
 import com.innov8ors.insurance.enums.SupportTicketStatus;
 import com.innov8ors.insurance.repository.SupportTicketRepository;
 import com.innov8ors.insurance.request.SupportTicketCreateRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.innov8ors.insurance.service.SupportTicketService;
+import lombok.extern.slf4j.Slf4j;
+import com.innov8ors.insurance.exception.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static com.innov8ors.insurance.mapper.SupportTicketMapper.fromCreateRequest;
+
 @Service
+@Slf4j
 public class SupportTicketServiceImpl implements SupportTicketService {
 
-    @Autowired
-    private SupportTicketRepository supportTicketRepository;
+    private final SupportTicketRepository supportTicketRepository;
+
+    public SupportTicketServiceImpl(SupportTicketRepository supportTicketRepository) {
+        this.supportTicketRepository = supportTicketRepository;
+    }
 
     @Override
     public SupportTicket createTicket(SupportTicketCreateRequest request) {
-        SupportTicket ticket = new SupportTicket();
-        ticket.setUserId(request.getUserId());
-        ticket.setPolicyId(request.getPolicyId());
-        ticket.setClaimId(request.getClaimId());
-        ticket.setSubject(request.getSubject());
-        ticket.setDescription(request.getDescription());
-        ticket.setStatus(SupportTicketStatus.OPEN);
-        ticket.setCreatedAt(LocalDateTime.now());
-        return supportTicketRepository.save(ticket);
+        try {
+            log.info("Creating support ticket for userId: {} with subject: {}", request.getUserId(), request.getSubject());
+            SupportTicket ticket = fromCreateRequest(request);
+            SupportTicket savedTicket = supportTicketRepository.save(ticket);
+            log.info("Support ticket created with id: {}", savedTicket.getId());
+            return savedTicket;
+        } catch (Exception e) {
+            log.error("Error creating support ticket for userId: {}: {}", request.getUserId(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
@@ -48,6 +56,6 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             }
             return supportTicketRepository.save(ticket);
         }
-        throw new RuntimeException("Support ticket not found");
+        throw new NotFoundException("Support ticket not found ticketId: " + ticketId);
     }
 }
