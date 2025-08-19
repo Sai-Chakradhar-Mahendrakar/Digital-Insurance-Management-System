@@ -261,8 +261,8 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                       {{ formatDate(policy.createdAt) }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div class="flex items-center space-x-3">
+                    <td class="px-8 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex items-center space-x-2">
                         <button
                           @click="viewPolicy(policy)"
                           class="text-blue-600 hover:text-blue-900 transition-colors"
@@ -276,13 +276,6 @@
                           title="Edit policy"
                         >
                           <Edit class="w-4 h-4" />
-                        </button>
-                        <button
-                          @click="confirmDeletePolicy(policy)"
-                          class="text-red-600 hover:text-red-900 transition-colors"
-                          title="Delete policy"
-                        >
-                          <Trash2 class="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -339,18 +332,6 @@
       @edit="editFromView"
     />
 
-    <!-- Delete Confirmation Modal -->
-    <ConfirmDialog
-      v-if="showDeleteConfirm"
-      :title="`Delete ${policyToDelete?.name}`"
-      :message="`Are you sure you want to delete this policy? This action cannot be undone.`"
-      confirm-text="Delete"
-      cancel-text="Cancel"
-      variant="danger"
-      @confirm="handleDeletePolicy"
-      @cancel="cancelDelete"
-    />
-
     <!-- Toast Container -->
     <ToastContainer />
   </div>
@@ -364,7 +345,6 @@ import AdminNavbar from '@/components/admin/AdminNavbar.vue'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AddPolicyModal from '@/components/admin/AddPolicyModal.vue'
 import ViewPolicyModal from '@/components/admin/ViewPolicyModal.vue'
-import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import InlineError from '@/components/common/InlineError.vue'
 import ToastContainer from '@/components/common/ToastContainer.vue'
 import AppButton from '@/components/common/AppButton.vue'
@@ -396,8 +376,6 @@ const searchQuery = ref('')
 const selectedType = ref('')
 const errorMessage = ref('')
 const successMessage = ref('')
-const showDeleteConfirm = ref(false)
-const policyToDelete = ref<Policy | null>(null)
 
 // Sorting and pagination
 const sortField = ref<keyof Policy | ''>('')
@@ -544,33 +522,6 @@ const editFromView = (policy: Policy) => {
     selectedPolicy.value = policy
     showAddPolicyModal.value = true
   }, 300)
-}
-
-const confirmDeletePolicy = (policy: Policy) => {
-  policyToDelete.value = policy
-  showDeleteConfirm.value = true
-}
-
-const handleDeletePolicy = async () => {
-  if (!policyToDelete.value) return
-
-  try {
-    await adminPolicyStore.deletePolicy(policyToDelete.value.id)
-    toast.success(
-      'Policy Deleted',
-      `"${policyToDelete.value.name}" has been successfully deleted.`
-    )
-    cancelDelete()
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to delete policy'
-    toast.error('Delete Failed', message)
-    cancelDelete()
-  }
-}
-
-const cancelDelete = () => {
-  showDeleteConfirm.value = false
-  policyToDelete.value = null
 }
 
 const handleSavePolicy = async (policyData: any) => {
