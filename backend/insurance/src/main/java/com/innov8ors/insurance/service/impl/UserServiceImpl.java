@@ -38,8 +38,8 @@ public class UserServiceImpl implements UserService {
     public UserRegisterResponse register(UserCreateRequest userCreateRequest) {
         User user = getUserFromRequest(userCreateRequest);
         log.debug("Registering user with email: {}", user.getEmail());
-        String token = getTokenForUser(user);
         user = userDao.persist(user);
+        String token = getTokenForUser(user);
         return getRegisterResponseFromUser(user, token);
     }
 
