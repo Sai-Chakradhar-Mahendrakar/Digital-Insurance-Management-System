@@ -5,6 +5,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -18,15 +20,19 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@Slf4j
 public class JwtServiceImpl implements TokenService {
     private final String secretkey;
 
-    public JwtServiceImpl() {
+    private final long expirationDuration;
+
+    public JwtServiceImpl(@Value("${jwt.token.expiration.duration:10800000}") long expirationDuration) {
 
         try {
             KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
             SecretKey sk = keyGen.generateKey();
             secretkey = Base64.getEncoder().encodeToString(sk.getEncoded());
+            this.expirationDuration = expirationDuration;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -34,19 +40,16 @@ public class JwtServiceImpl implements TokenService {
 
     @Override
     public String generateToken(String email, String role) {
+        log.debug("Generating JWT token for email: {}", email);
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         return Jwts.builder()
                 .addClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 60 * 60 * 30))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationDuration))
                 .signWith(getKey())
                 .compact();
-    }
-
-    public String extractRole(String token) {
-        return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
     private SecretKey getKey() {
@@ -56,6 +59,7 @@ public class JwtServiceImpl implements TokenService {
 
     @Override
     public String extractUserName(String token) {
+        log.debug("Extracting username from JWT token");
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -74,6 +78,7 @@ public class JwtServiceImpl implements TokenService {
 
     @Override
     public boolean validateToken(String token, UserDetails userDetails) {
+        log.debug("Validating JWT token for user: {}", userDetails.getUsername());
         final String userName = extractUserName(token);
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

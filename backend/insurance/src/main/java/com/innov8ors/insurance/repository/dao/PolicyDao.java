@@ -12,4 +12,8 @@ public interface PolicyDao extends PolicyRepository {
     default Page<Policy> getAll(Specification<Policy> specification, Pageable pageable) {
         return findAll(specification, pageable);
     }
+
+    default Boolean policyExistsById(Long policyId) {
+        return existsById(policyId);
+    }
 }

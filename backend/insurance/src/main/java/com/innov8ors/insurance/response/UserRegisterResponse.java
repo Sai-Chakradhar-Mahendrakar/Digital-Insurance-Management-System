@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserCreateResponse {
-    private String id;
+public class UserRegisterResponse {
+    private Long id;
 
     private String name;
 
@@ -21,4 +21,6 @@ public class UserCreateResponse {
     private String address;
 
     private String role;
+
+    private String token;
 }
