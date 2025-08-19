@@ -8,4 +8,6 @@ public interface UserService {
     UserRegisterResponse register(UserCreateRequest userCreateRequest);
 
     String login(UserLoginRequest userLoginRequest);
+
+    Boolean isUserWithEmailExists(String email);
 }

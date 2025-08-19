@@ -8,4 +8,6 @@ public interface PolicyService {
     Page<Policy> getPolicies(String type, Integer page, Integer size);
 
     Policy addPolicy(PolicyCreateRequest policyCreateRequest);
+
+    Boolean isPolicyExists(Long policyId);
 }

@@ -51,6 +51,17 @@ public class UserServiceImpl implements UserService {
         return getTokenForUser(user);
     }
 
+    @Override
+    public Boolean isUserWithEmailExists(String email) {
+        log.debug("Checking if user exists with email: {}", email);
+        if(!userDao.userExistsByEmail(email)) {
+            log.info("User with email {} does not exist", email);
+            throw new NotFoundException(USER_NOT_FOUND);
+        }
+        log.info("User with email {} exists", email);
+        return true;
+    }
+
     private void validateCredentials(UserLoginRequest userLoginRequest, User user) {
         if (!matchPasswordAndHash(userLoginRequest.getPassword(), user.getPasswordHash())) {
             log.error("Incorrect password for user with email {}", userLoginRequest.getEmail());

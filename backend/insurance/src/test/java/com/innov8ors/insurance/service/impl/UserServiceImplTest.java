@@ -22,7 +22,6 @@ import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ADDRESS;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_EMAIL;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ID;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_NAME;
-import static com.innov8ors.insurance.util.TestUtil.TEST_USER_PASSWORD_HASH;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_PHONE;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ROLE;
 import static com.innov8ors.insurance.util.TestUtil.getUser;
@@ -156,5 +155,36 @@ public class UserServiceImplTest {
         assertNull(token);
         verify(userDao).getByEmail(TEST_USER_EMAIL);
         verifyNoMoreInteractions(userDao, tokenService);
+    }
+
+    @Test
+    public void testSuccessfulIsUserWithEmailExists() {
+        doReturn(true)
+                .when(userDao)
+                .userExistsByEmail(TEST_USER_EMAIL);
+
+        Boolean exists = userService.isUserWithEmailExists(TEST_USER_EMAIL);
+
+        assertNotNull(exists);
+        assertEquals(true, exists);
+        verify(userDao).userExistsByEmail(TEST_USER_EMAIL);
+        verifyNoMoreInteractions(userDao);
+    }
+
+    @Test
+    public void testFailureIsUserWithEmailExistsDueToNotFound() {
+        doReturn(false)
+                .when(userDao)
+                .userExistsByEmail(TEST_USER_EMAIL);
+
+        try {
+            userService.isUserWithEmailExists(TEST_USER_EMAIL);
+            fail("Expected an exception to be thrown");
+        } catch (Exception e) {
+            assertInstanceOf(NotFoundException.class, e);
+            assertEquals(USER_NOT_FOUND, e.getMessage());
+            verify(userDao).userExistsByEmail(TEST_USER_EMAIL);
+            verifyNoMoreInteractions(userDao);
+        }
     }
 }

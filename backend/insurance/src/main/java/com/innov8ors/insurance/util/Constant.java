@@ -13,6 +13,7 @@ public class Constant {
 
     public static class ErrorMessage {
         public static final String USER_NOT_FOUND = "User not found";
+        public static final String POLICY_NOT_FOUND = "Policy not found";
         public static final String INVALID_CREDENTIALS = "Invalid credentials";
         public static final String USER_ALREADY_EXISTS = "User already exists";
         public static final String UNAUTHORIZED_ACCESS = "Unauthorized access";

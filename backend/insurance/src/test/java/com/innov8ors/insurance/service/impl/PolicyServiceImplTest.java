@@ -1,6 +1,7 @@
 package com.innov8ors.insurance.service.impl;
 
 import com.innov8ors.insurance.entity.Policy;
+import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.repository.dao.PolicyDao;
 import com.innov8ors.insurance.service.PolicyService;
 import org.junit.jupiter.api.AfterEach;
@@ -20,6 +21,7 @@ import static com.innov8ors.insurance.util.TestUtil.getPoliciesPage;
 import static com.innov8ors.insurance.util.TestUtil.getPolicy;
 import static com.innov8ors.insurance.util.TestUtil.getPolicyCreateRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -91,6 +93,36 @@ public class PolicyServiceImplTest {
             fail("Expected an exception to be thrown");
         } catch (Exception ignored) {
             assertEquals("error", ignored.getMessage());
+        }
+    }
+
+    @Test
+    public void testSuccessfulIsPolicyExists() {
+        doReturn(true)
+                .when(policyDao)
+                .policyExistsById(TEST_POLICY_ID);
+
+        Boolean exists = policyService.isPolicyExists(TEST_POLICY_ID);
+
+        assertEquals(true, exists);
+        verify(policyDao).policyExistsById(TEST_POLICY_ID);
+        verifyNoMoreInteractions(policyDao);
+    }
+
+    @Test
+    public void testFailureIsPolicyExistsDueToNotFound() {
+        doReturn(false)
+                .when(policyDao)
+                .policyExistsById(TEST_POLICY_ID);
+
+        try {
+            policyService.isPolicyExists(TEST_POLICY_ID);
+            fail("Expected NotFoundException to be thrown");
+        } catch (Exception e) {
+            assertInstanceOf(NotFoundException.class, e);
+            assertEquals("Policy not found", e.getMessage());
+            verify(policyDao).policyExistsById(TEST_POLICY_ID);
+            verifyNoMoreInteractions(policyDao);
         }
     }
 }
