@@ -71,11 +71,14 @@ jobs:
     name: Docker Build & Compose
     runs-on: ubuntu-latest
     defaults:
-      run: 
-        working-directory: ./docker
+      run:
+        working-directory: ./ 
     steps:
-      - name: Run Docker Compose
-        run: docker-compose  --profile migrations -f docker/docker-compose.yml up -d --build
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Docker Compose (with migrations profile)
+        run: docker compose --profile migrations -f docker/docker-compose.yml up -d --build
 
       - name: Check running containers
         run: docker ps -a
