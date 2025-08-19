@@ -79,7 +79,7 @@ const user = computed(() => authStore.user)
 
 const handleLogout = () => {
   authStore.logout()
-  router.push('/auth/login')
+  router.push('/login')
 }
 
 const handleClickOutside = (event: Event) => {
