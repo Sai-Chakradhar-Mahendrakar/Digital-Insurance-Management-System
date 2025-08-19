@@ -60,6 +60,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
     depends_on:
       - postgres
+      - flyway
     networks:
       - insurance-network
 
