@@ -1,11 +1,34 @@
 // src/stores/auth.ts
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue' // Add computed to the import
+import { ref, computed } from 'vue'
+import { decodeJWT, isTokenExpired, isAdminToken, type JWTPayload } from '@/utils/jwt'
 import type { User, LoginRequest, RegisterRequest, AuthResponse } from '@/types/auth'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(localStorage.getItem('token'))
+  const tokenPayload = ref<JWTPayload | null>(null)
+
+  // Initialize token payload if token exists
+  const initializeAuth = () => {
+    if (token.value) {
+      const payload = decodeJWT(token.value)
+      if (payload && !isTokenExpired(token.value)) {
+        tokenPayload.value = payload
+        user.value = {
+          id: '',
+          name: payload.sub.split('@')[0],
+          email: payload.sub,
+          phone: '',
+          address: '',
+          role: payload.role,
+          token: token.value,
+        }
+      } else {
+        logout()
+      }
+    }
+  }
 
   const login = async (credentials: LoginRequest) => {
     try {
@@ -13,9 +36,9 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cookie': 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6'
+          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
         },
-        body: JSON.stringify(credentials)
+        body: JSON.stringify(credentials),
       })
 
       if (!response.ok) {
@@ -23,24 +46,72 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       const data: AuthResponse = await response.json()
-      
-      token.value = data.token
-      localStorage.setItem('token', data.token)
-      
-      // Set user data if available in response
-      if (data.id) {
-        user.value = {
-          id: data.id,
-          name: data.name || '',
-          email: data.email || credentials.email,
-          phone: data.phone || '',
-          address: data.address || '',
-          role: data.role || 'USER',
-          token: data.token
-        }
+      setAuthData(data, credentials.email)
+    } catch (error: unknown) {
+      // Proper error handling for unknown type
+      if (error instanceof Error) {
+        throw new Error(error.message)
+      } else if (typeof error === 'string') {
+        throw new Error(error)
+      } else {
+        throw new Error('Invalid credentials')
       }
-    } catch (error) {
-      throw new Error('Invalid credentials')
+    }
+  }
+
+  const adminLogin = async (credentials: LoginRequest) => {
+    try {
+      const response = await fetch('http://localhost:8080/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
+        },
+        body: JSON.stringify(credentials),
+      })
+
+      if (!response.ok) {
+        throw new Error('Admin login failed')
+      }
+
+      const data: AuthResponse = await response.json()
+
+      // Verify the token has ADMIN role
+      if (!isAdminToken(data.token)) {
+        throw new Error('Insufficient permissions - Admin role required')
+      }
+
+      setAuthData(data, credentials.email)
+    } catch (error: unknown) {
+      // Type-safe error handling
+      if (error instanceof Error) {
+        throw new Error(error.message)
+      } else if (typeof error === 'string') {
+        throw new Error(error)
+      } else {
+        throw new Error('Invalid admin credentials')
+      }
+    }
+  }
+
+  const setAuthData = (data: AuthResponse, email: string) => {
+    token.value = data.token
+    localStorage.setItem('token', data.token)
+
+    // Decode JWT payload
+    const payload = decodeJWT(data.token)
+    tokenPayload.value = payload
+
+    if (payload) {
+      user.value = {
+        id: data.id || '',
+        name: data.name || payload.sub.split('@')[0],
+        email: data.email || payload.sub,
+        phone: data.phone || '',
+        address: data.address || '',
+        role: payload.role,
+        token: data.token,
+      }
     }
   }
 
@@ -50,9 +121,9 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cookie': 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6'
+          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
         },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
       })
 
       if (!response.ok) {
@@ -60,29 +131,71 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       const data: User = await response.json()
-      
+
       user.value = data
       token.value = data.token || ''
       localStorage.setItem('token', data.token || '')
-    } catch (error) {
-      throw new Error('Registration failed')
+
+      if (data.token) {
+        tokenPayload.value = decodeJWT(data.token)
+      }
+    } catch (error: unknown) {
+      // Handle unknown error type safely
+      if (error instanceof Error) {
+        throw new Error(error.message)
+      } else if (typeof error === 'string') {
+        throw new Error(error)
+      } else {
+        throw new Error('Registration failed')
+      }
     }
   }
 
   const logout = () => {
     user.value = null
     token.value = null
+    tokenPayload.value = null
     localStorage.removeItem('token')
   }
 
-  const isAuthenticated = computed(() => !!token.value)
+  const checkTokenValidity = () => {
+    if (token.value && isTokenExpired(token.value)) {
+      logout()
+      return false
+    }
+    return true
+  }
+
+  const isAuthenticated = computed(() => {
+    if (!token.value) return false
+    return checkTokenValidity()
+  })
+
+  const isAdmin = computed(() => {
+    if (!tokenPayload.value) return false
+    return tokenPayload.value.role === 'ADMIN'
+  })
+
+  const tokenInfo = computed(() => ({
+    payload: tokenPayload.value,
+    isExpired: token.value ? isTokenExpired(token.value) : true,
+    timeToExpiry: tokenPayload.value ? tokenPayload.value.exp - Math.floor(Date.now() / 1000) : 0,
+  }))
+
+  // Initialize on store creation
+  initializeAuth()
 
   return {
     user,
     token,
+    tokenPayload,
+    tokenInfo,
     login,
+    adminLogin,
     register,
     logout,
-    isAuthenticated
+    checkTokenValidity,
+    isAuthenticated,
+    isAdmin,
   }
 })

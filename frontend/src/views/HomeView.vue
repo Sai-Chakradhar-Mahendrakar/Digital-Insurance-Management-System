@@ -44,7 +44,7 @@
               <Shield class="w-5 h-5" />
               <span>View My Policies</span>
             </AppButton>
-            <AppButton
+            <!-- <AppButton
               variant="secondary"
               size="large"
               @click="navigateTo('/policies')"
@@ -52,7 +52,7 @@
             >
               <Plus class="w-5 h-5" />
               <span>New Policy</span>
-            </AppButton>
+            </AppButton> -->
           </div>
 
           <!-- Feature Cards -->

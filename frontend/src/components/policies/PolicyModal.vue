@@ -53,19 +53,19 @@
                 <div class="flex justify-between">
                   <span class="text-slate-500">Premium Amount</span>
                   <span class="font-semibold text-slate-900"
-                    >${{ formatCurrency(policy.premiumAmount) }}</span
+                    >₹{{ formatCurrency(policy.premiumAmount) }}</span
                   >
                 </div>
                 <div class="flex justify-between">
                   <span class="text-slate-500">Coverage Amount</span>
                   <span class="font-semibold text-slate-900"
-                    >${{ formatCurrency(policy.coverageAmount) }}</span
+                    >₹{{ formatCurrency(policy.coverageAmount) }}</span
                   >
                 </div>
                 <div class="flex justify-between">
                   <span class="text-slate-500">Renewal Premium</span>
                   <span class="font-semibold text-slate-900"
-                    >${{ formatCurrency(policy.renewalPremiumRate) }}</span
+                    >₹{{ formatCurrency(policy.renewalPremiumRate) }}</span
                   >
                 </div>
               </div>
@@ -100,13 +100,13 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
               <div class="text-center">
                 <div class="font-semibold text-blue-900">
-                  ${{ formatCurrency(policy.coverageAmount) }}
+                  ₹{{ formatCurrency(policy.coverageAmount) }}
                 </div>
                 <div class="text-blue-600">Total Coverage</div>
               </div>
               <div class="text-center">
                 <div class="font-semibold text-blue-900">
-                  ${{ formatCurrency(policy.premiumAmount) }}
+                  ₹{{ formatCurrency(policy.premiumAmount) }}
                 </div>
                 <div class="text-blue-600">Annual Premium</div>
               </div>
@@ -123,7 +123,7 @@
         <!-- Footer -->
         <div class="flex justify-end space-x-3 mt-8">
           <AppButton variant="ghost" @click="$emit('close')"> Close </AppButton>
-          <AppButton variant="primary"> Manage Policy </AppButton>
+          <AppButton variant="primary"> Purchase Policy </AppButton>
         </div>
       </div>
     </div>

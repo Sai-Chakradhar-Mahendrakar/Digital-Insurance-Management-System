@@ -25,13 +25,13 @@
       <div class="flex justify-between text-sm">
         <span class="text-slate-500">Premium Amount</span>
         <span class="font-semibold text-slate-900"
-          >${{ formatCurrency(policy.premiumAmount) }}</span
+          >₹{{ formatCurrency(policy.premiumAmount) }}</span
         >
       </div>
       <div class="flex justify-between text-sm">
         <span class="text-slate-500">Coverage Amount</span>
         <span class="font-semibold text-slate-900"
-          >${{ formatCurrency(policy.coverageAmount) }}</span
+          >₹{{ formatCurrency(policy.coverageAmount) }}</span
         >
       </div>
       <div class="flex justify-between text-sm">
