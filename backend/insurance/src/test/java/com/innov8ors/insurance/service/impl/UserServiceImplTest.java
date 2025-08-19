@@ -5,6 +5,7 @@ import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.exception.UnauthorizedException;
 import com.innov8ors.insurance.repository.dao.UserDao;
 import com.innov8ors.insurance.request.UserLoginRequest;
+import com.innov8ors.insurance.response.UserRegisterResponse;
 import com.innov8ors.insurance.service.TokenService;
 import com.innov8ors.insurance.service.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -65,16 +66,20 @@ public class UserServiceImplTest {
         doReturn(getUser())
                 .when(userDao)
                 .persist(any(User.class));
+        doReturn(TEST_TOKEN)
+                .when(tokenService)
+                .generateToken(any(), any());
 
-        User user = userService.register(getUserCreateRequest());
+        UserRegisterResponse user = userService.register(getUserCreateRequest());
 
         assertNotNull(user);
         assertEquals(TEST_USER_ID, user.getId());
         assertEquals(TEST_USER_NAME, user.getName());
         assertEquals(TEST_USER_EMAIL, user.getEmail());
-        assertEquals(TEST_USER_PASSWORD_HASH, user.getPasswordHash());
         assertEquals(TEST_USER_PHONE, user.getPhone());
         assertEquals(TEST_USER_ADDRESS, user.getAddress());
+        verify(userDao).persist(any(User.class));
+        verify(tokenService).generateToken(TEST_USER_EMAIL, TEST_USER_ROLE.name());
     }
 
     @Test
@@ -83,7 +88,7 @@ public class UserServiceImplTest {
                 .when(userDao)
                 .persist(any(User.class));
 
-        User user = null;
+        UserRegisterResponse user = null;
         try {
             user = userService.register(getUserCreateRequest());
             fail("Expected an exception to be thrown");
