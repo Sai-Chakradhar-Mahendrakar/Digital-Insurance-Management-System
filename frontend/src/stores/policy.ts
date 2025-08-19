@@ -8,12 +8,12 @@ export const usePolicyStore = defineStore('policy', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  const fetchPolicies = async () => {
+  const fetchPolicies = async (size: number = 1000) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8080/policies', {
+      const response = await fetch(`http://localhost:8080/policies?size=${size}`, {
         method: 'GET',
         headers: {
           Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
@@ -28,21 +28,6 @@ export const usePolicyStore = defineStore('policy', () => {
       policies.value = data.policies
     } catch (err) {
       error.value = 'Failed to load policies'
-      // Use mock data for demo purposes
-      policies.value = [
-        {
-          id: 1,
-          name: 'Comprehensive Health Insurance',
-          type: 'Health',
-          description:
-            'Provides full medical coverage including hospitalization and outpatient care.',
-          premiumAmount: 5000.0,
-          coverageAmount: 1000000.0,
-          durationMonths: 12,
-          renewalPremiumRate: 4800.0,
-          createdAt: '2025-08-18T18:49:43.019767',
-        },
-      ]
     } finally {
       isLoading.value = false
     }

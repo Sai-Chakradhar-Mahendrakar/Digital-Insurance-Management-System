@@ -20,6 +20,45 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
+  const fetchAdminPolicies = async (size: number = 1000) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await fetch(`http://localhost:8080/policies?size=${size}`, {
+        method: 'GET',
+        headers: {
+          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch policies: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+
+      // Handle different response formats
+      if (Array.isArray(data)) {
+        policies.value = data
+      } else if (data.policies && Array.isArray(data.policies)) {
+        policies.value = data.policies
+      } else if (data.content && Array.isArray(data.content)) {
+        policies.value = data.content // Spring Boot pagination format
+      } else {
+        policies.value = []
+        console.warn('Unexpected response format:', data)
+      }
+
+      console.log(`Loaded ${policies.value.length} policies`)
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to load admin policies'
+      console.error('Admin policy fetch error:', err)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const createPolicy = async (policyData: CreatePolicyRequest) => {
     isLoading.value = true
     error.value = null
@@ -32,45 +71,25 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
           Authorization: `Bearer ${authStore.token}`,
           Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
         },
+        credentials: 'include',
         body: JSON.stringify(policyData),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create policy')
+        const errorText = await response.text()
+        throw new Error(`Failed to create policy: ${response.status} ${errorText}`)
       }
 
       const newPolicy: Policy = await response.json()
       policies.value.push(newPolicy)
+
+      // Refresh the list to get the latest data
+      await fetchAdminPolicies()
+
       return newPolicy
     } catch (err) {
-      error.value = 'Failed to create policy'
+      error.value = err instanceof Error ? err.message : 'Failed to create policy'
       throw err
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  const fetchAdminPolicies = async () => {
-    isLoading.value = true
-    error.value = null
-
-    try {
-      const response = await fetch('http://localhost:8080/admin/policies', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch admin policies')
-      }
-
-      const data = await response.json()
-      policies.value = data.policies || data
-    } catch (err) {
-      error.value = 'Failed to load admin policies'
     } finally {
       isLoading.value = false
     }
@@ -88,11 +107,13 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
           Authorization: `Bearer ${authStore.token}`,
           Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
         },
+        credentials: 'include',
         body: JSON.stringify(policyData),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update policy')
+        const errorText = await response.text()
+        throw new Error(`Failed to update policy: ${response.status} ${errorText}`)
       }
 
       const updatedPolicy: Policy = await response.json()
@@ -100,9 +121,10 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
       if (index !== -1) {
         policies.value[index] = updatedPolicy
       }
+
       return updatedPolicy
     } catch (err) {
-      error.value = 'Failed to update policy'
+      error.value = err instanceof Error ? err.message : 'Failed to update policy'
       throw err
     } finally {
       isLoading.value = false
@@ -120,15 +142,17 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
           Authorization: `Bearer ${authStore.token}`,
           Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
         },
+        credentials: 'include',
       })
 
       if (!response.ok) {
-        throw new Error('Failed to delete policy')
+        const errorText = await response.text()
+        throw new Error(`Failed to delete policy: ${response.status} ${errorText}`)
       }
 
       policies.value = policies.value.filter((p) => p.id !== id)
     } catch (err) {
-      error.value = 'Failed to delete policy'
+      error.value = err instanceof Error ? err.message : 'Failed to delete policy'
       throw err
     } finally {
       isLoading.value = false
