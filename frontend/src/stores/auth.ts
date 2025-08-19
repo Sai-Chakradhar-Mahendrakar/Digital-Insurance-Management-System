@@ -61,7 +61,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const adminLogin = async (credentials: LoginRequest) => {
     try {
-      const response = await fetch('http://localhost:8080/admin/login', {
+      const response = await fetch('http://localhost:8080/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
