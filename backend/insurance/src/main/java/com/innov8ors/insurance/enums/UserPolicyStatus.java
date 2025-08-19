@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum PolicyStatus {
+public enum UserPolicyStatus {
     ACTIVE,
     EXPIRED,
     RENEWED,
