@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@Slf4j
 public class JwtServiceImpl implements TokenService {
     private final String secretkey;
 
@@ -38,6 +40,7 @@ public class JwtServiceImpl implements TokenService {
 
     @Override
     public String generateToken(String email, String role) {
+        log.debug("Generating JWT token for email: {}", email);
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         return Jwts.builder()
@@ -49,10 +52,6 @@ public class JwtServiceImpl implements TokenService {
                 .compact();
     }
 
-    public String extractRole(String token) {
-        return extractClaim(token, claims -> claims.get("role", String.class));
-    }
-
     private SecretKey getKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretkey);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -60,6 +59,7 @@ public class JwtServiceImpl implements TokenService {
 
     @Override
     public String extractUserName(String token) {
+        log.debug("Extracting username from JWT token");
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -78,6 +78,7 @@ public class JwtServiceImpl implements TokenService {
 
     @Override
     public boolean validateToken(String token, UserDetails userDetails) {
+        log.debug("Validating JWT token for user: {}", userDetails.getUsername());
         final String userName = extractUserName(token);
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14
+    container_name: insurance-postgres
+    environment:
+      POSTGRES_DB: insurance_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_INITDB_ARGS: "--auth-host=trust --auth-local=trust"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - insurance-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d insurance_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+    # Flyway Migration Service
+  flyway:
+    image: flyway/flyway:9.22.3-alpine
+    container_name: insurance-flyway
+    command: >
+      -url=jdbc:postgresql://postgres:5432/insurance_db
+      -user=postgres
+      -password=password
+      -connectRetries=60
+      -connectRetriesInterval=10
+      -baselineOnMigrate=true
+      -validateOnMigrate=false
+      migrate
+    volumes:
+      - ../backend/insurance/src/main/resources/db/migration:/flyway/sql
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - insurance-network
+    restart: "no"
+
+  backend:
+    container_name: insurance-backend
+    build:
+      context: ../backend/insurance
+      dockerfile: ../../docker/backend.Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/insurance_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+    depends_on:
+      - postgres
+    networks:
+      - insurance-network
+
+  frontend:
+    container_name: insurance-frontend
+    build:
+      context: ../frontend
+      dockerfile: ../docker/frontend.Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://backend:8080
+    volumes:
+      - ../frontend:/frontend
+      - /frontend/node_modules
+    depends_on:
+      - backend
+    networks:
+      - insurance-network
+
+networks:
+  insurance-network:
+    driver: bridge
