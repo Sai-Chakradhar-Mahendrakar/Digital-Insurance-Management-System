@@ -52,7 +52,7 @@ const getIcon = (type: string) => {
     warning: AlertTriangle,
     info: Info,
   }
-  return Info
+  return icons[type as keyof typeof icons] || Info
 }
 
 const toastClasses = (type: string) => {
@@ -62,7 +62,7 @@ const toastClasses = (type: string) => {
     warning: 'border-l-4 border-yellow-400',
     info: 'border-l-4 border-blue-400',
   }
-  return classes.info
+  return classes[type as keyof typeof classes] || classes.info
 }
 
 const iconClasses = (type: string) => {
@@ -72,7 +72,7 @@ const iconClasses = (type: string) => {
     warning: 'text-yellow-400',
     info: 'text-blue-400',
   }
-  return classes.info
+  return classes[type as keyof typeof classes] || classes.info
 }
 </script>
 
