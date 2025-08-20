@@ -1,5 +1,7 @@
+<!-- src/components/user/PolicyCard.vue -->
 <template>
   <div
+    v-if="userPolicy && userPolicy.policyType"
     class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-all duration-300 hover:-translate-y-1"
   >
     <!-- Header with Status -->
@@ -11,8 +13,12 @@
           <component :is="getPolicyTypeIcon(userPolicy.policyType)" class="w-6 h-6 text-blue-600" />
         </div>
         <div>
-          <h3 class="font-bold text-slate-900 text-lg">{{ userPolicy.policyName }}</h3>
-          <p class="text-sm text-slate-500 font-medium">{{ userPolicy.policyType }} Insurance</p>
+          <h3 class="font-bold text-slate-900 text-lg">
+            {{ userPolicy.policyName || 'Unknown Policy' }}
+          </h3>
+          <p class="text-sm text-slate-500 font-medium">
+            {{ userPolicy.policyType || 'Unknown' }} Insurance
+          </p>
         </div>
       </div>
 
@@ -38,7 +44,7 @@
           Coverage Amount
         </p>
         <p class="text-xl font-bold text-emerald-700">
-          {{ formatINR(userPolicy.coverageAmount) }}
+          {{ formatINR(userPolicy.coverageAmount || 0) }}
         </p>
         <p class="text-xs text-emerald-600 mt-1">Full protection limit</p>
       </div>
@@ -49,7 +55,7 @@
           <TrendingUp class="w-3 h-3 mr-1" />
           Premium Paid
         </p>
-        <p class="text-xl font-bold text-blue-700">{{ formatINR(userPolicy.premiumPaid) }}</p>
+        <p class="text-xl font-bold text-blue-700">{{ formatINR(userPolicy.premiumPaid || 0) }}</p>
         <p class="text-xs text-blue-600 mt-1">Investment secured</p>
       </div>
     </div>
@@ -158,35 +164,43 @@
             <Hash class="w-3 h-3 mr-1" />
             Policy ID
           </p>
-          <p class="font-bold text-slate-900">#{{ userPolicy.policyId }}</p>
+          <p class="font-bold text-slate-900">#{{ userPolicy.policyId || 'N/A' }}</p>
         </div>
         <div>
           <p class="text-slate-500 font-medium mb-1 flex items-center">
             <User class="w-3 h-3 mr-1" />
             Policy Holder
           </p>
-          <p class="font-bold text-slate-900">{{ userPolicy.userName }}</p>
+          <p class="font-bold text-slate-900">{{ userPolicy.userName || 'Unknown' }}</p>
         </div>
         <div>
           <p class="text-slate-500 font-medium mb-1 flex items-center">
             <Calendar class="w-3 h-3 mr-1" />
             Started
           </p>
-          <p class="font-bold text-slate-900">{{ formatDate(userPolicy.startDate) }}</p>
+          <p class="font-bold text-slate-900">
+            {{ userPolicy.startDate ? formatDate(userPolicy.startDate) : 'N/A' }}
+          </p>
         </div>
         <div>
           <p class="text-slate-500 font-medium mb-1 flex items-center">
             <CalendarX class="w-3 h-3 mr-1" />
             Expires
           </p>
-          <p :class="getExpiryDateClass(userPolicy.endDate)" class="font-bold">
-            {{ formatDate(userPolicy.endDate) }}
+          <p
+            :class="userPolicy.endDate ? getExpiryDateClass(userPolicy.endDate) : ''"
+            class="font-bold"
+          >
+            {{ userPolicy.endDate ? formatDate(userPolicy.endDate) : 'N/A' }}
           </p>
         </div>
       </div>
 
       <!-- Policy Progress Timeline -->
-      <div v-if="userPolicy.status === 'ACTIVE'" class="mt-4">
+      <div
+        v-if="userPolicy.status === 'ACTIVE' && userPolicy.startDate && userPolicy.endDate"
+        class="mt-4"
+      >
         <div class="flex justify-between text-xs text-slate-500 mb-2">
           <span class="font-medium">Policy Term Progress</span>
           <span class="font-bold">{{ policyProgressPercentage }}% complete</span>
@@ -204,26 +218,6 @@
       </div>
     </div>
 
-    <!-- Contact Information -->
-    <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-      <div class="grid grid-cols-2 gap-3 text-xs">
-        <div class="flex items-center">
-          <Mail class="w-3 h-3 text-blue-600 mr-2" />
-          <span class="text-blue-700 font-medium truncate">{{ userPolicy.userEmail }}</span>
-        </div>
-        <div class="flex items-center">
-          <Phone class="w-3 h-3 text-blue-600 mr-2" />
-          <span class="text-blue-700 font-medium">{{ userPolicy.userPhone }}</span>
-        </div>
-      </div>
-      <div class="mt-2 flex items-start">
-        <MapPin class="w-3 h-3 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-        <span class="text-blue-700 font-medium text-xs leading-relaxed">{{
-          userPolicy.userAddress
-        }}</span>
-      </div>
-    </div>
-
     <!-- Action Buttons -->
     <div class="flex space-x-2 mb-4">
       <AppButton
@@ -232,7 +226,6 @@
         @click="$emit('view', userPolicy)"
         class="flex-1 font-semibold"
       >
-        <FileText class="w-4 h-4 mr-2" />
         View Details
       </AppButton>
       <AppButton
@@ -243,7 +236,6 @@
         class="flex-1 font-semibold"
         :disabled="claimsPercentage >= 100"
       >
-        <Plus class="w-4 h-4 mr-2" />
         {{ claimsPercentage >= 100 ? 'Coverage Maxed' : 'File Claim' }}
       </AppButton>
     </div>
@@ -267,7 +259,7 @@
             <span class="font-semibold">Policy Active & Protected</span>
           </div>
           <div
-            v-if="isExpiringSoon(userPolicy.endDate)"
+            v-if="userPolicy.endDate && isExpiringSoon(userPolicy.endDate)"
             class="flex items-center text-amber-600 bg-amber-100 px-2 py-1 rounded-full"
           >
             <AlertTriangle class="w-3 h-3 mr-1" />
@@ -278,33 +270,12 @@
         </div>
       </div>
 
-      <div
-        v-else-if="userPolicy.status === 'APPROVED'"
-        class="flex items-center text-sm text-emerald-600 bg-emerald-50 p-3 rounded-lg"
-      >
-        <CheckCircle class="w-4 h-4 mr-2" />
-        <span class="font-medium">Policy approved! Activation will begin shortly.</span>
-      </div>
-
-      <div v-else-if="userPolicy.status === 'REJECTED'" class="space-y-2">
-        <div class="flex items-center text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-          <XCircle class="w-4 h-4 mr-2" />
-          <span class="font-medium">Application was rejected. Contact support for details.</span>
-        </div>
-        <AppButton
-          variant="primary"
-          size="small"
-          @click="$emit('reapply', userPolicy)"
-          class="w-full"
-        >
-          Submit New Application
-        </AppButton>
-      </div>
-
       <div v-else-if="userPolicy.status === 'EXPIRED'" class="space-y-2">
         <div class="flex items-center text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
           <AlertTriangle class="w-4 h-4 mr-2" />
-          <span class="font-medium">Policy expired {{ getTimeAgo(userPolicy.endDate) }}</span>
+          <span class="font-medium"
+            >Policy expired {{ userPolicy.endDate ? getTimeAgo(userPolicy.endDate) : '' }}</span
+          >
         </div>
         <AppButton
           variant="primary"
@@ -317,6 +288,17 @@
         </AppButton>
       </div>
     </div>
+  </div>
+
+  <!-- Error Fallback -->
+  <div v-else-if="userPolicy" class="bg-red-50 border border-red-200 rounded-xl p-6">
+    <div class="flex items-center mb-4">
+      <AlertTriangle class="w-6 h-6 text-red-600 mr-3" />
+      <h3 class="font-semibold text-red-900">Invalid Policy Data</h3>
+    </div>
+    <p class="text-red-700 text-sm">
+      This policy has incomplete data. Please contact support for assistance.
+    </p>
   </div>
 </template>
 
@@ -360,20 +342,25 @@ defineEmits<{
   (e: 'renew', userPolicy: UserPolicy): void
 }>()
 
-// Direct calculations using userPolicy data (no external store dependency)
+// Computed values with null safety
 const availableCoverage = computed(() => {
+  if (!props.userPolicy) return 0
   const claimed = props.userPolicy.totalAmountClaimed || 0
-  return Math.max(0, props.userPolicy.coverageAmount - claimed)
+  const coverage = props.userPolicy.coverageAmount || 0
+  return Math.max(0, coverage - claimed)
 })
 
 const claimsPercentage = computed(() => {
+  if (!props.userPolicy) return 0
   const claimed = props.userPolicy.totalAmountClaimed || 0
-  if (props.userPolicy.coverageAmount === 0) return 0
-  return Math.round((claimed / props.userPolicy.coverageAmount) * 100)
+  const coverage = props.userPolicy.coverageAmount || 0
+  if (coverage === 0) return 0
+  return Math.round((claimed / coverage) * 100)
 })
 
-// Policy term progress
 const policyProgressPercentage = computed(() => {
+  if (!props.userPolicy?.startDate || !props.userPolicy?.endDate) return 0
+
   const start = new Date(props.userPolicy.startDate).getTime()
   const end = new Date(props.userPolicy.endDate).getTime()
   const now = new Date().getTime()
@@ -387,8 +374,9 @@ const policyProgressPercentage = computed(() => {
   return Math.round((elapsed / totalDuration) * 100)
 })
 
-// Helper functions
+// Helper functions with null safety
 const getDaysUntilExpiry = (endDate: string): number => {
+  if (!endDate) return 0
   return Math.ceil((new Date(endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
 }
 
@@ -459,10 +447,9 @@ const getCoverageHealthText = (score: number) => {
 }
 
 const getCoverageRecommendation = (percentage: number): string => {
-  if (percentage === 0)
-    return '🎯 No claims yet! Your coverage is fully available for any medical needs.'
+  if (percentage === 0) return '🎯 No claims yet! Your coverage is fully available for any needs.'
   if (percentage <= 25)
-    return '✨ Great usage! You have plenty of coverage remaining for future healthcare needs.'
+    return '✨ Great usage! You have plenty of coverage remaining for future needs.'
   if (percentage <= 50)
     return '⚡ Moderate usage. Consider planning for remaining coverage throughout the policy term.'
   if (percentage <= 75)
@@ -520,6 +507,8 @@ const isExpiringSoon = (endDate: string): boolean => {
 }
 
 const getTimeRemaining = (endDate: string): string => {
+  if (!endDate) return 'N/A'
+
   const now = new Date()
   const end = new Date(endDate)
   const diffTime = end.getTime() - now.getTime()
@@ -543,6 +532,8 @@ const getTimeRemaining = (endDate: string): string => {
 }
 
 const getTimeAgo = (dateString: string): string => {
+  if (!dateString) return ''
+
   const date = new Date(dateString)
   const now = new Date()
   const diffTime = now.getTime() - date.getTime()
@@ -561,9 +552,7 @@ const getTimeAgo = (dateString: string): string => {
 }
 
 const formatINR = (amount: number): string => {
-  // Handle large amounts properly
   if (amount >= 10000000000) {
-    // 1000 crores
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -583,6 +572,7 @@ const formatINR = (amount: number): string => {
 }
 
 const formatDate = (dateString: string): string => {
+  if (!dateString) return 'N/A'
   return new Date(dateString).toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'short',
