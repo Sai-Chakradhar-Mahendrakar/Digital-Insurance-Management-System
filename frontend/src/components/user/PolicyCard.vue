@@ -10,15 +10,15 @@
           <Shield class="w-5 h-5 text-blue-600" />
         </div>
         <div>
-          <h3 class="font-semibold text-slate-900">{{ userPolicy.policy.name }}</h3>
-          <p class="text-sm text-slate-500">{{ userPolicy.policy.type }} Insurance</p>
+          <h3 class="font-semibold text-slate-900">{{ userPolicy.policyName }}</h3>
+          <p class="text-sm text-slate-500">{{ userPolicy.policyType }} Insurance</p>
         </div>
       </div>
 
       <!-- Status Badge -->
       <div
         :class="getStatusStyle(userPolicy.status)"
-        class="px-3 py-1 rounded-full text-xs font-medium"
+        class="px-3 py-1 rounded-full text-xs font-medium flex items-center"
       >
         <component :is="getStatusIcon(userPolicy.status)" class="w-3 h-3 mr-1" />
         {{ getStatusText(userPolicy.status) }}
@@ -32,32 +32,39 @@
         <span class="font-semibold text-slate-900">{{ formatINR(userPolicy.premiumPaid) }}</span>
       </div>
       <div class="flex justify-between text-sm">
-        <span class="text-slate-500">Coverage</span>
-        <span class="font-semibold text-slate-900">{{
-          formatINR(userPolicy.policy.coverageAmount)
-        }}</span>
+        <span class="text-slate-500">Policy ID</span>
+        <span class="font-semibold text-slate-900">#{{ userPolicy.policyId }}</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-slate-500">Start Date</span>
+        <span class="font-semibold text-slate-900">{{ formatDate(userPolicy.startDate) }}</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-slate-500">End Date</span>
+        <span class="font-semibold text-slate-900">{{ formatDate(userPolicy.endDate) }}</span>
       </div>
       <div class="flex justify-between text-sm">
         <span class="text-slate-500">Duration</span>
-        <span class="font-semibold text-slate-900"
-          >{{ userPolicy.policy.durationMonths }} months</span
-        >
-      </div>
-      <div class="flex justify-between text-sm">
-        <span class="text-slate-500">Purchase Date</span>
-        <span class="font-semibold text-slate-900">{{ formatDate(userPolicy.purchaseDate) }}</span>
+        <span class="font-semibold text-slate-900">{{
+          calculateDuration(userPolicy.startDate, userPolicy.endDate)
+        }}</span>
       </div>
     </div>
 
-    <!-- Description -->
-    <p class="text-slate-600 text-sm mb-4 line-clamp-2">{{ userPolicy.policy.description }}</p>
+    <!-- Policy Description -->
+    <div class="mb-4">
+      <p class="text-slate-600 text-sm">
+        {{ userPolicy.policyType }} insurance policy providing comprehensive coverage and
+        protection.
+      </p>
+    </div>
 
     <!-- Action Button -->
     <AppButton variant="ghost" size="small" @click="$emit('view', userPolicy)" class="w-full">
       View Details
     </AppButton>
 
-    <!-- Status Timeline (for pending/approved) -->
+    <!-- Status Timeline -->
     <div v-if="userPolicy.status === 'PENDING'" class="mt-4 pt-4 border-t border-slate-100">
       <div class="flex items-center text-sm text-slate-500">
         <Clock class="w-4 h-4 mr-2" />
@@ -65,13 +72,31 @@
       </div>
     </div>
 
-    <div
-      v-if="userPolicy.status === 'APPROVED' && userPolicy.approvalDate"
-      class="mt-4 pt-4 border-t border-slate-100"
-    >
+    <div v-if="userPolicy.status === 'ACTIVE'" class="mt-4 pt-4 border-t border-slate-100">
       <div class="flex items-center text-sm text-green-600">
         <CheckCircle class="w-4 h-4 mr-2" />
-        Approved on {{ formatDate(userPolicy.approvalDate) }}
+        Policy is active
+      </div>
+    </div>
+
+    <div v-if="userPolicy.status === 'APPROVED'" class="mt-4 pt-4 border-t border-slate-100">
+      <div class="flex items-center text-sm text-green-600">
+        <CheckCircle class="w-4 h-4 mr-2" />
+        Policy approved
+      </div>
+    </div>
+
+    <div v-if="userPolicy.status === 'REJECTED'" class="mt-4 pt-4 border-t border-slate-100">
+      <div class="flex items-center text-sm text-red-600">
+        <XCircle class="w-4 h-4 mr-2" />
+        Application rejected
+      </div>
+    </div>
+
+    <div v-if="userPolicy.status === 'EXPIRED'" class="mt-4 pt-4 border-t border-slate-100">
+      <div class="flex items-center text-sm text-gray-600">
+        <AlertTriangle class="w-4 h-4 mr-2" />
+        Policy expired
       </div>
     </div>
   </div>
@@ -100,7 +125,7 @@ const getStatusStyle = (status: string) => {
     ACTIVE: 'bg-blue-100 text-blue-800 border border-blue-200',
     EXPIRED: 'bg-gray-100 text-gray-800 border border-gray-200',
   }
-  return styles[status] || styles.PENDING
+  return styles[status as keyof typeof styles] || styles.PENDING
 }
 
 const getStatusIcon = (status: string) => {
@@ -111,7 +136,7 @@ const getStatusIcon = (status: string) => {
     ACTIVE: Shield,
     EXPIRED: AlertTriangle,
   }
-  return icons[status] || Clock
+  return icons[status as keyof typeof icons] || Clock
 }
 
 const getStatusText = (status: string) => {
@@ -122,7 +147,7 @@ const getStatusText = (status: string) => {
     ACTIVE: 'Active',
     EXPIRED: 'Expired',
   }
-  return texts[status] || status
+  return texts[status as keyof typeof texts] || status
 }
 
 const formatINR = (amount: number): string => {
@@ -140,5 +165,24 @@ const formatDate = (dateString: string): string => {
     month: 'short',
     day: 'numeric',
   })
+}
+
+const calculateDuration = (startDate: string, endDate: string): string => {
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const diffTime = Math.abs(end.getTime() - start.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const diffMonths = Math.round(diffDays / 30)
+
+  if (diffMonths >= 12) {
+    const years = Math.floor(diffMonths / 12)
+    const remainingMonths = diffMonths % 12
+    if (remainingMonths === 0) {
+      return `${years} year${years > 1 ? 's' : ''}`
+    }
+    return `${years}y ${remainingMonths}m`
+  }
+
+  return `${diffMonths} month${diffMonths > 1 ? 's' : ''}`
 }
 </script>

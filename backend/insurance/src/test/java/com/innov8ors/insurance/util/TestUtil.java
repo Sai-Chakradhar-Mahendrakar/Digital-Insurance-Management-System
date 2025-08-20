@@ -6,13 +6,13 @@ import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.Role;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.request.PolicyCreateRequest;
+import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.request.UserCreateRequest;
 import com.innov8ors.insurance.request.UserLoginRequest;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -36,14 +36,14 @@ public class TestUtil {
     public static final String TEST_POLICY_NAME = "Test Policy";
     public static final String TEST_POLICY_TYPE = "Health";
     public static final String TEST_POLICY_DESCRIPTION = "This is a test policy description.";
-    public static final Double TEST_POLICY_PREMIUM_AMOUNT = 100.0;
-    public static final Double TEST_POLICY_COVERAGE_AMOUNT = 10000.0;
+    public static final BigDecimal TEST_POLICY_PREMIUM_AMOUNT = BigDecimal.valueOf(100);
+    public static final BigDecimal TEST_POLICY_COVERAGE_AMOUNT = BigDecimal.valueOf(10000);
     public static final Integer TEST_POLICY_DURATION_MONTHS = 12; // Assuming a default duration of 12 months
     public static final Long TEST_USER_POLICY_ID = 2L;
     public static final LocalDateTime TEST_POLICY_START_DATE = LocalDateTime.now();
     public static final LocalDateTime TEST_POLICY_END_DATE = LocalDateTime.now().plusMonths(TEST_POLICY_DURATION_MONTHS);
     public static final UserPolicyStatus TEST_USER_POLICY_STATUS = UserPolicyStatus.ACTIVE;
-    public static final BigDecimal TEST_POLICY_PREMIUM_PAID = BigDecimal.valueOf(TEST_POLICY_PREMIUM_AMOUNT);
+    public static final BigDecimal TEST_POLICY_PREMIUM_PAID = TEST_POLICY_PREMIUM_AMOUNT;
 
 
     public static User getUser() {
@@ -120,6 +120,7 @@ public class TestUtil {
                 .status(TEST_USER_POLICY_STATUS)
                 .premiumPaid(TEST_POLICY_PREMIUM_PAID)
                 .policy(getTestPolicy())
+                .user(getUser())
                 .build();
     }
 
@@ -203,6 +204,7 @@ public class TestUtil {
                                 .name("Health Policy 2")
                                 .type("Health")
                                 .build())
+                        .user(getUser())
                         .build(),
                 UserPolicy.builder()
                         .id(3L)
@@ -217,6 +219,7 @@ public class TestUtil {
                                 .name("Life Policy 3")
                                 .type("Life")
                                 .build())
+                        .user(getUser())
                         .build()
         );
         return new PageImpl<>(userPolicies, PageRequest.of(0, 10), userPolicies.size());
@@ -232,6 +235,7 @@ public class TestUtil {
                 .status(TEST_USER_POLICY_STATUS)
                 .premiumPaid(TEST_POLICY_PREMIUM_PAID)
                 .policy(getTestPolicy()) // Associate the Policy entity
+                .user(getUser())
                 .build();
     }
 
