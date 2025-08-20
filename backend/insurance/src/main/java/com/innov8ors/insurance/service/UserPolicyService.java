@@ -1,5 +1,6 @@
 package com.innov8ors.insurance.service;
 
+import com.innov8ors.insurance.entity.User;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.response.UserPolicyResponse;
@@ -7,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
+
 public interface UserPolicyService {
 
 
@@ -27,4 +28,6 @@ public interface UserPolicyService {
 
     // adding this method getByUserIdAndPolicyId
     public UserPolicy getByUserIdAndPolicyId(Long userId, Long policyId);
+
+    Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size);
 }

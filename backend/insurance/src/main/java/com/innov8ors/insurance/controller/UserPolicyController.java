@@ -43,12 +43,4 @@ public class UserPolicyController {
         return ResponseEntity.ok(userPolicies);
     }
 
-    @PostMapping("/policy/{policyId}/payment")
-    public ResponseEntity<UserPolicy> makePayment(Authentication authentication,
-                                                     @PathVariable Long policyId) {
-        log.debug("Received request to make payment for policy ID: {}", policyId);
-        String userEmail = authentication.getName();
-        UserPolicy userPolicy = userPolicyService.makePayment(userEmail, policyId);
-        return ResponseEntity.ok(userPolicy);
-    }
 }
