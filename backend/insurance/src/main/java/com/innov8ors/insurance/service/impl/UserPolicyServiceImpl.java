@@ -9,6 +9,7 @@ import com.innov8ors.insurance.mapper.UserPolicyMapper;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.request.UserPolicyUpdateRequest;
+import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.UserPolicyService;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -44,26 +46,26 @@ public class UserPolicyServiceImpl implements UserPolicyService {
 
     @Transactional
     @Override
-    public UserPolicy purchasePolicy(String userEmail, PolicyPurchaseRequest request) {
+    public UserPolicyResponse purchasePolicy(String userEmail, PolicyPurchaseRequest request) {
         log.debug("Received request to purchase policy for user: {}", userEmail);
         User user = userService.getByEmail(userEmail);
         return purchasePolicy(user.getId(), request);
     }
 
     @Override
-    public Page<UserPolicyResponse> getUserPolicies(String userEmail, int page, int size) {
+    public UserPolicyPaginatedResponse getUserPolicies(String userEmail, Integer page, Integer size) {
         log.debug("Fetching policies for user: {}", userEmail);
         User user = userService.getByEmail(userEmail);
 
         Page<UserPolicy> userPolicies = userPolicyDao.findByUserIdWithPolicy(user.getId(), PageRequest.of(page, size, Sort.by(START_DATE_PLACEHOLDER).descending()));
 
 
-        return userPolicies.map(UserPolicyMapper::convertToResponse);
+        return UserPolicyMapper.getPolicyPaginatedResponse(userPolicies, page, size);
     }
 
     @Transactional
     @Override
-    public UserPolicy purchasePolicy(Long userId, PolicyPurchaseRequest request) {
+    public UserPolicyResponse purchasePolicy(Long userId, PolicyPurchaseRequest request) {
         Policy policy = policyService.getById(request.getPolicyId());
 
         if (isExistsByUserIdAndPolicyId(userId, request.getPolicyId())) {
@@ -82,7 +84,7 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         userPolicy.setUser(user);
         userPolicy.setPolicy(policy);
 
-        return userPolicy;
+        return UserPolicyMapper.convertToResponse(userPolicy);
     }
 
     @Override

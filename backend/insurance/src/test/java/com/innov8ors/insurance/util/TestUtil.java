@@ -131,6 +131,7 @@ public class TestUtil {
                 .status(TEST_USER_POLICY_STATUS)
                 .premiumPaid(TEST_POLICY_PREMIUM_PAID)
                 .policy(getTestPolicy())
+                .user(getUser())
                 .build();
     }
 
@@ -214,6 +215,7 @@ public class TestUtil {
                                 .name("Health Policy 2")
                                 .type("Health")
                                 .build())
+                        .user(getUser())
                         .build(),
                 UserPolicy.builder()
                         .id(3L)
@@ -228,6 +230,7 @@ public class TestUtil {
                                 .name("Life Policy 3")
                                 .type("Life")
                                 .build())
+                        .user(getUser())
                         .build()
         );
         return new PageImpl<>(userPolicies, PageRequest.of(0, 10), userPolicies.size());
@@ -243,6 +246,7 @@ public class TestUtil {
                 .status(TEST_USER_POLICY_STATUS)
                 .premiumPaid(TEST_POLICY_PREMIUM_PAID)
                 .policy(getTestPolicy()) // Associate the Policy entity
+                .user(getUser())
                 .build();
     }
 

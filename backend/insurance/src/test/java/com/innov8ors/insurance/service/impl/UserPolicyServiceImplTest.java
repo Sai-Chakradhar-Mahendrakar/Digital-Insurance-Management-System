@@ -6,6 +6,7 @@ import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.repository.dao.PolicyDao;
 import com.innov8ors.insurance.repository.dao.UserDao;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
+import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.UserPolicyService;
@@ -32,6 +33,34 @@ import static com.innov8ors.insurance.util.TestUtil.TEST_USER_POLICY_ID;
 import static com.innov8ors.insurance.util.TestUtil.getPolicyPurchaseRequest;
 import static com.innov8ors.insurance.util.TestUtil.getTestPolicy;
 import static com.innov8ors.insurance.util.TestUtil.getTestUser;
+import static com.innov8ors.insurance.util.TestUtil.getUserPolicy;
+import static com.innov8ors.insurance.util.TestUtil.getUserPolicyPage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_ID;
+import static com.innov8ors.insurance.util.TestUtil.TEST_USER_EMAIL;
+import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ID;
+import static com.innov8ors.insurance.util.TestUtil.TEST_USER_POLICY_ID;
+import static com.innov8ors.insurance.util.TestUtil.getPolicyPurchaseRequest;
+import static com.innov8ors.insurance.util.TestUtil.getTestPolicy;
+import static com.innov8ors.insurance.util.TestUtil.getTestUser;
+import static com.innov8ors.insurance.util.TestUtil.getUser;
 import static com.innov8ors.insurance.util.TestUtil.getUserPolicy;
 import static com.innov8ors.insurance.util.TestUtil.getUserPolicyPage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -96,9 +125,9 @@ public class UserPolicyServiceImplTest {
 
         doReturn(userPolicyPage)
                 .when(userPolicyDao)
-                .findByUserIdWithPolicy(anyLong(), any(PageRequest.class));
+                .findByUserIdWithPolicy(anyLong(), any());
 
-        Page<UserPolicyResponse> userPolicies = userPolicyService.getUserPolicies(TEST_USER_EMAIL, 0, 10);
+        UserPolicyPaginatedResponse userPolicies = userPolicyService.getUserPolicies(TEST_USER_EMAIL, 0, 10);
 
         assertEquals(userPolicyPage.getTotalElements(), userPolicies.getTotalElements());
         verify(userService).getByEmail(TEST_USER_EMAIL);
@@ -124,15 +153,11 @@ public class UserPolicyServiceImplTest {
                 .when(userPolicyDao)
                 .save(any(UserPolicy.class));
 
-        doReturn(Optional.of(getTestUser()))
-                .when(userDao)
-                .findById(anyLong());
+        doReturn(getUser())
+                .when(userService)
+                .getById(anyLong());
 
-        doReturn(Optional.of(getTestPolicy()))
-                .when(policyDao)
-                .findById(anyLong());
-
-        UserPolicy userPolicy = userPolicyService.purchasePolicy(TEST_USER_EMAIL, getPolicyPurchaseRequest());
+        UserPolicyResponse userPolicy = userPolicyService.purchasePolicy(TEST_USER_EMAIL, getPolicyPurchaseRequest());
 
         assertEquals(TEST_USER_POLICY_ID, userPolicy.getId());
         assertEquals(TEST_USER_ID, userPolicy.getUserId());
@@ -229,15 +254,15 @@ public class UserPolicyServiceImplTest {
                 .when(userPolicyDao)
                 .save(any(UserPolicy.class));
 
-        doReturn(Optional.of(getTestUser()))
-                .when(userDao)
-                .findById(anyLong());
-
         doReturn(Optional.of(getTestPolicy()))
                 .when(policyDao)
                 .findById(anyLong());
 
-        UserPolicy userPolicy = userPolicyService.purchasePolicy(TEST_USER_ID, getPolicyPurchaseRequest());
+        doReturn(getUser())
+                .when(userService)
+                .getById(any());
+
+        UserPolicyResponse userPolicy = userPolicyService.purchasePolicy(TEST_USER_ID, getPolicyPurchaseRequest());
 
         assertEquals(TEST_USER_POLICY_ID, userPolicy.getId());
         assertEquals(TEST_USER_ID, userPolicy.getUserId());
@@ -362,15 +387,11 @@ public class UserPolicyServiceImplTest {
                 .when(userPolicyDao)
                 .save(any(UserPolicy.class));
 
-        doReturn(Optional.of(getTestUser()))
-                .when(userDao)
-                .findById(anyLong());
+        doReturn(getUser())
+                .when(userService)
+                .getById(any());
 
-        doReturn(Optional.of(getTestPolicy()))
-                .when(policyDao)
-                .findById(anyLong());
-
-        UserPolicy userPolicy = userPolicyService.purchasePolicy(TEST_USER_ID, getPolicyPurchaseRequest());
+        UserPolicyResponse userPolicy = userPolicyService.purchasePolicy(TEST_USER_ID, getPolicyPurchaseRequest());
 
         assertNotNull(userPolicy);
         assertEquals(TEST_USER_ID, userPolicy.getUserId());
@@ -379,7 +400,6 @@ public class UserPolicyServiceImplTest {
         assertNotNull(userPolicy.getStartDate());
         assertNotNull(userPolicy.getEndDate());
 
-        Policy testPolicy = getTestPolicy();
         assertTrue(userPolicy.getEndDate().isAfter(userPolicy.getStartDate()));
 
         verify(policyService).getById(TEST_POLICY_ID);
