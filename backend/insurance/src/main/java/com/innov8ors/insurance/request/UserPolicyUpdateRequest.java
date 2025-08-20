@@ -1,4 +1,4 @@
-package com.innov8ors.insurance.response;
+package com.innov8ors.insurance.request;
 
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import lombok.AllArgsConstructor;
@@ -11,21 +11,16 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class UserPolicyResponse {
-    private Long id;
-    private Long policyId;
-    private String policyName;
-    private String policyType;
+@NoArgsConstructor
+public class UserPolicyUpdateRequest {
     private LocalDateTime startDate;
+
     private LocalDateTime endDate;
+
     private UserPolicyStatus status;
+
     private BigDecimal premiumPaid;
+
     private BigDecimal totalAmountClaimed;
-    private Long userId;
-    private String userName;
-    private String userEmail;
-    private String userPhone;
-    private String userAddress;
 }

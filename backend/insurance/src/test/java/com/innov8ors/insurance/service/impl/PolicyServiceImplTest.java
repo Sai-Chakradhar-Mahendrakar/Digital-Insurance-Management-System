@@ -1,7 +1,6 @@
 package com.innov8ors.insurance.service.impl;
 
 import com.innov8ors.insurance.entity.Policy;
-import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.repository.dao.PolicyDao;
 import com.innov8ors.insurance.service.PolicyService;
 import org.junit.jupiter.api.AfterEach;
@@ -10,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.data.domain.Page;
 
-import static com.innov8ors.insurance.util.Constant.ErrorMessage.POLICY_NOT_FOUND;
 import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_COVERAGE_AMOUNT;
 import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_DESCRIPTION;
 import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_DURATION_MONTHS;
@@ -22,8 +20,6 @@ import static com.innov8ors.insurance.util.TestUtil.getPoliciesPage;
 import static com.innov8ors.insurance.util.TestUtil.getPolicy;
 import static com.innov8ors.insurance.util.TestUtil.getPolicyCreateRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
