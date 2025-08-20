@@ -10,15 +10,15 @@
           <Shield class="w-5 h-5 text-blue-600" />
         </div>
         <div>
-          <h3 class="font-semibold text-slate-900">{{ userPolicy.policy.name }}</h3>
-          <p class="text-sm text-slate-500">{{ userPolicy.policy.type }} Insurance</p>
+          <h3 class="font-semibold text-slate-900">{{ userPolicy.policyName }}</h3>
+          <p class="text-sm text-slate-500">{{ userPolicy.policyType }} Insurance</p>
         </div>
       </div>
 
       <!-- Status Badge -->
       <div
         :class="getStatusStyle(userPolicy.status)"
-        class="px-3 py-1 rounded-full text-xs font-medium"
+        class="px-3 py-1 rounded-full text-xs font-medium flex items-center"
       >
         <component :is="getStatusIcon(userPolicy.status)" class="w-3 h-3 mr-1" />
         {{ getStatusText(userPolicy.status) }}
@@ -32,32 +32,25 @@
         <span class="font-semibold text-slate-900">{{ formatINR(userPolicy.premiumPaid) }}</span>
       </div>
       <div class="flex justify-between text-sm">
-        <span class="text-slate-500">Coverage</span>
-        <span class="font-semibold text-slate-900">{{
-          formatINR(userPolicy.policy.coverageAmount)
-        }}</span>
+        <span class="text-slate-500">Policy ID</span>
+        <span class="font-semibold text-slate-900">#{{ userPolicy.policyId }}</span>
       </div>
       <div class="flex justify-between text-sm">
-        <span class="text-slate-500">Duration</span>
-        <span class="font-semibold text-slate-900"
-          >{{ userPolicy.policy.durationMonths }} months</span
-        >
+        <span class="text-slate-500">Start Date</span>
+        <span class="font-semibold text-slate-900">{{ formatDate(userPolicy.startDate) }}</span>
       </div>
       <div class="flex justify-between text-sm">
-        <span class="text-slate-500">Purchase Date</span>
-        <span class="font-semibold text-slate-900">{{ formatDate(userPolicy.purchaseDate) }}</span>
+        <span class="text-slate-500">End Date</span>
+        <span class="font-semibold text-slate-900">{{ formatDate(userPolicy.endDate) }}</span>
       </div>
     </div>
-
-    <!-- Description -->
-    <p class="text-slate-600 text-sm mb-4 line-clamp-2">{{ userPolicy.policy.description }}</p>
 
     <!-- Action Button -->
     <AppButton variant="ghost" size="small" @click="$emit('view', userPolicy)" class="w-full">
       View Details
     </AppButton>
 
-    <!-- Status Timeline (for pending/approved) -->
+    <!-- Status Timeline -->
     <div v-if="userPolicy.status === 'PENDING'" class="mt-4 pt-4 border-t border-slate-100">
       <div class="flex items-center text-sm text-slate-500">
         <Clock class="w-4 h-4 mr-2" />
@@ -65,13 +58,10 @@
       </div>
     </div>
 
-    <div
-      v-if="userPolicy.status === 'APPROVED' && userPolicy.approvalDate"
-      class="mt-4 pt-4 border-t border-slate-100"
-    >
+    <div v-if="userPolicy.status === 'ACTIVE'" class="mt-4 pt-4 border-t border-slate-100">
       <div class="flex items-center text-sm text-green-600">
         <CheckCircle class="w-4 h-4 mr-2" />
-        Approved on {{ formatDate(userPolicy.approvalDate) }}
+        Policy is active
       </div>
     </div>
   </div>
