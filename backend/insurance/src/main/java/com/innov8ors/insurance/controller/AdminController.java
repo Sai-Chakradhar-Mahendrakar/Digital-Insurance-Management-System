@@ -1,16 +1,18 @@
 package com.innov8ors.insurance.controller;
 
 import com.innov8ors.insurance.entity.Policy;
+import com.innov8ors.insurance.entity.SupportTicket;
+import com.innov8ors.insurance.enums.SupportTicketStatus;
 import com.innov8ors.insurance.request.PolicyCreateRequest;
+import com.innov8ors.insurance.request.SupportTicketUpdateRequest;
 import com.innov8ors.insurance.service.PolicyService;
+import com.innov8ors.insurance.service.SupportTicketService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -18,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class AdminController {
     private final PolicyService policyService;
+    private final SupportTicketService supportTicketService;
 
-    public AdminController(PolicyService policyService) {
+    public AdminController(PolicyService policyService, SupportTicketService supportTicketService) {
         this.policyService = policyService;
+        this.supportTicketService = supportTicketService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -28,5 +32,25 @@ public class AdminController {
     public Policy addPolicy(@Valid @RequestBody PolicyCreateRequest policyCreateRequest) {
         log.debug("Received request to add policy: {}", policyCreateRequest);
         return policyService.addPolicy(policyCreateRequest);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/support/{ticketId}")
+    public SupportTicket updateTicketStatus(
+            @PathVariable Long ticketId,
+            @RequestBody SupportTicketUpdateRequest request) {
+        log.info("Updating ticket status to RESOLVED for ticketId: {} with response: {}", ticketId, request.getResponse());
+        SupportTicket ticket = supportTicketService.updateTicketStatus(ticketId, request.getResponse(), SupportTicketStatus.RESOLVED);
+        log.info("Ticket {} status updated to RESOLVED", ticketId);
+        return ticket;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/support/fetchAll")
+    public List<SupportTicket> fetchAllTickets() {
+        log.info("Fetching all support tickets (admin only)");
+        List<SupportTicket> tickets = supportTicketService.fetchAllTickets();
+        log.info("Found {} tickets in total", tickets.size());
+        return tickets;
     }
 }
