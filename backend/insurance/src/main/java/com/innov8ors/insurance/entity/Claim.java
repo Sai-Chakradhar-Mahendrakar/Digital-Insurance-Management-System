@@ -52,7 +52,6 @@ public class Claim {
     private String reviewerComment;
 
     @Column(name = "resolved_date")
-    @CreationTimestamp
     private LocalDate resolvedDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
