@@ -2,7 +2,6 @@ package com.innov8ors.insurance.controller;
 
 import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.SupportTicket;
-import com.innov8ors.insurance.enums.SupportTicketStatus;
 import com.innov8ors.insurance.request.PolicyCreateRequest;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import com.innov8ors.insurance.service.PolicyService;
@@ -55,9 +54,9 @@ public class AdminController {
     public SupportTicket updateTicketStatus(
             @PathVariable Long ticketId,
             @Valid @RequestBody SupportTicketUpdateRequest request) {
-        log.info("Updating ticket status to RESOLVED for ticketId: {} with response: {}", ticketId, request.getResponse());
-        SupportTicket ticket = supportTicketService.updateTicketStatus(ticketId, request.getResponse(), SupportTicketStatus.RESOLVED);
-        log.info("Ticket {} status updated to RESOLVED", ticketId);
+        log.info("Updating ticket status to {} for ticketId: {} with response: {}", request.getStatus(), ticketId, request.getResponse());
+        SupportTicket ticket = supportTicketService.updateTicketStatus(ticketId, request.getResponse(), request.getStatus());
+        log.info("Ticket {} status updated to {}", ticketId, request.getStatus());
         return ticket;
     }
 
