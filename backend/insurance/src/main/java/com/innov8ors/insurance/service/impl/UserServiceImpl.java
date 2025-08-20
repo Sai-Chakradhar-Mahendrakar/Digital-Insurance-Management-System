@@ -68,6 +68,13 @@ public class UserServiceImpl implements UserService {
         return checkAndGetUser(email);
     }
 
+    @Override
+    public User getById(Long id) {
+        log.debug("Fetching user by ID: {}", id);
+        return userDao.findById(id)
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
+    }
+
     private void validateCredentials(UserLoginRequest userLoginRequest, User user) {
         if (!matchPasswordAndHash(userLoginRequest.getPassword(), user.getPasswordHash())) {
             log.error("Incorrect password for user with email {}", userLoginRequest.getEmail());

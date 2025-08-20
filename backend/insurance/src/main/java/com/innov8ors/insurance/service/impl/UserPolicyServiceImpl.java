@@ -4,6 +4,7 @@ import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.User;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
+import com.innov8ors.insurance.exception.AlreadyExistsException;
 import com.innov8ors.insurance.mapper.UserPolicyMapper;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
 import com.innov8ors.insurance.repository.dao.UserDao;
@@ -25,6 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.USER_ALREADY_HAS_POLICY;
 import static com.innov8ors.insurance.util.Constant.UserPolicyConstants.START_DATE_PLACEHOLDER;
 
 @Service
@@ -34,19 +36,13 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     private final UserPolicyDao userPolicyDao;
     private final UserService userService;
     private final PolicyService policyService;
-    private final UserDao userDao;
-    private final PolicyDao policyDao;
 
     public UserPolicyServiceImpl(UserPolicyDao userPolicyDao,
                                  UserService userService,
-                                 PolicyService policyService,
-                                 UserDao userDao,
-                                 PolicyDao policyDao) {
+                                 PolicyService policyService) {
         this.userPolicyDao = userPolicyDao;
         this.userService = userService;
         this.policyService = policyService;
-        this.userDao = userDao;
-        this.policyDao = policyDao;
     }
 
     @Transactional
@@ -75,7 +71,7 @@ public class UserPolicyServiceImpl implements UserPolicyService {
 
         if (isExistsByUserIdAndPolicyId(userId, request.getPolicyId())) {
             log.error("User with ID {} already has policy with ID {}", userId, request.getPolicyId());
-            throw new RuntimeException("User already has this policy");
+            throw new AlreadyExistsException(USER_ALREADY_HAS_POLICY);
         }
 
         UserPolicy userPolicy = getUserPolicy(userId, request, policy);
@@ -84,11 +80,10 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         userPolicy = userPolicyDao.save(userPolicy);
 
         // Manually load the relationships
-        User user = userDao.findById(userId).orElse(null);
-        Policy policyEntity = policyDao.findById(request.getPolicyId()).orElse(null);
+        User user = userService.getById(userId);
 
         userPolicy.setUser(user);
-        userPolicy.setPolicy(policyEntity);
+        userPolicy.setPolicy(policy);
 
         return userPolicy;
     }
