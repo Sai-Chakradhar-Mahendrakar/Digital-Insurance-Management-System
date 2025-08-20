@@ -122,4 +122,14 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     public boolean isExistsByUserIdAndPolicyId(Long userId, Long policyId) {
         return userPolicyDao.existsByUserIdAndPolicyId(userId, policyId);
     }
+
+    @Override
+    public UserPolicy getByUserIdAndPolicyId(Long userId, Long policyId) {
+
+        return userPolicyDao.findByUserIdAndPolicyId(userId, policyId)
+                .orElseThrow(() -> {
+                    log.error("User Policy not found for user ID: {} and policy ID: {}", userId, policyId);
+                    return new RuntimeException("User Policy not found for user ID: " + userId + " and policy ID: " + policyId);
+                });
+    }
 }
