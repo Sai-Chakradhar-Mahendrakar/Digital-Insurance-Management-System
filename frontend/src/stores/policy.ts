@@ -22,7 +22,6 @@ export const usePolicyStore = defineStore('policy', () => {
         headers: {
           Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
         },
-        credentials: 'include',
       })
 
       if (!response.ok) {
