@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String login(UserLoginRequest userLoginRequest) {
-        User user = checkAndGetUser(userLoginRequest);
+        User user = checkAndGetUser(userLoginRequest.getEmail());
         validateCredentials(userLoginRequest, user);
         log.debug("User {} logged in successfully", user.getEmail());
         return getTokenForUser(user);
@@ -62,6 +62,19 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
+    @Override
+    public User getByEmail(String email) {
+        log.debug("Fetching user by email: {}", email);
+        return checkAndGetUser(email);
+    }
+
+    @Override
+    public User getById(Long id) {
+        log.debug("Fetching user by ID: {}", id);
+        return userDao.findById(id)
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
+    }
+
     private void validateCredentials(UserLoginRequest userLoginRequest, User user) {
         if (!matchPasswordAndHash(userLoginRequest.getPassword(), user.getPasswordHash())) {
             log.error("Incorrect password for user with email {}", userLoginRequest.getEmail());
@@ -69,10 +82,10 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private User checkAndGetUser(UserLoginRequest userLoginRequest) {
-        Optional<User> userOptional = userDao.getByEmail(userLoginRequest.getEmail());
+    private User checkAndGetUser(String email) {
+        Optional<User> userOptional = userDao.getByEmail(email);
         if (userOptional.isEmpty()) {
-            log.error("User with email {} not found", userLoginRequest.getEmail());
+            log.error("User with email {} not found", email);
             throw new NotFoundException(USER_NOT_FOUND);
         }
         return userOptional.get();

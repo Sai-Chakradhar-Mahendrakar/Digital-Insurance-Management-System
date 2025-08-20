@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -35,16 +36,16 @@ public class Policy {
     private String description;
 
     @Column(name = "premium_amount", nullable = false)
-    private Double premiumAmount;
+    private BigDecimal premiumAmount;
 
     @Column(name = "coverage_amount", nullable = false)
-    private Double coverageAmount;
+    private BigDecimal coverageAmount;
 
     @Column(name = "duration_months", nullable = false)
     private Integer durationMonths;
 
     @Column(name = "renewal_premium_rate", nullable = false)
-    private Double renewalPremiumRate;
+    private BigDecimal renewalPremiumRate;
 
     @Column(name = "created_at")
     @CreationTimestamp

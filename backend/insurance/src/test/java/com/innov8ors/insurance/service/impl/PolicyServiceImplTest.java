@@ -97,34 +97,4 @@ public class PolicyServiceImplTest {
             assertEquals("error", ignored.getMessage());
         }
     }
-
-    @Test
-    public void testSuccessfulValidateIfPolicyExists() {
-        doReturn(true)
-                .when(policyDao)
-                .policyExistsById(TEST_POLICY_ID);
-
-        Boolean exists = policyService.validateIfPolicyExists(TEST_POLICY_ID);
-
-        assertTrue(exists);
-        verify(policyDao).policyExistsById(TEST_POLICY_ID);
-        verifyNoMoreInteractions(policyDao);
-    }
-
-    @Test
-    public void testFailureValidateIfPolicyExistsDueToNotFound() {
-        doReturn(false)
-                .when(policyDao)
-                .policyExistsById(TEST_POLICY_ID);
-
-        try {
-            policyService.validateIfPolicyExists(TEST_POLICY_ID);
-            fail("Expected NotFoundException to be thrown");
-        } catch (Exception e) {
-            assertInstanceOf(NotFoundException.class, e);
-            assertEquals(POLICY_NOT_FOUND, e.getMessage());
-            verify(policyDao).policyExistsById(TEST_POLICY_ID);
-            verifyNoMoreInteractions(policyDao);
-        }
-    }
 }

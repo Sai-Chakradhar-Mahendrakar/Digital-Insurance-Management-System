@@ -14,6 +14,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 import static com.innov8ors.insurance.mapper.PolicyMapper.getPolicyFromRequest;
 import static com.innov8ors.insurance.util.Constant.ErrorMessage.POLICY_NOT_FOUND;
 import static com.innov8ors.insurance.util.Constant.PolicyConstants.POLICY_NAME_PLACEHOLDER;
@@ -43,14 +45,15 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public Boolean validateIfPolicyExists(Long policyId) {
+    public Policy getById(Long policyId) {
         log.debug("Checking if policy exists with ID: {}", policyId);
-        if(!policyDao.policyExistsById(policyId)) {
-            log.info("Policy with ID {} does not exist", policyId);
+        Optional<Policy> policyOptional = policyDao.findById(policyId);
+        if(policyOptional.isEmpty()) {
+            log.error("Policy with ID {} not found", policyId);
             throw new NotFoundException(POLICY_NOT_FOUND);
         }
-        log.info("Policy with ID {} exists", policyId);
-        return true;
+        log.info("Policy found: {}", policyOptional.get());
+        return policyOptional.get();
     }
 
     private Specification<Policy> getPoliciesQuery(String type) {
