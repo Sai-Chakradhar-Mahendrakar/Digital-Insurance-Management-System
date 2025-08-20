@@ -168,7 +168,7 @@ public class UserPolicyServiceImplTest {
             userPolicyService.getByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
         });
 
-        assertTrue(exception.getMessage().contains("User Policy not found"));
+        assertTrue(exception.getMessage().contains(USER_ALREADY_HAS_POLICY));
         verify(userPolicyDao).findByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
         verifyNoMoreInteractions(userPolicyDao);
     }

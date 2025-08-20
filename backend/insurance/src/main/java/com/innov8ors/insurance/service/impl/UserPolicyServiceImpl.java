@@ -132,4 +132,11 @@ public class UserPolicyServiceImpl implements UserPolicyService {
                     return new RuntimeException("User Policy not found for user ID: " + userId + " and policy ID: " + policyId);
                 });
     }
+
+//    @Override
+//    public Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size) {
+//        log.debug("Fetching users for policy ID: {}", policyId);
+//        Page<UserPolicy> userPolicies = userPolicyDao.findByPolicyIdWithPolicy(policyId, PageRequest.of(page, size));
+//        return userPolicies.map(UserPolicyMapper::convertToResponse);
+//    }
 }
