@@ -28,6 +28,7 @@ public class UserPolicyMapper {
                 .userEmail(userPolicy.getUser().getEmail())
                 .userPhone(userPolicy.getUser().getPhone())
                 .userAddress(userPolicy.getUser().getAddress())
+                .coverageAmount(userPolicy.getPolicy().getCoverageAmount())
                 .build();
     }
 
