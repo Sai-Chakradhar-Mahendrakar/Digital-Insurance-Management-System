@@ -53,7 +53,7 @@ public class SupportTicketController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/{ticketId}")
+    @PatchMapping("/admin/{ticketId}")
     public SupportTicket updateTicketStatus(
             @PathVariable Long ticketId,
             @RequestBody SupportTicketUpdateRequest request) {
@@ -64,7 +64,7 @@ public class SupportTicketController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/fetchAll")
+    @GetMapping("/admin/fetchAll")
     public List<SupportTicket> fetchAllTickets() {
         log.info("Fetching all support tickets (admin only)");
         List<SupportTicket> tickets = supportTicketService.fetchAllTickets();
