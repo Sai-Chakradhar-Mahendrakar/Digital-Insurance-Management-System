@@ -7,9 +7,8 @@ import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.exception.AlreadyExistsException;
 import com.innov8ors.insurance.mapper.UserPolicyMapper;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
-import com.innov8ors.insurance.repository.dao.UserDao;
-import com.innov8ors.insurance.repository.dao.PolicyDao;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
+import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.UserPolicyService;
@@ -20,7 +19,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -54,14 +52,14 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     }
 
     @Override
-    public Page<UserPolicyResponse> getUserPolicies(String userEmail, int page, int size) {
+    public UserPolicyPaginatedResponse getUserPolicies(String userEmail, Integer page, Integer size) {
         log.debug("Fetching policies for user: {}", userEmail);
         User user = userService.getByEmail(userEmail);
 
         Page<UserPolicy> userPolicies = userPolicyDao.findByUserIdWithPolicy(user.getId(), PageRequest.of(page, size, Sort.by(START_DATE_PLACEHOLDER).descending()));
 
 
-        return userPolicies.map(UserPolicyMapper::convertToResponse);
+        return UserPolicyMapper.getPolicyPaginatedResponse(userPolicies, page, size);
     }
 
     @Transactional

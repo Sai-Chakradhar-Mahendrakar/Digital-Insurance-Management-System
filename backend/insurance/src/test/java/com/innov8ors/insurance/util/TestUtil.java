@@ -6,13 +6,13 @@ import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.Role;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.request.PolicyCreateRequest;
+import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.request.UserCreateRequest;
 import com.innov8ors.insurance.request.UserLoginRequest;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
