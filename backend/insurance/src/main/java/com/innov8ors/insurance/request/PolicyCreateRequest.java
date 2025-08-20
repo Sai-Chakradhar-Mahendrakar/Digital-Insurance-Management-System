@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,11 +27,11 @@ public class PolicyCreateRequest {
 
     @NotNull
     @Positive
-    private Double premiumAmount;
+    private BigDecimal premiumAmount;
 
     @NotNull
     @Positive
-    private Double coverageAmount;
+    private BigDecimal coverageAmount;
 
     @NotNull
     @Min(value = 1, message = "Duration must be at least 1 month")
@@ -37,5 +39,5 @@ public class PolicyCreateRequest {
 
     @NotNull
     @Positive
-    private Double renewalPremiumRate;
+    private BigDecimal renewalPremiumRate;
 }

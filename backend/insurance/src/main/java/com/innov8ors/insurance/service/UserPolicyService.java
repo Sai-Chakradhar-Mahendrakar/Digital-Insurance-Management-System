@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 
 public interface UserPolicyService {
 
@@ -24,10 +26,12 @@ public interface UserPolicyService {
 
     UserPolicy makePayment(String userEmail, Long policyId);
 
-    public boolean isExistsByUserIdAndPolicyId(Long userId, Long policyId);
+    boolean isExistsByUserIdAndPolicyId(Long userId, Long policyId);
 
-    // adding this method getByUserIdAndPolicyId
-    public UserPolicy getByUserIdAndPolicyId(Long userId, Long policyId);
+
+    UserPolicy getByUserIdAndPolicyId(Long userId, Long policyId);
 
     Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size);
+
+    UserPolicy updateUserPolicy(Long userId, Long policyId, BigDecimal claimAmount);
 }

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -154,5 +155,41 @@ public class UserPolicyServiceImpl implements UserPolicyService {
                 .status(userPolicy.getStatus())
                 .premiumPaid(userPolicy.getPremiumPaid())
                 .build());
+    }
+
+    @Override
+    public UserPolicy updateUserPolicy(Long userId, Long policyId, BigDecimal claimAmount) {
+        log.debug("Updating user policy for user ID: {}, policy ID: {}", userId, policyId);
+        UserPolicy userPolicy = getByUserIdAndPolicyId(userId, policyId);
+
+        Policy policy = userPolicy.getPolicy();
+        if (policy == null) {
+            log.error("Policy not found for user policy ID: {}", userPolicy.getId());
+            throw new RuntimeException("Policy not found for user policy ID: " + userPolicy.getId());
+        }
+
+        BigDecimal coverageAmount = policy.getCoverageAmount();
+        BigDecimal currentClaimed = userPolicy.getTotalAmountClaimed() != null
+                ? userPolicy.getTotalAmountClaimed()
+                : BigDecimal.ZERO;
+
+        if (claimAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Claim amount must be positive");
+        }
+
+        BigDecimal remainingAmount = coverageAmount.subtract(currentClaimed);
+
+        if (claimAmount.compareTo(remainingAmount) > 0) {
+            throw new RuntimeException("Claim amount " + claimAmount +
+                    " exceeds remaining coverage of " + remainingAmount);
+        }
+
+        BigDecimal newTotalClaimed = currentClaimed.add(claimAmount);
+        userPolicy.setTotalAmountClaimed(newTotalClaimed);
+
+        log.debug("Updated total claimed from {} to {}, remaining: {}",
+                currentClaimed, newTotalClaimed, coverageAmount.subtract(newTotalClaimed));
+
+        return userPolicyDao.save(userPolicy);
     }
 }
