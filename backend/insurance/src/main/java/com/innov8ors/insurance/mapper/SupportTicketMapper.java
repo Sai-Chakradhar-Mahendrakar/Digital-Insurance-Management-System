@@ -7,9 +7,9 @@ import com.innov8ors.insurance.request.SupportTicketCreateRequest;
 import java.time.LocalDateTime;
 
 public class SupportTicketMapper {
-    public static SupportTicket fromCreateRequest(SupportTicketCreateRequest request) {
+    public static SupportTicket fromCreateRequest(SupportTicketCreateRequest request, Long userId) {
         SupportTicket ticket = new SupportTicket();
-        ticket.setUserId(request.getUserId());
+        ticket.setUserId(userId);
         ticket.setPolicyId(request.getPolicyId());
         ticket.setClaimId(request.getClaimId());
         ticket.setSubject(request.getSubject());

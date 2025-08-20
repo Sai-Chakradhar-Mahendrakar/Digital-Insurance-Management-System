@@ -6,8 +6,7 @@ import com.innov8ors.insurance.request.SupportTicketCreateRequest;
 import java.util.List;
 
 public interface SupportTicketService {
-    SupportTicket createTicket(SupportTicketCreateRequest request);
+    SupportTicket createTicket(SupportTicketCreateRequest request, Long userId);
     List<SupportTicket> getTicketsByUser(Long userId);
     SupportTicket updateTicketStatus(Long ticketId, String response, SupportTicketStatus status);
 }
-
