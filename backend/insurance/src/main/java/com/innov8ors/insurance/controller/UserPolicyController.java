@@ -1,6 +1,5 @@
 package com.innov8ors.insurance.controller;
 
-import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;

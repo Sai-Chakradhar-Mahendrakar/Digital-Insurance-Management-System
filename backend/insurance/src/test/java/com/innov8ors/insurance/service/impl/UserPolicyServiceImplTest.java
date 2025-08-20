@@ -1,6 +1,5 @@
 package com.innov8ors.insurance.service.impl;
 
-import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.repository.dao.PolicyDao;
@@ -26,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.innov8ors.insurance.util.Constant.ErrorMessage.USER_ALREADY_HAS_POLICY;
+import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_COVERAGE_AMOUNT;
 import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_ID;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_EMAIL;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ID;
@@ -135,6 +135,7 @@ public class UserPolicyServiceImplTest {
         assertEquals(TEST_USER_POLICY_ID, userPolicy.getId());
         assertEquals(TEST_USER_ID, userPolicy.getUserId());
         assertEquals(TEST_POLICY_ID, userPolicy.getPolicyId());
+        assertEquals(TEST_POLICY_COVERAGE_AMOUNT, userPolicy.getCoverageAmount());
         verify(userService).getByEmail(TEST_USER_EMAIL);
         verify(policyService).getById(TEST_POLICY_ID);
         verify(userPolicyDao).existsByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
@@ -240,6 +241,7 @@ public class UserPolicyServiceImplTest {
         assertEquals(TEST_USER_POLICY_ID, userPolicy.getId());
         assertEquals(TEST_USER_ID, userPolicy.getUserId());
         assertEquals(TEST_POLICY_ID, userPolicy.getPolicyId());
+        assertEquals(TEST_POLICY_COVERAGE_AMOUNT, userPolicy.getCoverageAmount());
         assertEquals(UserPolicyStatus.ACTIVE, userPolicy.getStatus());
         verify(policyService).getById(TEST_POLICY_ID);
         verify(userPolicyDao).existsByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);

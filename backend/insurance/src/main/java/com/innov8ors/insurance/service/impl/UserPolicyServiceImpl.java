@@ -8,6 +8,7 @@ import com.innov8ors.insurance.exception.AlreadyExistsException;
 import com.innov8ors.insurance.mapper.UserPolicyMapper;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
+import com.innov8ors.insurance.request.UserPolicyUpdateRequest;
 import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import com.innov8ors.insurance.service.PolicyService;
@@ -151,38 +152,27 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     }
 
     @Override
-    public UserPolicy updateUserPolicy(Long userId, Long policyId, BigDecimal claimAmount) {
+    public UserPolicy updateUserPolicy(Long userId, Long policyId, UserPolicyUpdateRequest userPolicyUpdateRequest) {
         log.debug("Updating user policy for user ID: {}, policy ID: {}", userId, policyId);
         UserPolicy userPolicy = getByUserIdAndPolicyId(userId, policyId);
 
-        Policy policy = userPolicy.getPolicy();
-        if (policy == null) {
-            log.error("Policy not found for user policy ID: {}", userPolicy.getId());
-            throw new RuntimeException("Policy not found for user policy ID: " + userPolicy.getId());
+        if (userPolicyUpdateRequest.getStartDate() != null) {
+            userPolicy.setStartDate(userPolicyUpdateRequest.getStartDate());
         }
-
-        BigDecimal coverageAmount = policy.getCoverageAmount();
-        BigDecimal currentClaimed = userPolicy.getTotalAmountClaimed() != null
-                ? userPolicy.getTotalAmountClaimed()
-                : BigDecimal.ZERO;
-
-        if (claimAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Claim amount must be positive");
+        if (userPolicyUpdateRequest.getEndDate() != null) {
+            userPolicy.setEndDate(userPolicyUpdateRequest.getEndDate());
         }
-
-        BigDecimal remainingAmount = coverageAmount.subtract(currentClaimed);
-
-        if (claimAmount.compareTo(remainingAmount) > 0) {
-            throw new RuntimeException("Claim amount " + claimAmount +
-                    " exceeds remaining coverage of " + remainingAmount);
+        if (userPolicyUpdateRequest.getStatus() != null) {
+            userPolicy.setStatus(userPolicyUpdateRequest.getStatus());
         }
+        if (userPolicyUpdateRequest.getPremiumPaid() != null) {
+            userPolicy.setPremiumPaid(userPolicyUpdateRequest.getPremiumPaid());
+        }
+        if (userPolicyUpdateRequest.getTotalAmountClaimed() != null) {
+            userPolicy.setTotalAmountClaimed(userPolicyUpdateRequest.getTotalAmountClaimed());
+        }
+        log.info("Saving updated user policy for user ID: {}, policy ID: {}", userId, policyId);
 
-        BigDecimal newTotalClaimed = currentClaimed.add(claimAmount);
-        userPolicy.setTotalAmountClaimed(newTotalClaimed);
-
-        log.debug("Updated total claimed from {} to {}, remaining: {}",
-                currentClaimed, newTotalClaimed, coverageAmount.subtract(newTotalClaimed));
-
-        return userPolicyDao.save(userPolicy);
+        return userPolicyDao.persist(userPolicy);
     }
 }
