@@ -1,8 +1,7 @@
 package com.innov8ors.insurance.request;
 
-import lombok.Data;
 import com.innov8ors.insurance.enums.SupportTicketStatus;
-import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public class SupportTicketUpdateRequest {

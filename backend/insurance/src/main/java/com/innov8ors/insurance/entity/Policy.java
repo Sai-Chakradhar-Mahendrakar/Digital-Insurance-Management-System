@@ -38,7 +38,7 @@ public class Policy {
     @Column(name = "premium_amount", nullable = false)
     private BigDecimal premiumAmount;
 
-    @Column(name = "coverage_amount", nullable = false)
+    @Column(name = "coverage_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal coverageAmount;
 
     @Column(name = "duration_months", nullable = false)

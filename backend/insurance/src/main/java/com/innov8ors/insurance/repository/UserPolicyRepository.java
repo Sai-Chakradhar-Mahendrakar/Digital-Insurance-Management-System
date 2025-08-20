@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserPolicyRepository extends BaseRepository<UserPolicy, Long> {
@@ -20,4 +21,6 @@ public interface UserPolicyRepository extends BaseRepository<UserPolicy, Long> {
     List<UserPolicy> findByStatusAndEndDateBefore(UserPolicyStatus status, LocalDateTime date);
 
     boolean existsByUserIdAndPolicyId(Long userId, Long policyId);
+
+    Optional<UserPolicy> findByIdAndUserId(Long id, Long userId);
 }

@@ -1,6 +1,5 @@
 package com.innov8ors.insurance.service.impl;
 
-import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.repository.dao.PolicyDao;
