@@ -18,7 +18,7 @@
       <!-- Status Badge -->
       <div
         :class="getStatusStyle(userPolicy.status)"
-        class="px-3 py-1 rounded-full text-xs font-medium"
+        class="px-3 py-1 rounded-full text-xs font-medium flex items-center"
       >
         <component :is="getStatusIcon(userPolicy.status)" class="w-3 h-3 mr-1" />
         {{ getStatusText(userPolicy.status) }}
@@ -33,31 +33,35 @@
       </div>
       <div class="flex justify-between text-sm">
         <span class="text-slate-500">Coverage</span>
-        <span class="font-semibold text-slate-900">{{
-          formatINR(userPolicy.policy.coverageAmount)
-        }}</span>
+        <span class="font-semibold text-slate-900">
+          {{ formatINR(userPolicy.policy.coverageAmount) }}
+        </span>
       </div>
       <div class="flex justify-between text-sm">
         <span class="text-slate-500">Duration</span>
-        <span class="font-semibold text-slate-900"
-          >{{ userPolicy.policy.durationMonths }} months</span
-        >
+        <span class="font-semibold text-slate-900">
+          {{ userPolicy.policy.durationMonths }} months
+        </span>
       </div>
       <div class="flex justify-between text-sm">
         <span class="text-slate-500">Purchase Date</span>
-        <span class="font-semibold text-slate-900">{{ formatDate(userPolicy.purchaseDate) }}</span>
+        <span class="font-semibold text-slate-900">
+          {{ formatDate(userPolicy.purchaseDate) }}
+        </span>
       </div>
     </div>
 
     <!-- Description -->
-    <p class="text-slate-600 text-sm mb-4 line-clamp-2">{{ userPolicy.policy.description }}</p>
+    <p class="text-slate-600 text-sm mb-4 line-clamp-2">
+      {{ userPolicy.policy.description }}
+    </p>
 
     <!-- Action Button -->
     <AppButton variant="ghost" size="small" @click="$emit('view', userPolicy)" class="w-full">
       View Details
     </AppButton>
 
-    <!-- Status Timeline (for pending/approved) -->
+    <!-- Status Timeline -->
     <div v-if="userPolicy.status === 'PENDING'" class="mt-4 pt-4 border-t border-slate-100">
       <div class="flex items-center text-sm text-slate-500">
         <Clock class="w-4 h-4 mr-2" />
@@ -82,18 +86,20 @@ import { Clock, CheckCircle, XCircle, AlertTriangle, Shield } from 'lucide-vue-n
 import AppButton from '@/components/common/AppButton.vue'
 import type { UserPolicy } from '@/stores/userPolicy'
 
+/** Props */
 interface Props {
   userPolicy: UserPolicy
 }
-
 defineProps<Props>()
 
+/** Emits */
 defineEmits<{
   (e: 'view', userPolicy: UserPolicy): void
 }>()
 
+/** Status style mapping */
 const getStatusStyle = (status: string) => {
-  const styles = {
+  const styles: Record<string, string> = {
     PENDING: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
     APPROVED: 'bg-green-100 text-green-800 border border-green-200',
     REJECTED: 'bg-red-100 text-red-800 border border-red-200',
@@ -103,8 +109,9 @@ const getStatusStyle = (status: string) => {
   return styles[status] || styles.PENDING
 }
 
+/** Status icon mapping */
 const getStatusIcon = (status: string) => {
-  const icons = {
+  const icons: Record<string, any> = {
     PENDING: Clock,
     APPROVED: CheckCircle,
     REJECTED: XCircle,
@@ -114,8 +121,9 @@ const getStatusIcon = (status: string) => {
   return icons[status] || Clock
 }
 
+/** Status text mapping */
 const getStatusText = (status: string) => {
-  const texts = {
+  const texts: Record<string, string> = {
     PENDING: 'Pending Approval',
     APPROVED: 'Approved',
     REJECTED: 'Rejected',
@@ -125,6 +133,7 @@ const getStatusText = (status: string) => {
   return texts[status] || status
 }
 
+/** Format currency in INR */
 const formatINR = (amount: number): string => {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -134,6 +143,7 @@ const formatINR = (amount: number): string => {
   }).format(amount)
 }
 
+/** Format date */
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString('en-IN', {
     year: 'numeric',

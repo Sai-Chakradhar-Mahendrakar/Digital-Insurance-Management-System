@@ -296,128 +296,110 @@ import {
 import AppButton from '@/components/common/AppButton.vue'
 import type { UserPolicy } from '@/stores/userPolicy'
 
+type PolicyStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'EXPIRED'
+
 interface Props {
-  userPolicy: UserPolicy
+  userPolicy: Omit<UserPolicy, 'status'> & { status: PolicyStatus }
 }
 
 defineProps<Props>()
+defineEmits<{ (e: 'close'): void }>()
 
-defineEmits<{
-  (e: 'close'): void
-}>()
-
-const getStatusStyle = (status: string) => {
-  const styles = {
-    PENDING: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
-    APPROVED: 'bg-green-100 text-green-800 border border-green-200',
-    REJECTED: 'bg-red-100 text-red-800 border border-red-200',
-    ACTIVE: 'bg-blue-100 text-blue-800 border border-blue-200',
-    EXPIRED: 'bg-gray-100 text-gray-800 border border-gray-200',
-  }
-  return styles[status] || styles.PENDING
+const STATUS_STYLES: Record<PolicyStatus, string> = {
+  PENDING: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+  APPROVED: 'bg-green-100 text-green-800 border border-green-200',
+  REJECTED: 'bg-red-100 text-red-800 border border-red-200',
+  ACTIVE: 'bg-blue-100 text-blue-800 border border-blue-200',
+  EXPIRED: 'bg-gray-100 text-gray-800 border border-gray-200',
 }
 
-const getStatusIcon = (status: string) => {
-  const icons = {
-    PENDING: Clock,
-    APPROVED: CheckCircle,
-    REJECTED: XCircle,
-    ACTIVE: Shield,
-    EXPIRED: AlertTriangle,
-  }
-  return icons[status] || Clock
+const STATUS_ICONS: Record<PolicyStatus, any> = {
+  PENDING: Clock,
+  APPROVED: CheckCircle,
+  REJECTED: XCircle,
+  ACTIVE: Shield,
+  EXPIRED: AlertTriangle,
 }
 
-const getStatusText = (status: string) => {
-  const texts = {
-    PENDING: 'Pending Approval',
-    APPROVED: 'Approved',
-    REJECTED: 'Rejected',
-    ACTIVE: 'Active',
-    EXPIRED: 'Expired',
-  }
-  return texts[status] || status
+const STATUS_TEXTS: Record<PolicyStatus, string> = {
+  PENDING: 'Pending Approval',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+  ACTIVE: 'Active',
+  EXPIRED: 'Expired',
 }
 
-const getTimelineIcon = (status: string) => {
-  const icons = {
-    PENDING: Hourglass,
-    APPROVED: UserCheck,
-    REJECTED: XCircle,
-    ACTIVE: Shield,
-    EXPIRED: AlertTriangle,
-  }
-  return icons[status] || Hourglass
+const TIMELINE_ICONS: Record<PolicyStatus, any> = {
+  PENDING: Hourglass,
+  APPROVED: UserCheck,
+  REJECTED: XCircle,
+  ACTIVE: Shield,
+  EXPIRED: AlertTriangle,
 }
 
-const getTimelineTitle = (status: string) => {
-  const titles = {
-    PENDING: 'Under Review',
-    APPROVED: 'Application Approved',
-    REJECTED: 'Application Rejected',
-    ACTIVE: 'Policy Activated',
-    EXPIRED: 'Policy Expired',
-  }
-  return titles[status] || 'Processing'
+const TIMELINE_TITLES: Record<PolicyStatus, string> = {
+  PENDING: 'Under Review',
+  APPROVED: 'Application Approved',
+  REJECTED: 'Application Rejected',
+  ACTIVE: 'Policy Activated',
+  EXPIRED: 'Policy Expired',
 }
 
-const getTimelineStatusIcon = (status: string) => {
-  const icons = {
-    PENDING: Clock,
-    APPROVED: CheckCircle,
-    REJECTED: XCircle,
-    ACTIVE: CheckCircle,
-    EXPIRED: XCircle,
-  }
-  return icons[status] || Clock
+const TIMELINE_STATUS_ICONS: Record<PolicyStatus, any> = {
+  PENDING: Clock,
+  APPROVED: CheckCircle,
+  REJECTED: XCircle,
+  ACTIVE: CheckCircle,
+  EXPIRED: XCircle,
 }
 
-const getTimelineStatusColor = (status: string) => {
-  const colors = {
-    PENDING: 'text-yellow-500',
-    APPROVED: 'text-green-500',
-    REJECTED: 'text-red-500',
-    ACTIVE: 'text-green-500',
-    EXPIRED: 'text-gray-500',
-  }
-  return colors[status] || 'text-yellow-500'
+const TIMELINE_STATUS_COLORS: Record<PolicyStatus, string> = {
+  PENDING: 'text-yellow-500',
+  APPROVED: 'text-green-500',
+  REJECTED: 'text-red-500',
+  ACTIVE: 'text-green-500',
+  EXPIRED: 'text-gray-500',
 }
 
-const formatINR = (amount: number): string => {
-  return new Intl.NumberFormat('en-IN', {
+const getStatusStyle = (status: PolicyStatus) => STATUS_STYLES[status]
+const getStatusIcon = (status: PolicyStatus) => STATUS_ICONS[status]
+const getStatusText = (status: PolicyStatus) => STATUS_TEXTS[status]
+
+const getTimelineIcon = (status: PolicyStatus) => TIMELINE_ICONS[status]
+const getTimelineTitle = (status: PolicyStatus) => TIMELINE_TITLES[status]
+const getTimelineStatusIcon = (status: PolicyStatus) => TIMELINE_STATUS_ICONS[status]
+const getTimelineStatusColor = (status: PolicyStatus) => TIMELINE_STATUS_COLORS[status]
+
+const formatINR = (amount: number): string =>
+  new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)
-}
 
-const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('en-IN', {
+const formatDate = (dateString: string): string =>
+  new Date(dateString).toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   })
-}
 
-const formatDateTime = (dateString: string): string => {
-  return new Date(dateString).toLocaleString('en-IN', {
+const formatDateTime = (dateString: string): string =>
+  new Date(dateString).toLocaleString('en-IN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   })
-}
 </script>
 
 <style scoped>
-/* Modal animation */
 .modal-enter-active,
 .modal-leave-active {
   transition: all 0.3s ease;
 }
-
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
