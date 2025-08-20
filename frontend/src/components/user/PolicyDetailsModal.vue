@@ -25,13 +25,13 @@
               </div>
               <div>
                 <h2 class="text-2xl font-bold text-slate-900 font-poppins">
-                  {{ userPolicy.policy.name }}
+                  {{ userPolicy.policyName }}
                 </h2>
                 <div class="flex items-center space-x-3 mt-1">
                   <span
                     class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
                   >
-                    {{ userPolicy.policy.type }} Insurance
+                    {{ userPolicy.policyType }} Insurance
                   </span>
                   <div
                     :class="getStatusStyle(userPolicy.status)"
@@ -61,7 +61,11 @@
                 <FileText class="w-5 h-5 mr-2 text-slate-600" />
                 Policy Description
               </h3>
-              <p class="text-slate-700 leading-relaxed">{{ userPolicy.policy.description }}</p>
+              <p class="text-slate-700 leading-relaxed">
+                {{ userPolicy.policyType }} insurance policy providing comprehensive coverage and
+                protection for your needs. This policy covers various risks and provides financial
+                security with professional claim support.
+              </p>
             </div>
 
             <!-- Policy Details Grid -->
@@ -82,20 +86,14 @@
                     }}</span>
                   </div>
                   <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                    <span class="text-slate-600 font-medium">Coverage Amount</span>
+                    <span class="text-slate-600 font-medium">Policy Duration</span>
                     <span class="text-xl font-bold text-blue-700">{{
-                      formatINR(userPolicy.policy.coverageAmount)
+                      calculateDuration(userPolicy.startDate, userPolicy.endDate)
                     }}</span>
                   </div>
                   <div class="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                    <span class="text-slate-600 font-medium">Coverage Ratio</span>
-                    <span class="text-lg font-bold text-purple-700">
-                      {{
-                        Math.round(
-                          (userPolicy.policy.coverageAmount / userPolicy.premiumPaid) * 100,
-                        ) / 100
-                      }}x
-                    </span>
+                    <span class="text-slate-600 font-medium">Policy Status</span>
+                    <span class="text-lg font-bold text-purple-700">{{ userPolicy.status }}</span>
                   </div>
                 </div>
               </div>
@@ -118,22 +116,20 @@
                     <span class="font-semibold text-slate-900">#{{ userPolicy.id }}</span>
                   </div>
                   <div class="flex justify-between items-center">
-                    <span class="text-slate-600">Duration</span>
-                    <span class="font-semibold text-slate-900"
-                      >{{ userPolicy.policy.durationMonths }} months</span
-                    >
+                    <span class="text-slate-600">Start Date</span>
+                    <span class="font-semibold text-slate-900">{{
+                      formatDate(userPolicy.startDate)
+                    }}</span>
                   </div>
                   <div class="flex justify-between items-center">
-                    <span class="text-slate-600">Purchase Date</span>
+                    <span class="text-slate-600">End Date</span>
                     <span class="font-semibold text-slate-900">{{
-                      formatDate(userPolicy.purchaseDate)
+                      formatDate(userPolicy.endDate)
                     }}</span>
                   </div>
-                  <div v-if="userPolicy.approvalDate" class="flex justify-between items-center">
-                    <span class="text-slate-600">Approval Date</span>
-                    <span class="font-semibold text-green-700">{{
-                      formatDate(userPolicy.approvalDate)
-                    }}</span>
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-600">Policy Type</span>
+                    <span class="font-semibold text-slate-900">{{ userPolicy.policyType }}</span>
                   </div>
                 </div>
               </div>
@@ -154,23 +150,15 @@
                   </div>
                   <div class="flex-1">
                     <h4 class="font-medium text-slate-900">Policy Purchased</h4>
-                    <p class="text-sm text-slate-600">
-                      {{ formatDateTime(userPolicy.purchaseDate) }}
-                    </p>
+                    <p class="text-sm text-slate-600">{{ formatDateTime(userPolicy.startDate) }}</p>
                   </div>
                   <CheckCircle class="w-5 h-5 text-blue-500" />
                 </div>
 
-                <!-- Approval Status -->
+                <!-- Current Status -->
                 <div class="flex items-center space-x-4">
                   <div
-                    :class="
-                      userPolicy.status === 'PENDING'
-                        ? 'bg-yellow-500'
-                        : userPolicy.status === 'APPROVED' || userPolicy.status === 'ACTIVE'
-                          ? 'bg-green-500'
-                          : 'bg-red-500'
-                    "
+                    :class="getTimelineIconBg(userPolicy.status)"
                     class="w-10 h-10 rounded-full flex items-center justify-center"
                   >
                     <component
@@ -183,11 +171,7 @@
                       {{ getTimelineTitle(userPolicy.status) }}
                     </h4>
                     <p class="text-sm text-slate-600">
-                      {{
-                        userPolicy.approvalDate
-                          ? formatDateTime(userPolicy.approvalDate)
-                          : 'Waiting for admin review...'
-                      }}
+                      {{ getTimelineDescription(userPolicy.status) }}
                     </p>
                   </div>
                   <component
@@ -199,7 +183,7 @@
               </div>
             </div>
 
-            <!-- Additional Information -->
+            <!-- Status-specific Information -->
             <div
               v-if="userPolicy.status === 'PENDING'"
               class="bg-yellow-50 border border-yellow-200 rounded-xl p-6"
@@ -225,21 +209,33 @@
             </div>
 
             <div
-              v-if="userPolicy.status === 'APPROVED' || userPolicy.status === 'ACTIVE'"
+              v-if="userPolicy.status === 'APPROVED'"
               class="bg-green-50 border border-green-200 rounded-xl p-6"
             >
               <div class="flex items-start space-x-3">
                 <CheckCircle class="w-6 h-6 text-green-600 mt-0.5" />
                 <div>
-                  <h3 class="font-medium text-green-900 mb-1">
-                    Policy {{ userPolicy.status === 'ACTIVE' ? 'Active' : 'Approved' }}
-                  </h3>
+                  <h3 class="font-medium text-green-900 mb-1">Policy Approved</h3>
                   <p class="text-green-800 text-sm">
-                    {{
-                      userPolicy.status === 'ACTIVE'
-                        ? 'Your policy is now active and provides full coverage as per the terms and conditions.'
-                        : 'Your policy has been approved and will be activated soon. You will receive a policy document via email.'
-                    }}
+                    Your policy has been approved and will be activated soon. You will receive a
+                    policy document via email.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              v-if="userPolicy.status === 'ACTIVE'"
+              class="bg-green-50 border border-green-200 rounded-xl p-6"
+            >
+              <div class="flex items-start space-x-3">
+                <CheckCircle class="w-6 h-6 text-green-600 mt-0.5" />
+                <div>
+                  <h3 class="font-medium text-green-900 mb-1">Policy Active</h3>
+                  <p class="text-green-800 text-sm">
+                    Your policy is now active and provides full coverage as per the terms and
+                    conditions. Coverage is valid from {{ formatDate(userPolicy.startDate) }} to
+                    {{ formatDate(userPolicy.endDate) }}.
                   </p>
                 </div>
               </div>
@@ -260,16 +256,38 @@
                 </div>
               </div>
             </div>
+
+            <div
+              v-if="userPolicy.status === 'EXPIRED'"
+              class="bg-gray-50 border border-gray-200 rounded-xl p-6"
+            >
+              <div class="flex items-start space-x-3">
+                <AlertTriangle class="w-6 h-6 text-gray-600 mt-0.5" />
+                <div>
+                  <h3 class="font-medium text-gray-900 mb-1">Policy Expired</h3>
+                  <p class="text-gray-800 text-sm">
+                    This policy has expired on {{ formatDate(userPolicy.endDate) }}. Please contact
+                    us to renew your coverage.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Footer Actions -->
           <div class="flex justify-end space-x-4 pt-6 mt-8 border-t border-slate-200">
             <AppButton variant="ghost" @click="$emit('close')"> Close </AppButton>
             <AppButton v-if="userPolicy.status === 'ACTIVE'" variant="primary">
+              <FileText class="w-4 h-4 mr-2" />
               Download Policy Document
             </AppButton>
             <AppButton v-if="userPolicy.status === 'PENDING'" variant="secondary">
+              <Info class="w-4 h-4 mr-2" />
               Contact Support
+            </AppButton>
+            <AppButton v-if="userPolicy.status === 'EXPIRED'" variant="primary">
+              <RefreshCw class="w-4 h-4 mr-2" />
+              Renew Policy
             </AppButton>
           </div>
         </div>
@@ -292,6 +310,7 @@ import {
   XCircle,
   UserCheck,
   Hourglass,
+  RefreshCw,
 } from 'lucide-vue-next'
 import AppButton from '@/components/common/AppButton.vue'
 import type { UserPolicy } from '@/stores/userPolicy'
@@ -314,7 +333,7 @@ const getStatusStyle = (status: string) => {
     ACTIVE: 'bg-blue-100 text-blue-800 border border-blue-200',
     EXPIRED: 'bg-gray-100 text-gray-800 border border-gray-200',
   }
-  return styles[status] || styles.PENDING
+  return styles[status as keyof typeof styles] || styles.PENDING
 }
 
 const getStatusIcon = (status: string) => {
@@ -325,7 +344,7 @@ const getStatusIcon = (status: string) => {
     ACTIVE: Shield,
     EXPIRED: AlertTriangle,
   }
-  return icons[status] || Clock
+  return icons[status as keyof typeof icons] || Clock
 }
 
 const getStatusText = (status: string) => {
@@ -336,7 +355,7 @@ const getStatusText = (status: string) => {
     ACTIVE: 'Active',
     EXPIRED: 'Expired',
   }
-  return texts[status] || status
+  return texts[status as keyof typeof texts] || status
 }
 
 const getTimelineIcon = (status: string) => {
@@ -347,7 +366,18 @@ const getTimelineIcon = (status: string) => {
     ACTIVE: Shield,
     EXPIRED: AlertTriangle,
   }
-  return icons[status] || Hourglass
+  return icons[status as keyof typeof icons] || Hourglass
+}
+
+const getTimelineIconBg = (status: string) => {
+  const bgs = {
+    PENDING: 'bg-yellow-500',
+    APPROVED: 'bg-green-500',
+    REJECTED: 'bg-red-500',
+    ACTIVE: 'bg-green-500',
+    EXPIRED: 'bg-gray-500',
+  }
+  return bgs[status as keyof typeof bgs] || 'bg-yellow-500'
 }
 
 const getTimelineTitle = (status: string) => {
@@ -358,7 +388,18 @@ const getTimelineTitle = (status: string) => {
     ACTIVE: 'Policy Activated',
     EXPIRED: 'Policy Expired',
   }
-  return titles[status] || 'Processing'
+  return titles[status as keyof typeof titles] || 'Processing'
+}
+
+const getTimelineDescription = (status: string) => {
+  const descriptions = {
+    PENDING: 'Waiting for admin review and approval',
+    APPROVED: 'Your policy has been approved and is being activated',
+    REJECTED: 'Policy application was not approved',
+    ACTIVE: 'Your policy is currently active and providing coverage',
+    EXPIRED: 'Policy coverage has ended and requires renewal',
+  }
+  return descriptions[status as keyof typeof descriptions] || 'Processing your request'
 }
 
 const getTimelineStatusIcon = (status: string) => {
@@ -369,7 +410,7 @@ const getTimelineStatusIcon = (status: string) => {
     ACTIVE: CheckCircle,
     EXPIRED: XCircle,
   }
-  return icons[status] || Clock
+  return icons[status as keyof typeof icons] || Clock
 }
 
 const getTimelineStatusColor = (status: string) => {
@@ -380,7 +421,7 @@ const getTimelineStatusColor = (status: string) => {
     ACTIVE: 'text-green-500',
     EXPIRED: 'text-gray-500',
   }
-  return colors[status] || 'text-yellow-500'
+  return colors[status as keyof typeof colors] || 'text-yellow-500'
 }
 
 const formatINR = (amount: number): string => {
@@ -409,6 +450,25 @@ const formatDateTime = (dateString: string): string => {
     minute: '2-digit',
   })
 }
+
+const calculateDuration = (startDate: string, endDate: string): string => {
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const diffTime = Math.abs(end.getTime() - start.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const diffMonths = Math.round(diffDays / 30)
+
+  if (diffMonths >= 12) {
+    const years = Math.floor(diffMonths / 12)
+    const remainingMonths = diffMonths % 12
+    if (remainingMonths === 0) {
+      return `${years} year${years > 1 ? 's' : ''}`
+    }
+    return `${years}y ${remainingMonths}m`
+  }
+
+  return `${diffMonths} month${diffMonths > 1 ? 's' : ''}`
+}
 </script>
 
 <style scoped>
@@ -422,5 +482,30 @@ const formatDateTime = (dateString: string): string => {
 .modal-leave-to {
   opacity: 0;
   transform: scale(0.95);
+}
+
+/* Smooth hover effects */
+.hover\:shadow-md:hover {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Custom scrollbar for modal content */
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 </style>
