@@ -4,3 +4,4 @@ frontend/node_modules
 .vscode
 vscode
 .DS_Store
+backend/insurance/target

@@ -6,6 +6,7 @@ import com.innov8ors.insurance.entity.UserPrincipal;
 import com.innov8ors.insurance.enums.Role;
 import com.innov8ors.insurance.enums.SupportTicketStatus;
 import com.innov8ors.insurance.request.SupportTicketCreateRequest;
+import com.innov8ors.insurance.request.SupportTicketUpdateRequest;
 import com.innov8ors.insurance.service.SupportTicketService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -100,7 +101,10 @@ class SupportTicketControllerTest {
         SupportTicket ticket = new SupportTicket();
         ticket.setId(1L);
         ticket.setStatus(SupportTicketStatus.RESOLVED);
-        Mockito.when(supportTicketService.updateTicketStatus(1L, "Resolved", SupportTicketStatus.RESOLVED)).thenReturn(ticket);
+        SupportTicketUpdateRequest updateRequest = new SupportTicketUpdateRequest();
+        updateRequest.setResponse("Resolved");
+        updateRequest.setStatus(SupportTicketStatus.RESOLVED);
+        Mockito.when(supportTicketService.updateTicketStatus(1L, updateRequest)).thenReturn(ticket);
 
         com.innov8ors.insurance.entity.User user = new com.innov8ors.insurance.entity.User();
         user.setId(99L);
