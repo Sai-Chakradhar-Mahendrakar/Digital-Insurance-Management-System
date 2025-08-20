@@ -63,4 +63,9 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         }
         throw new NotFoundException("Support ticket not found ticketId: " + ticketId);
     }
+
+    @Override
+    public List<SupportTicket> fetchAllTickets() {
+        return supportTicketRepository.findAll();
+    }
 }
