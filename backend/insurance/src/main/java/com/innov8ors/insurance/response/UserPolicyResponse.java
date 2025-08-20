@@ -22,7 +22,7 @@ public class UserPolicyResponse {
     private LocalDateTime endDate;
     private UserPolicyStatus status;
     private BigDecimal premiumPaid;
-
+    private BigDecimal totalAmountClaimed;
     private Long userId;
     private String userName;
     private String userEmail;

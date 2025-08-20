@@ -1,6 +1,7 @@
 package com.innov8ors.insurance.request;
 
 import lombok.Data;
+
 import java.math.BigDecimal;
 
 
