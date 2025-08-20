@@ -9,4 +9,5 @@ public interface SupportTicketService {
     SupportTicket createTicket(SupportTicketCreateRequest request, Long userId);
     List<SupportTicket> getTicketsByUser(Long userId);
     SupportTicket updateTicketStatus(Long ticketId, String response, SupportTicketStatus status);
+    List<SupportTicket> fetchAllTickets();
 }
