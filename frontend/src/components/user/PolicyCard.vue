@@ -125,7 +125,7 @@ const getStatusStyle = (status: string) => {
     ACTIVE: 'bg-blue-100 text-blue-800 border border-blue-200',
     EXPIRED: 'bg-gray-100 text-gray-800 border border-gray-200',
   }
-  return styles[status] || styles.PENDING
+  return styles[status as keyof typeof styles] || styles.PENDING
 }
 
 const getStatusIcon = (status: string) => {
@@ -136,7 +136,7 @@ const getStatusIcon = (status: string) => {
     ACTIVE: Shield,
     EXPIRED: AlertTriangle,
   }
-  return icons[status] || Clock
+  return icons[status as keyof typeof icons] || Clock
 }
 
 const getStatusText = (status: string) => {
@@ -147,7 +147,7 @@ const getStatusText = (status: string) => {
     ACTIVE: 'Active',
     EXPIRED: 'Expired',
   }
-  return texts[status] || status
+  return texts[status as keyof typeof texts] || status
 }
 
 const formatINR = (amount: number): string => {
