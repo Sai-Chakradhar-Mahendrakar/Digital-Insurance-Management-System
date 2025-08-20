@@ -46,7 +46,7 @@ public class Claim {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private ClaimStatus status;
+    private ClaimStatus status = ClaimStatus.PENDING;
 
     @Column(name = "reviewer_comment", length = 1000)
     private String reviewerComment;

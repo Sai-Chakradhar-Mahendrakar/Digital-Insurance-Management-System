@@ -1,6 +1,5 @@
 package com.innov8ors.insurance.response;
 
-import com.innov8ors.insurance.entity.Claim;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class ClaimPaginatedResponse {
-    private List<Claim> claims;
+    private List<ClaimResponse> claims;
 
     private Long totalElements;
 

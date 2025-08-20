@@ -265,7 +265,7 @@ public class TestUtil {
 
     public static ClaimCreateRequest getClaimCreateRequest() {
         return ClaimCreateRequest.builder()
-                .userPolicyId(TEST_POLICY_ID)
+                .policyId(TEST_POLICY_ID)
                 .claimDate(TEST_CLAIM_DATE)
                 .claimAmount(TEST_CLAIM_AMOUNT)
                 .reason(TEST_CLAIM_REASON)

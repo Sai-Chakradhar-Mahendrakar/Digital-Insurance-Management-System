@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class ClaimCreateRequest {
     @NotNull(message = "User policy ID is required")
-    private Long userPolicyId;
+    private Long policyId;
 
     @NotNull(message = "Claim date is required")
     private LocalDate claimDate;

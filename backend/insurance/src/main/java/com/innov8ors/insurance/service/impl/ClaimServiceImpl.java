@@ -60,19 +60,20 @@ public class ClaimServiceImpl implements ClaimService {
 
     @Override
     public ClaimResponse submitClaim(ClaimCreateRequest request, Long userId) {
-        log.info("Submitting claim for user ID: {} and policy ID: {}", userId, request.getUserPolicyId());
-        UserPolicy userPolicy = userPolicyService.getByUserIdAndPolicyId(userId, request.getUserPolicyId());
+        log.info("Submitting claim for user ID: {} and policy ID: {}", userId, request.getPolicyId());
+        UserPolicy userPolicy = userPolicyService.getByUserIdAndPolicyId(userId, request.getPolicyId());
 
-        Policy policy = policyService.getById(request.getUserPolicyId());
+        Policy policy = policyService.getById(request.getPolicyId());
 
         validateClaimRequest(request, userId, userPolicy, policy);
 
-        Claim claim = getClaimFromRequest(request);
+        Claim claim = getClaimFromRequest(request, userPolicy);
 
         Claim savedClaim = claimDao.persist(claim);
+        savedClaim.setUserPolicy(userPolicy);
         log.info("Claim submitted successfully with ID: {}", savedClaim.getId());
         updateUserPolicyAfterClaimSubmission(savedClaim, userPolicy, policy);
-        log.info("User policy updated after claim submission for user ID: {} and policy ID: {}", userId, request.getUserPolicyId());
+        log.info("User policy updated after claim submission for user ID: {} and policy ID: {}", userId, request.getPolicyId());
         return mapToClaimResponse(savedClaim);
     }
 
@@ -129,8 +130,15 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     private void updateClaimStatus(ClaimStatusUpdateRequest request, Claim claim) {
-        claim.setStatus(request.getStatus());
-        claim.setReviewerComment(request.getReviewerComment());
+        if(request.getStatus() != null) {
+            if(request.getStatus() == ClaimStatus.APPROVED) {
+                claim.setResolvedDate(LocalDate.now());
+            }
+            claim.setStatus(request.getStatus());
+        }
+        if(request.getReviewerComment() != null) {
+            claim.setReviewerComment(request.getReviewerComment());
+        }
     }
 
     private void validateClaimUpdateRequest(ClaimStatusUpdateRequest request, Claim claim) {

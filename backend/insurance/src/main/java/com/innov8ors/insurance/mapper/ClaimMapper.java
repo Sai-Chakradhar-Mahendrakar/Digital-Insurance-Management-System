@@ -1,6 +1,8 @@
 package com.innov8ors.insurance.mapper;
 
 import com.innov8ors.insurance.entity.Claim;
+import com.innov8ors.insurance.entity.UserPolicy;
+import com.innov8ors.insurance.enums.ClaimStatus;
 import com.innov8ors.insurance.request.ClaimCreateRequest;
 import com.innov8ors.insurance.response.ClaimPaginatedResponse;
 import com.innov8ors.insurance.response.ClaimResponse;
@@ -24,7 +26,10 @@ public class ClaimMapper {
 
     public static ClaimPaginatedResponse getClaimPaginatedResponse(Integer page, Integer size, Page<Claim> claims) {
         return ClaimPaginatedResponse.builder()
-                .claims(claims.getContent())
+                .claims(claims.getContent()
+                        .stream()
+                        .map(ClaimMapper::mapToClaimResponse)
+                        .toList())
                 .page(page)
                 .size(size)
                 .totalPages(claims.getTotalPages())
@@ -32,12 +37,13 @@ public class ClaimMapper {
                 .build();
     }
 
-    public static Claim getClaimFromRequest(ClaimCreateRequest request) {
+    public static Claim getClaimFromRequest(ClaimCreateRequest request, UserPolicy userPolicy) {
         return Claim.builder()
-                .userPolicyId(request.getUserPolicyId())
+                .userPolicyId(userPolicy.getId())
                 .claimDate(request.getClaimDate())
                 .claimAmount(request.getClaimAmount())
                 .reason(request.getReason())
+                .status(ClaimStatus.PENDING)
                 .build();
     }
 }
