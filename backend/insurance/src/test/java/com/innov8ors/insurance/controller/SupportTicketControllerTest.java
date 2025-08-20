@@ -2,6 +2,8 @@ package com.innov8ors.insurance.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.innov8ors.insurance.entity.SupportTicket;
+import com.innov8ors.insurance.entity.UserPrincipal;
+import com.innov8ors.insurance.enums.Role;
 import com.innov8ors.insurance.enums.SupportTicketStatus;
 import com.innov8ors.insurance.request.SupportTicketCreateRequest;
 import com.innov8ors.insurance.service.SupportTicketService;
@@ -9,26 +11,20 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.util.Collections;
 import java.util.List;
-
-import com.innov8ors.insurance.entity.UserPrincipal;
-import com.innov8ors.insurance.enums.Role;
-import org.springframework.security.core.authority.AuthorityUtils;
 
 @WebMvcTest(SupportTicketController.class)
 @ContextConfiguration(classes = {SupportTicketController.class, SupportTicketControllerTest.TestSecurityConfig.class})

@@ -2,12 +2,11 @@ package com.innov8ors.insurance.service;
 
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
+import com.innov8ors.insurance.request.UserPolicyUpdateRequest;
 import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 
 
 public interface UserPolicyService {
@@ -32,5 +31,5 @@ public interface UserPolicyService {
 
     Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size);
 
-    UserPolicy updateUserPolicy(Long userId, Long policyId, BigDecimal claimAmount);
+    UserPolicy updateUserPolicy(Long userId, Long policyId, UserPolicyUpdateRequest userPolicyUpdateRequest);
 }

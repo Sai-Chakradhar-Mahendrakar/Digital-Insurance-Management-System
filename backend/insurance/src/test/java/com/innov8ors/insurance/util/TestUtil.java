@@ -1,10 +1,14 @@
 package com.innov8ors.insurance.util;
 
+import com.innov8ors.insurance.entity.Claim;
 import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.User;
 import com.innov8ors.insurance.entity.UserPolicy;
+import com.innov8ors.insurance.enums.ClaimStatus;
 import com.innov8ors.insurance.enums.Role;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
+import com.innov8ors.insurance.request.ClaimCreateRequest;
+import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
 import com.innov8ors.insurance.request.PolicyCreateRequest;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.request.UserCreateRequest;
@@ -15,6 +19,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,6 +49,12 @@ public class TestUtil {
     public static final LocalDateTime TEST_POLICY_END_DATE = LocalDateTime.now().plusMonths(TEST_POLICY_DURATION_MONTHS);
     public static final UserPolicyStatus TEST_USER_POLICY_STATUS = UserPolicyStatus.ACTIVE;
     public static final BigDecimal TEST_POLICY_PREMIUM_PAID = TEST_POLICY_PREMIUM_AMOUNT;
+    public static final Long TEST_CLAIM_ID = 2L;
+    public static final LocalDate TEST_CLAIM_DATE = LocalDate.now();
+    public static final BigDecimal TEST_CLAIM_AMOUNT = BigDecimal.valueOf(500.0);
+    public static final String TEST_CLAIM_REASON = "Test claim reason";
+    public static final ClaimStatus TEST_CLAIM_STATUS = ClaimStatus.PENDING;
+    public static final String TEST_CLAIM_REVIEWER_COMMENT = "Initial claim submission";
 
 
     public static User getUser() {
@@ -252,4 +263,36 @@ public class TestUtil {
         return request;
     }
 
+    public static ClaimCreateRequest getClaimCreateRequest() {
+        return ClaimCreateRequest.builder()
+                .policyId(TEST_POLICY_ID)
+                .claimDate(TEST_CLAIM_DATE)
+                .claimAmount(TEST_CLAIM_AMOUNT)
+                .reason(TEST_CLAIM_REASON)
+                .build();
+    }
+
+    public static Claim getClaim() {
+        return Claim.builder()
+                .id(TEST_CLAIM_ID)
+                .userPolicyId(TEST_POLICY_ID)
+                .claimDate(TEST_CLAIM_DATE)
+                .claimAmount(TEST_CLAIM_AMOUNT)
+                .reason(TEST_CLAIM_REASON)
+                .status(TEST_CLAIM_STATUS)
+                .reviewerComment(TEST_CLAIM_REVIEWER_COMMENT)
+                .userPolicy(getUserPolicy())
+                .build();
+    }
+
+    public static ClaimStatusUpdateRequest getClaimStatusUpdateRequest() {
+        return ClaimStatusUpdateRequest.builder()
+                .status(ClaimStatus.APPROVED)
+                .reviewerComment(TEST_CLAIM_REVIEWER_COMMENT)
+                .build();
+    }
+
+    public static Page<Claim> getClaimsPage() {
+        return new PageImpl<>(List.of(getClaim()));
+    }
 }
