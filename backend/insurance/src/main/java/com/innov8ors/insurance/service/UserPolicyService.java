@@ -29,5 +29,5 @@ public interface UserPolicyService {
     // adding this method getByUserIdAndPolicyId
     public UserPolicy getByUserIdAndPolicyId(Long userId, Long policyId);
 
-//    Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size);
+    Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size);
 }

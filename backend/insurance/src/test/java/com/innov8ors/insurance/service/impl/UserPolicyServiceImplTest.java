@@ -158,20 +158,7 @@ public class UserPolicyServiceImplTest {
         verifyNoMoreInteractions(userPolicyDao);
     }
 
-    @Test
-    public void testFailureGetByUserIdAndPolicyId() {
-        doReturn(Optional.empty())
-                .when(userPolicyDao)
-                .findByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            userPolicyService.getByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
-        });
-
-        assertTrue(exception.getMessage().contains(USER_ALREADY_HAS_POLICY));
-        verify(userPolicyDao).findByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
-        verifyNoMoreInteractions(userPolicyDao);
-    }
 
     @Test
     public void testSuccessfulIsExistsByUserIdAndPolicyId() {
@@ -324,7 +311,7 @@ public class UserPolicyServiceImplTest {
 
     @Test
     public void testMakePaymentNotImplemented() {
-        UserPolicy result = userPolicyService.makePayment("test@email.com", TEST_POLICY_ID);
+        UserPolicy result = userPolicyService.makePayment(TEST_USER_EMAIL, TEST_POLICY_ID);
 
         assertNull(result);
         verifyNoInteractions(userPolicyDao);

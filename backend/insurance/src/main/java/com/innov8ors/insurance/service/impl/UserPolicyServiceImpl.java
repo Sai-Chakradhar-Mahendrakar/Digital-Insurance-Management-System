@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -133,10 +134,25 @@ public class UserPolicyServiceImpl implements UserPolicyService {
                 });
     }
 
-//    @Override
-//    public Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size) {
-//        log.debug("Fetching users for policy ID: {}", policyId);
-//        Page<UserPolicy> userPolicies = userPolicyDao.findByPolicyIdWithPolicy(policyId, PageRequest.of(page, size));
-//        return userPolicies.map(UserPolicyMapper::convertToResponse);
-//    }
+    @Override
+    public Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<UserPolicy> userPolicies = userPolicyDao.findByPolicyIdWithUser(policyId, pageRequest);
+
+        return userPolicies.map(userPolicy -> UserPolicyResponse.builder()
+                .id(userPolicy.getId())
+                .policyId(userPolicy.getPolicyId())
+                .policyName(userPolicy.getPolicy().getName())
+                .policyType(userPolicy.getPolicy().getType())
+                .userId(userPolicy.getUser().getId())
+                .userName(userPolicy.getUser().getName())
+                .userEmail(userPolicy.getUser().getEmail())
+                .userPhone(userPolicy.getUser().getPhone())
+                .userAddress(userPolicy.getUser().getAddress())
+                .startDate(userPolicy.getStartDate())
+                .endDate(userPolicy.getEndDate())
+                .status(userPolicy.getStatus())
+                .premiumPaid(userPolicy.getPremiumPaid())
+                .build());
+    }
 }
