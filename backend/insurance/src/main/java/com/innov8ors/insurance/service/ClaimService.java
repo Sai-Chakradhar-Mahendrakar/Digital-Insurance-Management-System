@@ -1,23 +1,19 @@
 package com.innov8ors.insurance.service;
 
+import com.innov8ors.insurance.enums.ClaimStatus;
 import com.innov8ors.insurance.request.ClaimCreateRequest;
 import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
+import com.innov8ors.insurance.response.ClaimPaginatedResponse;
 import com.innov8ors.insurance.response.ClaimResponse;
-
-import java.util.List;
 
 public interface ClaimService {
     ClaimResponse submitClaim(ClaimCreateRequest request, Long userId);
 
-    List<ClaimResponse> getUserClaims(Long userId);
+    ClaimPaginatedResponse getUserClaims(Long userId, Integer page, Integer size);
 
-    ClaimResponse updateClaimStatus(Long claimId, ClaimStatusUpdateRequest request);
+    ClaimResponse updateClaimStatus(Long userId, Long claimId, ClaimStatusUpdateRequest request);
 
-    ClaimResponse getClaimByIdAndUserId(Long claimId, Long userId);
+    ClaimResponse getByClaimIdAndUserId(Long claimId, Long userId);
 
-    List<ClaimResponse> getAllClaims();
-
-    List<ClaimResponse> getPendingClaims();
-
-    List<ClaimResponse> getApprovedClaims();
+    ClaimPaginatedResponse getAllClaims(ClaimStatus claimStatus, Integer page, Integer size);
 }

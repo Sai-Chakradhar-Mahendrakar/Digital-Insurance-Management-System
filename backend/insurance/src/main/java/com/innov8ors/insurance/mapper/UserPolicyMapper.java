@@ -2,10 +2,6 @@ package com.innov8ors.insurance.mapper;
 
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.response.UserPolicyResponse;
-import com.innov8ors.insurance.enums.UserPolicyStatus;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 import static com.innov8ors.insurance.util.InsuranceUtil.MAPPER;
 

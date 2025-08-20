@@ -3,148 +3,239 @@ package com.innov8ors.insurance.service.impl;
 import com.innov8ors.insurance.entity.Claim;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.ClaimStatus;
-import com.innov8ors.insurance.enums.PolicyStatus;
+import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.exception.BadRequestException;
 import com.innov8ors.insurance.exception.NotFoundException;
-import com.innov8ors.insurance.repository.ClaimRepository;
-import com.innov8ors.insurance.repository.UserPolicyRepository;
+import com.innov8ors.insurance.repository.dao.ClaimDao;
 import com.innov8ors.insurance.request.ClaimCreateRequest;
-import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
+import com.innov8ors.insurance.request.UserPolicyUpdateRequest;
+import com.innov8ors.insurance.response.ClaimPaginatedResponse;
 import com.innov8ors.insurance.response.ClaimResponse;
+import com.innov8ors.insurance.service.ClaimService;
+import com.innov8ors.insurance.service.PolicyService;
+import com.innov8ors.insurance.service.UserPolicyService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.CLAIMS_ALLOWED_ONLY_FOR_ACTIVE_POLICIES;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.CLAIM_AMOUNT_EXCEEDS_POLICY_COVERAGE;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.CLAIM_NOT_FOUND;
+import static com.innov8ors.insurance.util.TestUtil.TEST_CLAIM_AMOUNT;
+import static com.innov8ors.insurance.util.TestUtil.TEST_CLAIM_DATE;
+import static com.innov8ors.insurance.util.TestUtil.TEST_CLAIM_ID;
+import static com.innov8ors.insurance.util.TestUtil.TEST_CLAIM_REASON;
+import static com.innov8ors.insurance.util.TestUtil.TEST_CLAIM_REVIEWER_COMMENT;
+import static com.innov8ors.insurance.util.TestUtil.TEST_CLAIM_STATUS;
+import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_COVERAGE_AMOUNT;
+import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_ID;
+import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ID;
+import static com.innov8ors.insurance.util.TestUtil.getClaim;
+import static com.innov8ors.insurance.util.TestUtil.getClaimCreateRequest;
+import static com.innov8ors.insurance.util.TestUtil.getClaimStatusUpdateRequest;
+import static com.innov8ors.insurance.util.TestUtil.getClaimsPage;
+import static com.innov8ors.insurance.util.TestUtil.getPolicy;
+import static com.innov8ors.insurance.util.TestUtil.getUserPolicy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 @ExtendWith(MockitoExtension.class)
 class ClaimServiceImplTest {
     @Mock
-    private ClaimRepository claimRepository;
+    private ClaimDao claimDao;
 
     @Mock
-    private UserPolicyRepository userPolicyRepository;
+    private UserPolicyService userPolicyService;
 
-    @InjectMocks
-    private ClaimServiceImpl claimService;
+    @Mock
+    private PolicyService policyService;
 
-    private UserPolicy activeUserPolicy;
-    private ClaimCreateRequest claimCreateRequest;
-    private Claim pendingClaim;
+    private ClaimService claimService;
+
+    private AutoCloseable closeable;
 
     @BeforeEach
     void setUp() {
-        activeUserPolicy = new UserPolicy();
-        activeUserPolicy.setId(1L);
-        activeUserPolicy.setUserId(1L);
-        activeUserPolicy.setPolicyId(1L);
-        activeUserPolicy.setStatus(PolicyStatus.ACTIVE);
-        activeUserPolicy.setStartDate(LocalDateTime.now().minusMonths(6));
-        activeUserPolicy.setEndDate(LocalDateTime.now().plusMonths(6));
+        closeable = openMocks(this);
+        claimService = new ClaimServiceImpl(claimDao, userPolicyService, policyService);
+    }
 
-        claimCreateRequest = ClaimCreateRequest.builder()
-                .userPolicyId(1L)
-                .claimDate(LocalDate.now().minusDays(10))
-                .claimAmount(new BigDecimal("5000.00"))
-                .reason("Medical emergency treatment")
-                .build();
-
-        pendingClaim = new Claim();
-        pendingClaim.setId(1L);
-        pendingClaim.setUserPolicyId(1L);
-        pendingClaim.setClaimDate(LocalDate.now().minusDays(10));
-        pendingClaim.setClaimAmount(new BigDecimal("5000.00"));
-        pendingClaim.setReason("Medical emergency treatment");
-        pendingClaim.setStatus(ClaimStatus.PENDING);
+    @AfterEach
+    void tearDown() throws Exception {
+        closeable.close();
     }
 
     @Test
     void testSuccessfulSubmitClaim() {
-        // Given
-        when(userPolicyRepository.findByIdAndUserId(1L, 1L))
-                .thenReturn(Optional.of(activeUserPolicy));
-        when(claimRepository.save(any(Claim.class)))
-                .thenReturn(pendingClaim);
+        doReturn(getUserPolicy())
+                .when(userPolicyService)
+                .getByUserIdAndPolicyId(any(), any());
+        doReturn(getPolicy())
+                .when(policyService)
+                .getById(any());
+        doReturn(getClaim())
+                .when(claimDao)
+                .persist(any());
+        doReturn(null)
+                .when(userPolicyService)
+                .updateUserPolicy(any(), any(), any());
 
-        // When
-        ClaimResponse response = claimService.submitClaim(claimCreateRequest, 1L);
+        ClaimResponse claimResponse = claimService.submitClaim(getClaimCreateRequest(), TEST_USER_ID);
 
-        // Then
-        assertNotNull(response);
-        assertEquals(ClaimStatus.PENDING, response.getStatus());
-        assertEquals(new BigDecimal("5000.00"), response.getClaimAmount());
-        verify(claimRepository).save(any(Claim.class));
+        assertNotNull(claimResponse);
+        assertEquals(TEST_POLICY_ID, claimResponse.getUserPolicyId());
+        assertEquals(ClaimStatus.PENDING, claimResponse.getStatus());
+        assertEquals(TEST_CLAIM_AMOUNT, claimResponse.getClaimAmount());
+        assertEquals(TEST_CLAIM_DATE, claimResponse.getClaimDate());
+        assertEquals(TEST_CLAIM_REASON, claimResponse.getReason());
+        verify(userPolicyService).getByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
+        verify(policyService).getById(TEST_POLICY_ID);
+        verify(claimDao).persist(any(Claim.class));
+        UserPolicyUpdateRequest expectedUserPolicyUpdateRequest = UserPolicyUpdateRequest.builder()
+                .totalAmountClaimed(TEST_CLAIM_AMOUNT)
+                .build();
+        verify(userPolicyService).updateUserPolicy(TEST_USER_ID, TEST_POLICY_ID, expectedUserPolicyUpdateRequest);
+        verifyNoMoreInteractions(userPolicyService, policyService, claimDao);
     }
 
     @Test
-    void testFailurePolicyNotFound() {
-        // Given
-        when(userPolicyRepository.findByIdAndUserId(1L, 1L))
-                .thenReturn(Optional.empty());
+    void testFailureSubmitClaimDueToExceedsCoverage() {
+        ClaimCreateRequest claimCreateRequest = getClaimCreateRequest();
+        claimCreateRequest.setClaimAmount(TEST_POLICY_COVERAGE_AMOUNT.add(BigDecimal.ONE)); // Exceeding coverage
 
-        // When & Then
-        assertThrows(NotFoundException.class,
-                () -> claimService.submitClaim(claimCreateRequest, 1L));
+        doReturn(getUserPolicy())
+                .when(userPolicyService)
+                .getByUserIdAndPolicyId(any(), any());
+        doReturn(getPolicy())
+                .when(policyService)
+                .getById(any());
+
+        try {
+            claimService.submitClaim(claimCreateRequest, TEST_USER_ID);
+            fail("Expected exception not thrown");
+        } catch (Exception e) {
+            assertInstanceOf(BadRequestException.class, e);
+            assertEquals(CLAIM_AMOUNT_EXCEEDS_POLICY_COVERAGE, e.getMessage());
+            verify(userPolicyService).getByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
+            verify(policyService).getById(TEST_POLICY_ID);
+            verifyNoMoreInteractions(userPolicyService, policyService, claimDao);
+        }
     }
 
     @Test
     void testFailureInactivePolicy() {
-        // Given
-        activeUserPolicy.setStatus(PolicyStatus.EXPIRED);
-        when(userPolicyRepository.findByIdAndUserId(1L, 1L))
-                .thenReturn(Optional.of(activeUserPolicy));
+        UserPolicy userPolicy = getUserPolicy();
+        userPolicy.setStatus(UserPolicyStatus.EXPIRED);
+        doReturn(userPolicy)
+                .when(userPolicyService)
+                .getByUserIdAndPolicyId(any(), any());
+        doReturn(getPolicy())
+                .when(policyService)
+                .getById(any());
 
-        // When & Then
-        assertThrows(BadRequestException.class,
-                () -> claimService.submitClaim(claimCreateRequest, 1L));
+        try {
+            claimService.submitClaim(getClaimCreateRequest(), TEST_USER_ID);
+            fail("Expected exception not thrown");
+        } catch (Exception e) {
+            assertInstanceOf(BadRequestException.class, e);
+            assertEquals(CLAIMS_ALLOWED_ONLY_FOR_ACTIVE_POLICIES, e.getMessage());
+            verify(userPolicyService).getByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
+            verify(policyService).getById(TEST_POLICY_ID);
+            verifyNoMoreInteractions(userPolicyService, policyService, claimDao);
+        }
     }
 
     @Test
     void testSuccessUpdateClaimStatus() {
-        // Given
-        ClaimStatusUpdateRequest updateRequest = ClaimStatusUpdateRequest.builder()
-                .status(ClaimStatus.APPROVED)
-                .reviewerComment("Claim approved after verification")
-                .build();
+        doReturn(Optional.of(getClaim()))
+                .when(claimDao)
+                .findById(TEST_CLAIM_ID);
+        doReturn(getClaim())
+                .when(claimDao)
+                .persist(any());
 
-        when(claimRepository.findById(1L))
-                .thenReturn(Optional.of(pendingClaim));
-        when(claimRepository.save(any(Claim.class)))
-                .thenReturn(pendingClaim);
+        ClaimResponse claimResponse = claimService.updateClaimStatus(TEST_USER_ID, TEST_CLAIM_ID, getClaimStatusUpdateRequest());
 
-        // When
-        ClaimResponse response = claimService.updateClaimStatus(1L, updateRequest);
-
-        // Then
-        assertNotNull(response);
-        verify(claimRepository).save(any(Claim.class));
+        assertNotNull(claimResponse);
+        assertEquals(TEST_CLAIM_ID, claimResponse.getId());
+        assertEquals(TEST_CLAIM_STATUS, claimResponse.getStatus());
+        assertEquals(TEST_CLAIM_REVIEWER_COMMENT, claimResponse.getReviewerComment());
     }
 
     @Test
-    void testSuccessGetUserClaims() {
-        // Given
-        List<Claim> userClaims = Arrays.asList(pendingClaim);
-        when(claimRepository.findByUserId(1L))
-                .thenReturn(userClaims);
+    void testFailureUpdateClaimStatusDueToNonExistentClaim() {
+        doReturn(Optional.empty())
+                .when(claimDao)
+                .findById(TEST_CLAIM_ID);
 
-        // When
-        List<ClaimResponse> responses = claimService.getUserClaims(1L);
+        try {
+            claimService.updateClaimStatus(TEST_USER_ID, TEST_CLAIM_ID, getClaimStatusUpdateRequest());
+            fail("Expected exception not thrown");
+        } catch (Exception e) {
+            assertInstanceOf(NotFoundException.class, e);
+            assertEquals(CLAIM_NOT_FOUND, e.getMessage());
+            verify(claimDao).findById(TEST_CLAIM_ID);
+            verifyNoMoreInteractions(claimDao);
+        }
+    }
 
-        // Then
-        assertNotNull(responses);
-        assertEquals(1, responses.size());
-        assertEquals(ClaimStatus.PENDING, responses.get(0).getStatus());
+    @Test
+    void testSuccessfulGetByClaimIdAndUserId() {
+        doReturn(Optional.of(getClaim()))
+                .when(claimDao)
+                .getByClaimIdAndUserId(TEST_CLAIM_ID, TEST_USER_ID);
+
+        ClaimResponse claimResponse = claimService.getByClaimIdAndUserId(TEST_CLAIM_ID, TEST_USER_ID);
+
+        assertNotNull(claimResponse);
+        assertEquals(TEST_CLAIM_ID, claimResponse.getId());
+        verify(claimDao).getByClaimIdAndUserId(TEST_CLAIM_ID, TEST_USER_ID);
+        verifyNoMoreInteractions(claimDao);
+    }
+
+    @Test
+    void testFailureGetByClaimIdAndUserIdDueToNonExistentClaim() {
+        doReturn(Optional.empty())
+                .when(claimDao)
+                .getByClaimIdAndUserId(TEST_CLAIM_ID, TEST_USER_ID);
+
+        try {
+            claimService.getByClaimIdAndUserId(TEST_CLAIM_ID, TEST_USER_ID);
+            fail("Expected exception not thrown");
+        } catch (Exception e) {
+            assertInstanceOf(NotFoundException.class, e);
+            assertEquals(CLAIM_NOT_FOUND, e.getMessage());
+            verify(claimDao).getByClaimIdAndUserId(TEST_CLAIM_ID, TEST_USER_ID);
+            verifyNoMoreInteractions(claimDao);
+        }
+    }
+
+    @Test
+    void testSuccessfulGetAllClaims() {
+        doReturn(getClaimsPage())
+                .when(claimDao)
+                .findAll(any(Specification.class), any(Pageable.class));
+
+        ClaimPaginatedResponse response = claimService.getAllClaims(null, 0, 10);
+
+        assertNotNull(response);
+        assertEquals(1, response.getClaims().size());
+        assertEquals(TEST_CLAIM_ID, response.getClaims().get(0).getId());
+        verify(claimDao).findAll(any(Specification.class), any(Pageable.class));
     }
 }

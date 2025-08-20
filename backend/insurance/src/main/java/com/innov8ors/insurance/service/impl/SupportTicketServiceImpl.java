@@ -2,12 +2,12 @@ package com.innov8ors.insurance.service.impl;
 
 import com.innov8ors.insurance.entity.SupportTicket;
 import com.innov8ors.insurance.enums.SupportTicketStatus;
+import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.repository.SupportTicketRepository;
 import com.innov8ors.insurance.request.SupportTicketCreateRequest;
-import org.springframework.stereotype.Service;
 import com.innov8ors.insurance.service.SupportTicketService;
 import lombok.extern.slf4j.Slf4j;
-import com.innov8ors.insurance.exception.NotFoundException;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;

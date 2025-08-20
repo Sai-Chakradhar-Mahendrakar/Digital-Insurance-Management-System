@@ -1,7 +1,7 @@
 package com.innov8ors.insurance.request;
 
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +26,6 @@ public class ClaimCreateRequest {
     @DecimalMin(value = "0.01", message = "Claim amount must be greater than 0")
     private BigDecimal claimAmount;
 
-    @NotBlank(message = "Reason is required")
+    @NotEmpty(message = "Reason is required")
     private String reason;
 }

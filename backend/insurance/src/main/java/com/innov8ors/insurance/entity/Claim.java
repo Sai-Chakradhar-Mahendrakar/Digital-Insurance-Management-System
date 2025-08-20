@@ -1,15 +1,28 @@
 package com.innov8ors.insurance.entity;
 
 import com.innov8ors.insurance.enums.ClaimStatus;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -39,17 +52,10 @@ public class Claim {
     private String reviewerComment;
 
     @Column(name = "resolved_date")
+    @CreationTimestamp
     private LocalDate resolvedDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_policy_id", insertable = false, updatable = false)
     private UserPolicy userPolicy;
-
-    public Claim(Long userPolicyId, LocalDate claimDate, BigDecimal claimAmount, String reason) {
-        this.userPolicyId = userPolicyId;
-        this.claimDate = claimDate;
-        this.claimAmount = claimAmount;
-        this.reason = reason;
-        this.status = ClaimStatus.PENDING;
-    }
 }

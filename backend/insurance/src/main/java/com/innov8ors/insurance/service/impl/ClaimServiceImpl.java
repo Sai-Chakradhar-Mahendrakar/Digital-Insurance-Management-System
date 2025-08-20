@@ -1,170 +1,181 @@
 package com.innov8ors.insurance.service.impl;
 
 import com.innov8ors.insurance.entity.Claim;
+import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.ClaimStatus;
-import com.innov8ors.insurance.enums.PolicyStatus;
+import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.exception.BadRequestException;
 import com.innov8ors.insurance.exception.NotFoundException;
-import com.innov8ors.insurance.repository.ClaimRepository;
-import com.innov8ors.insurance.repository.UserPolicyRepository;
+import com.innov8ors.insurance.repository.dao.ClaimDao;
 import com.innov8ors.insurance.request.ClaimCreateRequest;
 import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
+import com.innov8ors.insurance.request.UserPolicyUpdateRequest;
+import com.innov8ors.insurance.response.ClaimPaginatedResponse;
 import com.innov8ors.insurance.response.ClaimResponse;
 import com.innov8ors.insurance.service.ClaimService;
-import lombok.RequiredArgsConstructor;
+import com.innov8ors.insurance.service.PolicyService;
+import com.innov8ors.insurance.service.UserPolicyService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.stream.Collectors;
+
+import static com.innov8ors.insurance.mapper.ClaimMapper.getClaimFromRequest;
+import static com.innov8ors.insurance.mapper.ClaimMapper.getClaimPaginatedResponse;
+import static com.innov8ors.insurance.mapper.ClaimMapper.mapToClaimResponse;
+import static com.innov8ors.insurance.util.Constant.ClaimConstants.CLAIM_DATE_PLACEHOLDER;
+import static com.innov8ors.insurance.util.Constant.ClaimConstants.CLAIM_STATUS_PLACEHOLDER;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.CANNOT_SET_STATUS_BACK_TO_PENDING;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.CLAIMS_ALLOWED_ONLY_FOR_ACTIVE_POLICIES;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.CLAIM_AMOUNT_EXCEEDS_POLICY_COVERAGE;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.CLAIM_DATE_NOT_WITHIN_POLICY_COVERAGE;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.CLAIM_NOT_FOUND;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.ONLY_PENDING_CLAIMS_CAN_BE_UPDATED;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @Transactional
 public class ClaimServiceImpl implements ClaimService {
-    private final ClaimRepository claimRepository;
-    private final UserPolicyRepository userPolicyRepository;
+
+    private final ClaimDao claimDao;
+
+    private final UserPolicyService userPolicyService;
+
+    private final PolicyService policyService;
+
+    public ClaimServiceImpl(ClaimDao claimDao,
+                            UserPolicyService userPolicyService,
+                            PolicyService policyService) {
+        this.claimDao = claimDao;
+        this.userPolicyService = userPolicyService;
+        this.policyService = policyService;
+    }
 
     @Override
     public ClaimResponse submitClaim(ClaimCreateRequest request, Long userId) {
         log.info("Submitting claim for user ID: {} and policy ID: {}", userId, request.getUserPolicyId());
+        UserPolicy userPolicy = userPolicyService.getByUserIdAndPolicyId(userId, request.getUserPolicyId());
 
-        // Verify that the user policy exists and belongs to the user
-        UserPolicy userPolicy = userPolicyRepository.findByIdAndUserId(request.getUserPolicyId(), userId)
-                .orElseThrow(() -> new NotFoundException("User policy not found or does not belong to the user"));
+        Policy policy = policyService.getById(request.getUserPolicyId());
 
-        // Business Rule: Claims allowed only for ACTIVE policies
-        if (userPolicy.getStatus() != PolicyStatus.ACTIVE) {
-            throw new BadRequestException("Claims can only be submitted for active policies");
+        validateClaimRequest(request, userId, userPolicy, policy);
+
+        Claim claim = getClaimFromRequest(request);
+
+        Claim savedClaim = claimDao.persist(claim);
+        log.info("Claim submitted successfully with ID: {}", savedClaim.getId());
+        updateUserPolicyAfterClaimSubmission(savedClaim, userPolicy, policy);
+        log.info("User policy updated after claim submission for user ID: {} and policy ID: {}", userId, request.getUserPolicyId());
+        return mapToClaimResponse(savedClaim);
+    }
+
+    private void updateUserPolicyAfterClaimSubmission(Claim savedClaim, UserPolicy userPolicy, Policy policy) {
+        UserPolicyUpdateRequest userPolicyUpdateRequest = UserPolicyUpdateRequest.builder()
+                .totalAmountClaimed(userPolicy.getTotalAmountClaimed().add(savedClaim.getClaimAmount()))
+                .build();
+        userPolicyService.updateUserPolicy(userPolicy.getUserId(), userPolicy.getPolicyId(), userPolicyUpdateRequest);
+    }
+
+    private void validateClaimRequest(ClaimCreateRequest request, Long userId, UserPolicy userPolicy, Policy policy) {
+        if (userPolicy.getStatus() != UserPolicyStatus.ACTIVE  &&
+        userPolicy.getStatus() != UserPolicyStatus.RENEWED) {
+            log.error("Claims can only be submitted for active policies. User Policy ID: {}", userPolicy.getId());
+            throw new BadRequestException(CLAIMS_ALLOWED_ONLY_FOR_ACTIVE_POLICIES);
         }
 
-        // Validate claim date (should not be in the future and within policy period)
-        if (request.getClaimDate().isAfter(LocalDate.now())) {
-            throw new BadRequestException("Claim date cannot be in the future");
+        if(request.getClaimAmount().compareTo(policy.getCoverageAmount().subtract(userPolicy.getTotalAmountClaimed())) > 0) {
+            log.error("Claim amount exceeds policy coverage. Claim Amount: {}, Policy Coverage: {}",
+                      request.getClaimAmount(), policy.getCoverageAmount());
+            throw new BadRequestException(CLAIM_AMOUNT_EXCEEDS_POLICY_COVERAGE);
         }
 
         if (request.getClaimDate().isBefore(userPolicy.getStartDate().toLocalDate()) ||
-                request.getClaimDate().isAfter(userPolicy.getEndDate().toLocalDate())) {
-            throw new BadRequestException("Claim date must be within the policy coverage period");
+                request.getClaimDate().isAfter(userPolicy.getEndDate().toLocalDate()) ||
+                request.getClaimDate().isAfter(LocalDate.now())) {
+            throw new BadRequestException(CLAIM_DATE_NOT_WITHIN_POLICY_COVERAGE);
         }
-
-        // Create new claim with PENDING status
-        Claim claim = new Claim(
-                request.getUserPolicyId(),
-                request.getClaimDate(),
-                request.getClaimAmount(),
-                request.getReason()
-        );
-
-        Claim savedClaim = claimRepository.save(claim);
-        log.info("Claim submitted successfully with ID: {}", savedClaim.getId());
-
-        return mapToClaimResponse(savedClaim);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ClaimResponse> getUserClaims(Long userId) {
+    public ClaimPaginatedResponse getUserClaims(Long userId, Integer page, Integer size) {
         log.info("Fetching claims for user ID: {}", userId);
 
-        List<Claim> claims = claimRepository.findByUserId(userId);
-        return claims.stream()
-                .map(this::mapToClaimResponse)
-                .collect(Collectors.toList());
+        Page<Claim> claims = claimDao.getByUserId(userId, PageRequest.of(page, size, Sort.by(CLAIM_DATE_PLACEHOLDER)));
+        return getClaimPaginatedResponse(page, size, claims);
     }
 
     @Override
-    public ClaimResponse updateClaimStatus(Long claimId, ClaimStatusUpdateRequest request) {
-        log.info("Updating claim status for claim ID: {} to status: {}", claimId, request.getStatus());
+    public ClaimResponse updateClaimStatus(Long userId, Long claimId, ClaimStatusUpdateRequest claimStatusUpdateRequest) {
+        log.info("Updating claim status for claim ID: {} to status: {}", claimId, claimStatusUpdateRequest.getStatus());
 
-        Claim claim = claimRepository.findById(claimId)
-                .orElseThrow(() -> new NotFoundException("Claim not found with ID: " + claimId));
+        Claim claim = checkAndGetClaim(claimId);
 
-        // Business Rule: Can only update claims that are in PENDING status
-        if (claim.getStatus() != ClaimStatus.PENDING) {
-            throw new BadRequestException("Can only update claims with PENDING status");
-        }
+        validateClaimUpdateRequest(claimStatusUpdateRequest, claim);
 
-        // Validate status transition
-        if (request.getStatus() == ClaimStatus.PENDING) {
-            throw new BadRequestException("Cannot set status back to PENDING");
-        }
+        updateClaimStatus(claimStatusUpdateRequest, claim);
 
-        claim.setStatus(request.getStatus());
-        claim.setReviewerComment(request.getReviewerComment());
-        claim.setResolvedDate(LocalDate.now());
-
-        Claim updatedClaim = claimRepository.save(claim);
+        Claim updatedClaim = claimDao.persist(claim);
         log.info("Claim status updated successfully for claim ID: {}", claimId);
 
         return mapToClaimResponse(updatedClaim);
     }
 
+    private void updateClaimStatus(ClaimStatusUpdateRequest request, Claim claim) {
+        claim.setStatus(request.getStatus());
+        claim.setReviewerComment(request.getReviewerComment());
+    }
+
+    private void validateClaimUpdateRequest(ClaimStatusUpdateRequest request, Claim claim) {
+        if (claim.getStatus() != ClaimStatus.PENDING) {
+            throw new BadRequestException(ONLY_PENDING_CLAIMS_CAN_BE_UPDATED);
+        }
+
+        if (request.getStatus() == ClaimStatus.PENDING) {
+            throw new BadRequestException(CANNOT_SET_STATUS_BACK_TO_PENDING);
+        }
+    }
+
+    private Claim checkAndGetClaim(Long claimId) {
+        return claimDao.findById(claimId)
+                .orElseThrow(() -> new NotFoundException(CLAIM_NOT_FOUND));
+    }
+
     @Override
     @Transactional(readOnly = true)
-    public ClaimResponse getClaimByIdAndUserId(Long claimId, Long userId) {
+    public ClaimResponse getByClaimIdAndUserId(Long claimId, Long userId) {
         log.info("Fetching claim ID: {} for user ID: {}", claimId, userId);
 
-        Claim claim = claimRepository.findByIdAndUserPolicyUserId(claimId, userId)
-                .orElseThrow(() -> new NotFoundException("Claim not found or does not belong to the user"));
+        Claim claim = claimDao.getByClaimIdAndUserId(claimId, userId)
+                .orElseThrow(() -> new NotFoundException(CLAIM_NOT_FOUND));
 
         return mapToClaimResponse(claim);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ClaimResponse> getAllClaims() {
+    public ClaimPaginatedResponse getAllClaims(ClaimStatus status, Integer page, Integer size) {
         log.info("Fetching all claims for admin");
-
-        List<Claim> claims = claimRepository.findAll();
-        return claims.stream()
-                .map(this::mapToClaimResponse)
-                .collect(Collectors.toList());
+        Specification<Claim> claimSpecification= getClaimSpecification(status);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(CLAIM_DATE_PLACEHOLDER).descending());
+        Page<Claim> claims = claimDao.findAll(claimSpecification, pageable);
+        return getClaimPaginatedResponse(page, size, claims);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ClaimResponse> getPendingClaims() {
-        log.info("Fetching all pending claims for admin");
 
-        List<Claim> pendingClaims = claimRepository.findByStatus(ClaimStatus.PENDING);
-        return pendingClaims.stream()
-                .map(this::mapToClaimResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ClaimResponse> getApprovedClaims() {
-        log.info("Fetching all approved claims for admin");
-
-        List<Claim> approvedClaims = claimRepository.findByStatus(ClaimStatus.APPROVED);
-        return approvedClaims.stream()
-                .map(this::mapToClaimResponse)
-                .collect(Collectors.toList());
-    }
-
-    private ClaimResponse mapToClaimResponse(Claim claim) {
-        ClaimResponse.ClaimResponseBuilder builder = ClaimResponse.builder()
-                .id(claim.getId())
-                .userPolicyId(claim.getUserPolicyId())
-                .claimDate(claim.getClaimDate())
-                .claimAmount(claim.getClaimAmount())
-                .reason(claim.getReason())
-                .status(claim.getStatus())
-                .reviewerComment(claim.getReviewerComment())
-                .resolvedDate(claim.getResolvedDate());
-
-        // Add policy information if available
-        if (claim.getUserPolicy() != null && claim.getUserPolicy().getPolicy() != null) {
-            builder.policyName(claim.getUserPolicy().getPolicy().getName())
-                    .policyType(claim.getUserPolicy().getPolicy().getType());
-        }
-
-        return builder.build();
+    private Specification<Claim> getClaimSpecification(ClaimStatus status) {
+        return (root, query, criteriaBuilder) -> {
+            if (status != null) {
+                return criteriaBuilder.equal(root.get(CLAIM_STATUS_PLACEHOLDER), status);
+            }
+            return criteriaBuilder.conjunction();
+        };
     }
 }
