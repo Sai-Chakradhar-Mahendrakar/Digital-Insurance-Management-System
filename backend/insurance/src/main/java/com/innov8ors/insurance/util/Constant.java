@@ -16,11 +16,11 @@ public class Constant {
         public static final String POLICY_NOT_FOUND = "Policy not found";
         public static final String INVALID_CREDENTIALS = "Invalid credentials";
         public static final String USER_ALREADY_EXISTS = "User already exists";
+        public static final String USER_ALREADY_HAS_POLICY = "User has already purchased the policy";
         public static final String UNAUTHORIZED_ACCESS = "Unauthorized access";
         public static final String USER_POLICY_NOT_FOUND = "User policy not found";
         public static final String INCORRECT_PASSWORD = "Incorrect password";
         public static final String INTERNAL_SERVER_ERROR = "Internal server error";
-        public static final String USER_ALREADY_HAS_POLICY = "User already has this policy";
     }
 
     public static class PolicyConstants {

@@ -33,15 +33,16 @@ public class UserPolicy {
     @Column(name = "end_date", nullable = false)
     private LocalDateTime endDate;
 
-    @Column(name = "last_payment_date")
-    private LocalDateTime lastPaymentDate;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserPolicyStatus status;
 
     @Column(name = "premium_paid", precision = 10, scale = 2)
     private BigDecimal premiumPaid;
+
+    @Column(name = "total_amount_claimed", precision = 10, scale = 2)
+    @Builder.Default
+    private BigDecimal totalAmountClaimed = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
