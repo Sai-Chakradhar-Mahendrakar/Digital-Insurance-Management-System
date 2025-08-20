@@ -52,21 +52,21 @@
               <div class="space-y-3">
                 <div class="flex justify-between">
                   <span class="text-slate-500">Premium Amount</span>
-                  <span class="font-semibold text-slate-900"
-                    >₹{{ formatCurrency(policy.premiumAmount) }}</span
-                  >
+                  <span class="font-semibold text-slate-900">{{
+                    formatINR(policy.premiumAmount)
+                  }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-slate-500">Coverage Amount</span>
-                  <span class="font-semibold text-slate-900"
-                    >₹{{ formatCurrency(policy.coverageAmount) }}</span
-                  >
+                  <span class="font-semibold text-slate-900">{{
+                    formatINR(policy.coverageAmount)
+                  }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-slate-500">Renewal Premium</span>
-                  <span class="font-semibold text-slate-900"
-                    >₹{{ formatCurrency(policy.renewalPremiumRate) }}</span
-                  >
+                  <span class="font-semibold text-slate-900">{{
+                    formatINR(policy.renewalPremiumRate)
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -100,14 +100,12 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
               <div class="text-center">
                 <div class="font-semibold text-blue-900">
-                  ₹{{ formatCurrency(policy.coverageAmount) }}
+                  {{ formatINR(policy.coverageAmount) }}
                 </div>
                 <div class="text-blue-600">Total Coverage</div>
               </div>
               <div class="text-center">
-                <div class="font-semibold text-blue-900">
-                  ₹{{ formatCurrency(policy.premiumAmount) }}
-                </div>
+                <div class="font-semibold text-blue-900">{{ formatINR(policy.premiumAmount) }}</div>
                 <div class="text-blue-600">Annual Premium</div>
               </div>
               <div class="text-center">
@@ -118,12 +116,43 @@
               </div>
             </div>
           </div>
+
+          <!-- Tax Information (India-specific) -->
+          <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h4 class="font-medium text-green-900 mb-2 font-poppins">Tax Benefits & Information</h4>
+            <div class="text-sm text-green-700 space-y-1">
+              <p>• Premium payments are eligible for tax deduction under Section 80C/80D</p>
+              <p>• Additional benefits available for senior citizens and critical illness cover</p>
+              <p>• GST: 18% applicable on premium amount as per Indian tax regulations</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Display -->
+        <div v-if="errorMessage" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div class="flex items-center">
+            <AlertCircle class="w-5 h-5 text-red-600 mr-3" />
+            <p class="text-red-800 text-sm font-medium">{{ errorMessage }}</p>
+          </div>
         </div>
 
         <!-- Footer -->
         <div class="flex justify-end space-x-3 mt-8">
           <AppButton variant="ghost" @click="$emit('close')"> Close </AppButton>
-          <AppButton variant="primary"> Purchase Policy </AppButton>
+          <AppButton
+            variant="primary"
+            :disabled="isLoading"
+            @click="handlePurchase"
+            class="flex items-center space-x-2"
+          >
+            <span v-if="!isLoading">Purchase Policy</span>
+            <span v-else class="flex items-center space-x-2">
+              <div
+                class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+              ></div>
+              <span>Processing...</span>
+            </span>
+          </AppButton>
         </div>
       </div>
     </div>
@@ -131,29 +160,97 @@
 </template>
 
 <script setup lang="ts">
-import { Shield, X } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useUserPolicyStore } from '@/stores/userPolicy'
+import { useToast } from '@/composables/useToast'
+import { Shield, X, AlertCircle } from 'lucide-vue-next'
 import AppButton from '@/components/common/AppButton.vue'
 import type { Policy } from '@/types/policy'
 
 interface Props {
   policy: Policy
+  isAuthenticated?: boolean
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  isAuthenticated: false,
+})
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'apply', policy: Policy): void
 }>()
 
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
+const router = useRouter()
+const authStore = useAuthStore()
+const userPolicyStore = useUserPolicyStore()
+const toast = useToast()
+
+const isLoading = ref(false)
+const errorMessage = ref('')
+
+const isUserAuthenticated = computed(() => authStore.isAuthenticated)
+
+const handlePurchase = async () => {
+  // Check if user is authenticated
+  if (!isUserAuthenticated.value) {
+    // Redirect to login with policy info
+    router.push({
+      path: '/login',
+      query: {
+        redirect: '/policies',
+        policyId: props.policy.id.toString(),
+      },
+    })
+    emit('close')
+    return
+  }
+
+  try {
+    isLoading.value = true
+    errorMessage.value = ''
+
+    // Call the purchase API
+    await userPolicyStore.purchasePolicy({
+      policyId: props.policy.id,
+      premiumPaid: props.policy.premiumAmount,
+    })
+
+    // Show success message
+    toast.success(
+      'Policy Purchase Initiated',
+      `Your purchase request for "${props.policy.name}" has been submitted and is pending approval.`,
+    )
+
+    // Close modal
+    emit('close')
+
+    // Navigate to user policies page after a short delay
+    setTimeout(() => {
+      router.push('/my-policies')
+    }, 1500)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to purchase policy'
+    errorMessage.value = message
+    toast.error('Purchase Failed', message)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const formatINR = (amount: number): string => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)
 }
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('en-US', {
+  return new Date(dateString).toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
