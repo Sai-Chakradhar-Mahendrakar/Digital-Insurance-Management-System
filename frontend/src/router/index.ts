@@ -87,7 +87,15 @@ const routes = [
       layout: 'admin',
     },
   },
-
+  {
+    path: '/my-policies',
+    name: 'my-policies',
+    component: () => import('@/views/user/MyPoliciesView.vue'),
+    meta: { 
+      requiresAuth: true,
+      title: 'My Policies'
+    }
+  },
   // 404 Not Found - Must be last
   {
     path: '/:pathMatch(.*)*',

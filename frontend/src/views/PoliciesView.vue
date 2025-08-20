@@ -147,6 +147,8 @@ import PolicyCard from '@/components/policies/PolicyCard.vue'
 import PolicyModal from '@/components/policies/PolicyModal.vue'
 import { Shield, Search } from 'lucide-vue-next'
 import type { Policy } from '@/types/policy'
+import { useUserPolicyStore } from '@/stores/userPolicy'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
@@ -157,6 +159,9 @@ const isLoading = ref(true)
 const selectedPolicy = ref<Policy | null>(null)
 const searchQuery = ref('')
 const activeFilter = ref('all')
+
+const userPolicyStore = useUserPolicyStore()
+const toast = useToast()
 
 const filterOptions = [
   { label: 'All Policies', value: 'all' },
@@ -215,6 +220,39 @@ const handleApplyForPolicy = (policy: Policy) => {
     // Handle application process for authenticated users
     console.log('Applying for policy:', policy.name)
     // Add your application logic here
+  }
+}
+
+const handlePurchasePolicy = async (policy: Policy) => {
+  if (!isAuthenticated.value) {
+    router.push({
+      path: '/login',
+      query: {
+        redirect: '/policies',
+        policyId: policy.id.toString(),
+      },
+    })
+    return
+  }
+
+  try {
+    await userPolicyStore.purchasePolicy({
+      policyId: policy.id,
+      premiumPaid: policy.premiumAmount,
+    })
+
+    toast.success(
+      'Policy Purchase Initiated',
+      `Your purchase request for "${policy.name}" is now pending approval.`,
+    )
+
+    // Optionally redirect to my policies
+    setTimeout(() => {
+      router.push('/my-policies')
+    }, 2000)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to purchase policy'
+    toast.error('Purchase Failed', message)
   }
 }
 
