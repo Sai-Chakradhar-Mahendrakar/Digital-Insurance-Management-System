@@ -197,7 +197,7 @@
       <!-- Policies Grid -->
       <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <PolicyCard
-          v-for="userPolicy in filteredPolicies"
+          v-for="userPolicy in paginatedPolicies"
           :key="userPolicy.id"
           :user-policy="userPolicy"
           @view="viewPolicyDetails"
@@ -256,6 +256,7 @@ import {
   Search,
 } from 'lucide-vue-next'
 import type { UserPolicy } from '@/stores/userPolicy'
+import { onUnmounted } from 'vue'
 
 const userPolicyStore = useUserPolicyStore()
 const toast = useToast()
@@ -363,10 +364,10 @@ onMounted(async () => {
 })
 
 // Auto-refresh policies every 30 seconds when component is active
-let refreshInterval: number | null = null
+const refreshInterval = ref<number | null>(null)
 
 onMounted(() => {
-  refreshInterval = setInterval(async () => {
+  refreshInterval.value = setInterval(async () => {
     if (document.visibilityState === 'visible') {
       try {
         await userPolicyStore.fetchUserPolicies()
@@ -377,12 +378,9 @@ onMounted(() => {
   }, 30000)
 })
 
-// Cleanup interval on unmount
-import { onUnmounted } from 'vue'
-
 onUnmounted(() => {
-  if (refreshInterval) {
-    clearInterval(refreshInterval)
+  if (refreshInterval.value !== null) {
+    clearInterval(refreshInterval.value)
   }
 })
 </script>
