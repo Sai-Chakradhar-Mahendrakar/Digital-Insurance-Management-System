@@ -33,7 +33,6 @@ public class TestUtil {
     public static final Role TEST_USER_ROLE = Role.USER;
     public static final String TEST_TOKEN = "testToken";
     public static final Long TEST_POLICY_ID = 1L;
-    public static final String USER_ALREADY_HAS_POLICY = "User already has this policy";
     public static final String TEST_POLICY_NAME = "Test Policy";
     public static final String TEST_POLICY_TYPE = "Health";
     public static final String TEST_POLICY_DESCRIPTION = "This is a test policy description.";
