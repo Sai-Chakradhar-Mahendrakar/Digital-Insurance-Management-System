@@ -29,42 +29,33 @@
     <!-- Coverage Amount & Premium -->
     <div class="grid grid-cols-2 gap-4 mb-6">
       <div
-        class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 border border-slate-200"
+        class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200"
       >
         <p
-          class="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-2 flex items-center"
+          class="text-xs text-emerald-600 uppercase tracking-wide font-semibold mb-2 flex items-center"
         >
           <Shield class="w-3 h-3 mr-1" />
           Coverage Amount
         </p>
-        <p class="text-xl font-bold text-slate-900">
-          {{ policyDetails?.coverageAmount ? formatINR(policyDetails.coverageAmount) : 'N/A' }}
+        <p class="text-xl font-bold text-emerald-700">
+          {{ formatINR(userPolicy.coverageAmount) }}
         </p>
-        <p v-if="policyDetails?.description" class="text-xs text-slate-500 mt-1 leading-relaxed">
-          {{ truncateText(policyDetails.description, 40) }}
-        </p>
+        <p class="text-xs text-emerald-600 mt-1">Full protection limit</p>
       </div>
       <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
         <p
-          class="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-2 flex items-center"
+          class="text-xs text-blue-600 uppercase tracking-wide font-semibold mb-2 flex items-center"
         >
           <TrendingUp class="w-3 h-3 mr-1" />
           Premium Paid
         </p>
         <p class="text-xl font-bold text-blue-700">{{ formatINR(userPolicy.premiumPaid) }}</p>
-        <p
-          v-if="
-            policyDetails?.premiumAmount && policyDetails.premiumAmount !== userPolicy.premiumPaid
-          "
-          class="text-xs text-blue-600 mt-1"
-        >
-          Base: {{ formatINR(policyDetails.premiumAmount) }}
-        </p>
+        <p class="text-xs text-blue-600 mt-1">Investment secured</p>
       </div>
     </div>
 
     <!-- Claims Progress Bar -->
-    <div v-if="policyDetails?.coverageAmount && userPolicy.status === 'ACTIVE'" class="mb-6">
+    <div v-if="userPolicy.status === 'ACTIVE'" class="mb-6">
       <div class="flex items-center justify-between mb-3">
         <span class="text-sm font-semibold text-slate-700 flex items-center">
           <BarChart3 class="w-4 h-4 mr-2" />
@@ -106,12 +97,18 @@
 
         <!-- Claims Amount Display -->
         <div class="flex justify-between text-sm font-medium text-slate-700 mt-3">
-          <span class="bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-sm">
-            💰 Claimed:
+          <span
+            class="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center"
+          >
+            <span class="text-red-500 mr-1">💰</span>
+            Claimed:
             {{ userPolicy.totalAmountClaimed ? formatINR(userPolicy.totalAmountClaimed) : '₹0' }}
           </span>
-          <span class="bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-sm">
-            💎 Available: {{ formatINR(availableCoverage) }}
+          <span
+            class="bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center"
+          >
+            <span class="text-emerald-500 mr-1">💎</span>
+            Available: {{ formatINR(availableCoverage) }}
           </span>
         </div>
       </div>
@@ -119,7 +116,7 @@
       <!-- Coverage Utilization Insights -->
       <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
         <div class="flex items-center justify-between text-xs">
-          <span class="text-slate-600 font-medium">Coverage Health</span>
+          <span class="text-slate-600 font-medium">Coverage Health Score</span>
           <div class="flex items-center space-x-2">
             <div class="flex space-x-1">
               <div
@@ -158,24 +155,30 @@
       <div class="grid grid-cols-2 gap-4 text-sm">
         <div>
           <p class="text-slate-500 font-medium mb-1 flex items-center">
-            <Calendar class="w-3 h-3 mr-1" />
+            <Hash class="w-3 h-3 mr-1" />
             Policy ID
           </p>
           <p class="font-bold text-slate-900">#{{ userPolicy.policyId }}</p>
         </div>
         <div>
           <p class="text-slate-500 font-medium mb-1 flex items-center">
-            <Clock class="w-3 h-3 mr-1" />
-            Duration
+            <User class="w-3 h-3 mr-1" />
+            Policy Holder
           </p>
-          <p class="font-bold text-slate-900">{{ policyDetails?.durationMonths || 12 }} months</p>
+          <p class="font-bold text-slate-900">{{ userPolicy.userName }}</p>
         </div>
         <div>
-          <p class="text-slate-500 font-medium mb-1">Started</p>
+          <p class="text-slate-500 font-medium mb-1 flex items-center">
+            <Calendar class="w-3 h-3 mr-1" />
+            Started
+          </p>
           <p class="font-bold text-slate-900">{{ formatDate(userPolicy.startDate) }}</p>
         </div>
         <div>
-          <p class="text-slate-500 font-medium mb-1">Expires</p>
+          <p class="text-slate-500 font-medium mb-1 flex items-center">
+            <CalendarX class="w-3 h-3 mr-1" />
+            Expires
+          </p>
           <p :class="getExpiryDateClass(userPolicy.endDate)" class="font-bold">
             {{ formatDate(userPolicy.endDate) }}
           </p>
@@ -184,9 +187,9 @@
 
       <!-- Policy Progress Timeline -->
       <div v-if="userPolicy.status === 'ACTIVE'" class="mt-4">
-        <div class="flex justify-between text-xs text-slate-500 mb-1">
-          <span>Policy Term Progress</span>
-          <span>{{ policyProgressPercentage }}% complete</span>
+        <div class="flex justify-between text-xs text-slate-500 mb-2">
+          <span class="font-medium">Policy Term Progress</span>
+          <span class="font-bold">{{ policyProgressPercentage }}% complete</span>
         </div>
         <div class="w-full bg-slate-300 rounded-full h-2 overflow-hidden">
           <div
@@ -196,26 +199,29 @@
         </div>
         <div class="flex justify-between text-xs text-slate-500 mt-1">
           <span>{{ formatDate(userPolicy.startDate) }}</span>
-          <span>{{ getTimeRemaining(userPolicy.endDate) }}</span>
+          <span class="font-medium">{{ getTimeRemaining(userPolicy.endDate) }}</span>
         </div>
       </div>
     </div>
 
-    <!-- Renewal Information -->
-    <div
-      v-if="policyDetails?.renewalPremiumRate && userPolicy.status === 'ACTIVE'"
-      class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg"
-    >
-      <div class="flex items-center justify-between">
+    <!-- Contact Information -->
+    <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+      <div class="grid grid-cols-2 gap-3 text-xs">
         <div class="flex items-center">
-          <RefreshCw class="w-4 h-4 text-amber-600 mr-2" />
-          <span class="text-sm font-medium text-amber-800">Renewal Premium</span>
+          <Mail class="w-3 h-3 text-blue-600 mr-2" />
+          <span class="text-blue-700 font-medium truncate">{{ userPolicy.userEmail }}</span>
         </div>
-        <span class="text-sm font-bold text-amber-900">
-          {{ formatINR(policyDetails.renewalPremiumRate) }}
-        </span>
+        <div class="flex items-center">
+          <Phone class="w-3 h-3 text-blue-600 mr-2" />
+          <span class="text-blue-700 font-medium">{{ userPolicy.userPhone }}</span>
+        </div>
       </div>
-      <p class="text-xs text-amber-700 mt-1">Your next renewal premium for continued coverage</p>
+      <div class="mt-2 flex items-start">
+        <MapPin class="w-3 h-3 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+        <span class="text-blue-700 font-medium text-xs leading-relaxed">{{
+          userPolicy.userAddress
+        }}</span>
+      </div>
     </div>
 
     <!-- Action Buttons -->
@@ -248,7 +254,7 @@
         v-if="userPolicy.status === 'PENDING'"
         class="flex items-center text-sm text-amber-600 bg-amber-50 p-3 rounded-lg"
       >
-        <Clock class="w-4 h-4 mr-2" />
+        <Clock class="w-4 h-4 mr-2 flex-shrink-0" />
         <span class="font-medium"
           >Application under review... Expected approval within 2-3 business days.</span
         >
@@ -283,7 +289,7 @@
       <div v-else-if="userPolicy.status === 'REJECTED'" class="space-y-2">
         <div class="flex items-center text-sm text-red-600 bg-red-50 p-3 rounded-lg">
           <XCircle class="w-4 h-4 mr-2" />
-          <span class="font-medium">Application was rejected.</span>
+          <span class="font-medium">Application was rejected. Contact support for details.</span>
         </div>
         <AppButton
           variant="primary"
@@ -328,12 +334,17 @@ import {
   FileText,
   Plus,
   Calendar,
+  CalendarX,
   RefreshCw,
   TrendingUp,
   BarChart3,
+  Hash,
+  User,
+  Mail,
+  Phone,
+  MapPin,
 } from 'lucide-vue-next'
 import AppButton from '@/components/common/AppButton.vue'
-import { usePolicyStore } from '@/stores/policy'
 import type { UserPolicy } from '@/stores/userPolicy'
 
 interface Props {
@@ -349,27 +360,16 @@ defineEmits<{
   (e: 'renew', userPolicy: UserPolicy): void
 }>()
 
-const policyStore = usePolicyStore()
-
-// Get the full policy details by matching policyId with policy id
-const policyDetails = computed(() => {
-  return policyStore.getPolicyById(props.userPolicy.policyId)
-})
-
-// Coverage calculations
-const coverageAmount = computed(() => {
-  return policyDetails.value?.coverageAmount || 0
-})
-
+// Direct calculations using userPolicy data (no external store dependency)
 const availableCoverage = computed(() => {
   const claimed = props.userPolicy.totalAmountClaimed || 0
-  return Math.max(0, coverageAmount.value - claimed)
+  return Math.max(0, props.userPolicy.coverageAmount - claimed)
 })
 
 const claimsPercentage = computed(() => {
   const claimed = props.userPolicy.totalAmountClaimed || 0
-  if (coverageAmount.value === 0) return 0
-  return Math.round((claimed / coverageAmount.value) * 100)
+  if (props.userPolicy.coverageAmount === 0) return 0
+  return Math.round((claimed / props.userPolicy.coverageAmount) * 100)
 })
 
 // Policy term progress
@@ -470,11 +470,6 @@ const getCoverageRecommendation = (percentage: number): string => {
   if (percentage < 100)
     return '🚨 Coverage nearly exhausted! Consider upgrading policy or managing future claims carefully.'
   return '❌ Coverage fully utilized. No additional claims can be processed under this policy.'
-}
-
-const truncateText = (text: string, maxLength: number): string => {
-  if (text.length <= maxLength) return text
-  return text.substring(0, maxLength) + '...'
 }
 
 const getStatusStyle = (status: string) => {

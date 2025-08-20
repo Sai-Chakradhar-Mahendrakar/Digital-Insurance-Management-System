@@ -17,6 +17,7 @@ export interface UserPolicy {
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'EXPIRED'
   premiumPaid: number
   totalAmountClaimed: number | null
+  coverageAmount: number // Now included in the response
   userId: number
   userName: string
   userEmail: string
@@ -24,43 +25,13 @@ export interface UserPolicy {
   userAddress: string
 }
 
-// API Response structure matching your curl response
+// API Response structure matching your latest curl response
 export interface UserPoliciesApiResponse {
   userPolicies: UserPolicy[]
   totalElements: number
   totalPages: number
   size: number
   page: number
-}
-
-// Legacy response structure (keeping for backward compatibility)
-export interface UserPoliciesResponse {
-  content: UserPolicy[]
-  pageable: {
-    pageNumber: number
-    pageSize: number
-    sort: {
-      empty: boolean
-      sorted: boolean
-      unsorted: boolean
-    }
-    offset: number
-    paged: boolean
-    unpaged: boolean
-  }
-  last: boolean
-  totalPages: number
-  totalElements: number
-  first: boolean
-  size: number
-  number: number
-  numberOfElements: number
-  sort: {
-    empty: boolean
-    sorted: boolean
-    unsorted: boolean
-  }
-  empty: boolean
 }
 
 export const useUserPolicyStore = defineStore('userPolicy', () => {
@@ -76,7 +47,7 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
   const currentPage = ref(0)
   const pageSize = ref(1000)
 
-  // Computed getters (matching the design system patterns)
+  // Computed getters
   const activePolicies = computed(() =>
     userPolicies.value.filter((policy) => policy.status === 'ACTIVE'),
   )
@@ -93,8 +64,19 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
     userPolicies.value.reduce((sum, policy) => sum + policy.premiumPaid, 0),
   )
 
+  const totalCoverageAmount = computed(() =>
+    userPolicies.value.reduce((sum, policy) => sum + policy.coverageAmount, 0),
+  )
+
   const totalClaimsAmount = computed(() =>
     userPolicies.value.reduce((sum, policy) => sum + (policy.totalAmountClaimed || 0), 0),
+  )
+
+  const availableCoverageAmount = computed(() =>
+    userPolicies.value.reduce((sum, policy) => {
+      const claimed = policy.totalAmountClaimed || 0
+      return sum + (policy.coverageAmount - claimed)
+    }, 0),
   )
 
   const policiesByType = computed(() => {
@@ -112,20 +94,54 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
 
   const policyTypeStats = computed(() => {
     const stats = {
-      Health: { count: 0, totalPremium: 0 },
-      Auto: { count: 0, totalPremium: 0 },
-      Life: { count: 0, totalPremium: 0 },
-      Home: { count: 0, totalPremium: 0 },
+      Health: { count: 0, totalPremium: 0, totalCoverage: 0 },
+      Auto: { count: 0, totalPremium: 0, totalCoverage: 0 },
+      Life: { count: 0, totalPremium: 0, totalCoverage: 0 },
+      Home: { count: 0, totalPremium: 0, totalCoverage: 0 },
     }
 
     userPolicies.value.forEach((policy) => {
       if (stats[policy.policyType as keyof typeof stats]) {
-        stats[policy.policyType as keyof typeof stats].count++
-        stats[policy.policyType as keyof typeof stats].totalPremium += policy.premiumPaid
+        const typeStats = stats[policy.policyType as keyof typeof stats]
+        typeStats.count++
+        typeStats.totalPremium += policy.premiumPaid
+        typeStats.totalCoverage += policy.coverageAmount
       }
     })
 
     return stats
+  })
+
+  const averageClaimsUtilization = computed(() => {
+    if (userPolicies.value.length === 0) return 0
+
+    const totalUtilization = userPolicies.value.reduce((sum, policy) => {
+      const coverage = policy.coverageAmount
+      const claimed = policy.totalAmountClaimed || 0
+      return sum + (coverage > 0 ? (claimed / coverage) * 100 : 0)
+    }, 0)
+
+    return Math.round(totalUtilization / userPolicies.value.length)
+  })
+
+  const highUtilizationPolicies = computed(() =>
+    userPolicies.value.filter((policy) => {
+      const claimed = policy.totalAmountClaimed || 0
+      const utilizationPercentage =
+        policy.coverageAmount > 0 ? (claimed / policy.coverageAmount) * 100 : 0
+      return utilizationPercentage > 75
+    }),
+  )
+
+  const expiringSoonPolicies = computed(() => {
+    const thirtyDaysFromNow = new Date()
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30)
+
+    return userPolicies.value.filter((policy) => {
+      const endDate = new Date(policy.endDate)
+      const now = new Date()
+      return policy.status === 'ACTIVE' && endDate <= thirtyDaysFromNow && endDate > now
+    })
   })
 
   // Actions
@@ -190,7 +206,7 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
 
       const data: UserPoliciesApiResponse = await response.json()
 
-      // Handle the new API structure
+      // Handle the API structure
       userPolicies.value = data.userPolicies || []
       totalElements.value = data.totalElements || 0
       totalPages.value = data.totalPages || 0
@@ -201,6 +217,7 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
       purchasedPolicyIds.value = new Set(userPolicies.value.map((policy) => policy.policyId))
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to load user policies'
+      console.error('User policies fetch error:', err)
     } finally {
       isLoading.value = false
     }
@@ -226,16 +243,30 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
 
   // Utility methods
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
+    // Handle large amounts properly
+    if (amount >= 10000000000) {
+      // 1000 crores
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+        notation: 'compact',
+        compactDisplay: 'short',
+      }).format(amount)
+    }
+
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount)
   }
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -248,6 +279,17 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
     const timeDiff = endDate.getTime() - now.getTime()
     const daysDiff = timeDiff / (1000 * 3600 * 24)
     return daysDiff <= days && daysDiff > 0
+  }
+
+  const getClaimsUtilizationPercentage = (policy: UserPolicy): number => {
+    const claimed = policy.totalAmountClaimed || 0
+    if (policy.coverageAmount === 0) return 0
+    return Math.round((claimed / policy.coverageAmount) * 100)
+  }
+
+  const getAvailableCoverage = (policy: UserPolicy): number => {
+    const claimed = policy.totalAmountClaimed || 0
+    return Math.max(0, policy.coverageAmount - claimed)
   }
 
   return {
@@ -266,9 +308,14 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
     expiredPolicies,
     pendingPolicies,
     totalPremiumPaid,
+    totalCoverageAmount,
     totalClaimsAmount,
+    availableCoverageAmount,
     policiesByType,
     policyTypeStats,
+    averageClaimsUtilization,
+    highUtilizationPolicies,
+    expiringSoonPolicies,
 
     // Actions
     purchasePolicy,
@@ -283,5 +330,7 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
     formatCurrency,
     formatDate,
     isExpiringSoon,
+    getClaimsUtilizationPercentage,
+    getAvailableCoverage,
   }
 })
