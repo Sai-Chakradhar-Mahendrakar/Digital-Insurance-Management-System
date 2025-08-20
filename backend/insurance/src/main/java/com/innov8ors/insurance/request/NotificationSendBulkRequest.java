@@ -7,9 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
-public class NotificationSendRequest {
+public class NotificationSendBulkRequest {
     @NotNull
-    private Long userId;
+    private List<Long> userId;
 
     @NotNull
     private String message;

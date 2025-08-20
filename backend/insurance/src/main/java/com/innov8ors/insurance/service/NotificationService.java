@@ -1,5 +1,6 @@
 package com.innov8ors.insurance.service;
 
+import com.innov8ors.insurance.request.NotificationSendBulkRequest;
 import com.innov8ors.insurance.request.NotificationSendRequest;
 import com.innov8ors.insurance.response.NotificationResponse;
 
@@ -8,6 +9,8 @@ import java.util.List;
 public interface NotificationService {
 
     List<NotificationResponse> getNotificationsByUserId(Long userId);
+
+    List<NotificationResponse> sendNotification(NotificationSendBulkRequest request);
 
     NotificationResponse sendNotification(NotificationSendRequest request);
 

@@ -1,9 +1,12 @@
 package com.innov8ors.insurance.repository;
 
 import com.innov8ors.insurance.entity.Notification;
+import com.innov8ors.insurance.enums.NotificationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    // Additional query methods if needed
-}
+import java.util.List;
 
+public interface NotificationRepository extends JpaRepository<Notification, Long> {
+    List<Notification> findByUserId(Long userId);
+    List<Notification> findByUserIdAndStatus(Long userId, NotificationStatus status);
+}

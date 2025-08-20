@@ -4,6 +4,7 @@ public enum NotificationType {
     POLICY_RENEWAL,
     CLAIM_UPDATE,
     SUPPORT_RESPONSE,
-    SYSTEM_ALERT
+    SYSTEM_ALERT,
+    GENERAL
 }
 
