@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.innov8ors.insurance.entity.UserPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.List;
 
@@ -23,9 +25,11 @@ public class SupportTicketController {
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping
-    public SupportTicket createTicket(@Valid @RequestBody SupportTicketCreateRequest request) {
-        log.info("Creating support ticket for userId: {} with subject: {}", request.getUserId(), request.getSubject());
-        SupportTicket ticket = supportTicketService.createTicket(request);
+    public SupportTicket createTicket(
+            @Valid @RequestBody SupportTicketCreateRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("Creating support ticket for userId: {} with subject: {}", userPrincipal.getId(), request.getSubject());
+        SupportTicket ticket = supportTicketService.createTicket(request, userPrincipal.getId());
         log.info("Support ticket created with id: {}", ticket.getId());
         return ticket;
     }
@@ -38,8 +42,17 @@ public class SupportTicketController {
         return tickets;
     }
 
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/user/getTicketsByUser")
+    public List<SupportTicket> getTicketsByUser(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("Fetching support tickets for userId: {}", userPrincipal.getId());
+        List<SupportTicket> tickets = supportTicketService.getTicketsByUser(userPrincipal.getId());
+        log.info("Found {} tickets for userId: {}", tickets.size(), userPrincipal.getId());
+        return tickets;
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{ticketId}")
+    @PatchMapping("/{ticketId}")
     public SupportTicket updateTicketStatus(
             @PathVariable Long ticketId,
             @RequestParam String response) {

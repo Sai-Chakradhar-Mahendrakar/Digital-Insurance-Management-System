@@ -26,22 +26,27 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     }
 
     @Override
-    public SupportTicket createTicket(SupportTicketCreateRequest request) {
+    public SupportTicket createTicket(SupportTicketCreateRequest request, Long userId) {
         try {
-            log.info("Creating support ticket for userId: {} with subject: {}", request.getUserId(), request.getSubject());
-            SupportTicket ticket = fromCreateRequest(request);
+            log.info("Creating support ticket for userId: {} with subject: {}", userId, request.getSubject());
+            SupportTicket ticket = fromCreateRequest(request, userId);
+            ticket.setUserId(userId); // Set userId from authenticated principal
             SupportTicket savedTicket = supportTicketRepository.save(ticket);
             log.info("Support ticket created with id: {}", savedTicket.getId());
             return savedTicket;
         } catch (Exception e) {
-            log.error("Error creating support ticket for userId: {}: {}", request.getUserId(), e.getMessage(), e);
+            log.error("Error creating support ticket for userId: {}: {}", userId, e.getMessage(), e);
             throw e;
         }
     }
 
     @Override
     public List<SupportTicket> getTicketsByUser(Long userId) {
-        return supportTicketRepository.findByUserId(userId);
+        List<SupportTicket> tickets = supportTicketRepository.findByUserId(userId);
+        if (tickets == null) {
+            return java.util.Collections.emptyList();
+        }
+        return tickets;
     }
 
     @Override

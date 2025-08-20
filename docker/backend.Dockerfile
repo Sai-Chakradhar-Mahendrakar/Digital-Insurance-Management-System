@@ -4,8 +4,8 @@ COPY pom.xml .
 # Download all required dependencies
 RUN mvn dependency:go-offline -B
 COPY src ./src
-RUN mvn clean package -DskipTests
-
+# RUN mvn clean package -DskipTests
+RUN mvn clean verify
 FROM maven:3.9.11-eclipse-temurin-17
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar

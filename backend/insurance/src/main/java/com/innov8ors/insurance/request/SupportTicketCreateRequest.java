@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SupportTicketCreateRequest {
-    @NotNull
-    private Long userId;
     private Long policyId;
     private Long claimId;
     @NotNull
