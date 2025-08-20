@@ -38,7 +38,7 @@ public class AdminController {
     @PatchMapping("/support/{ticketId}")
     public SupportTicket updateTicketStatus(
             @PathVariable Long ticketId,
-            @RequestBody SupportTicketUpdateRequest request) {
+            @Valid @RequestBody SupportTicketUpdateRequest request) {
         log.info("Updating ticket status to RESOLVED for ticketId: {} with response: {}", ticketId, request.getResponse());
         SupportTicket ticket = supportTicketService.updateTicketStatus(ticketId, request.getResponse(), SupportTicketStatus.RESOLVED);
         log.info("Ticket {} status updated to RESOLVED", ticketId);
