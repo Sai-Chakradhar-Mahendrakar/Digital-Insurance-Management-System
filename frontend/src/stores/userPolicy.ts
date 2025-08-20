@@ -11,7 +11,7 @@ export interface UserPolicy {
   id: number
   policyId: number
   policyName: string
-  policyType: 'Health' | 'Auto' | 'Life' | 'Home' | 'Travel' | 'Motor' 
+  policyType: string
   startDate: string
   endDate: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'EXPIRED'
