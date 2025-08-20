@@ -6,11 +6,9 @@ export interface Policy {
   description: string
   premiumAmount: number
   coverageAmount: number
-  features?: string[]
-  terms?: string[]
-  eligibility?: string[]
-  createdAt?: string
-  updatedAt?: string
+  createdAt: string
+  renewalPremiumRate: number
+  durationMonths: number
 }
 
 export interface PolicyResponse {
