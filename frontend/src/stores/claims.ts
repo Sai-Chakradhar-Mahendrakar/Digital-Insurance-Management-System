@@ -53,7 +53,6 @@ export const useClaimsStore = defineStore('claims', () => {
         credentials: 'include',
         body: JSON.stringify(claimData),
       })
-      console.log(authStore.token);
 
       if (!response.ok) {
         const errorText = await response.text()
