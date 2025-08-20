@@ -5,6 +5,7 @@ import { useUserPolicyStore } from './userPolicy'
 import { useAuthStore } from './auth'
 import type { Policy, PolicyResponse } from '@/types/policy'
 
+
 export const usePolicyStore = defineStore('policy', () => {
   const userPolicyStore = useUserPolicyStore()
   const authStore = useAuthStore()
