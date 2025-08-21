@@ -131,10 +131,16 @@ public class ClaimServiceImpl implements ClaimService {
         log.info("Claim status updated successfully for claim ID: {}", claimId);
 
         UserPolicy updatedUserPolicy = updateUserPolicyAfterClaimSubmission(updatedClaim, existingUserPolicy);
-        NotificationUtil.send(notificationService, userId, "Your claim status has been updated to " + claim.getStatus(), NotificationType.CLAIM_UPDATE);
+
+        sendNotification(updatedClaim, userId);
+
         updateOtherClaims(userId, claimId, claim.getUserPolicyId(), policy, updatedUserPolicy);
 
         return mapToClaimResponse(updatedClaim);
+    }
+
+    private void sendNotification(Claim claim, Long userId) {
+        NotificationUtil.send(notificationService, userId, "Your claim " + claim.getId() + " status has been updated to " + claim.getStatus(), NotificationType.CLAIM_UPDATE);
     }
 
     private void updateOtherClaims(Long userId, Long claimId, Long userPolicyId, Policy policy, UserPolicy userPolicy) {
@@ -147,7 +153,7 @@ public class ClaimServiceImpl implements ClaimService {
                         claim.setStatus(ClaimStatus.REJECTED);
                         claim.setReviewerComment("Claim amount exceeds policy coverage after this claim.");
                         claimDao.persist(claim);
-                        NotificationUtil.send(notificationService, userId, "Your claim status has been updated to " + claim.getStatus(), NotificationType.CLAIM_UPDATE);
+                        sendNotification(claim, userId);
                     }
                 });
     }
