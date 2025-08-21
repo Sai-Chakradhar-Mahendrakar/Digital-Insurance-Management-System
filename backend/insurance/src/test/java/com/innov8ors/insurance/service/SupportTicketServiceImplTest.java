@@ -4,6 +4,7 @@ import com.innov8ors.insurance.entity.SupportTicket;
 import com.innov8ors.insurance.enums.SupportTicketStatus;
 import com.innov8ors.insurance.repository.SupportTicketRepository;
 import com.innov8ors.insurance.request.SupportTicketCreateRequest;
+import com.innov8ors.insurance.request.SupportTicketUpdateRequest;
 import com.innov8ors.insurance.service.impl.SupportTicketServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 class SupportTicketServiceImplTest {
     @Mock
     private SupportTicketRepository supportTicketRepository;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private SupportTicketServiceImpl supportTicketService;
@@ -60,17 +64,22 @@ class SupportTicketServiceImplTest {
         ticket.setStatus(SupportTicketStatus.OPEN);
         Mockito.when(supportTicketRepository.findById(1L)).thenReturn(Optional.of(ticket));
         Mockito.when(supportTicketRepository.save(any(SupportTicket.class))).thenReturn(ticket);
-        SupportTicket updated = supportTicketService.updateTicketStatus(1L, "Resolved", SupportTicketStatus.RESOLVED);
+        SupportTicketUpdateRequest updateRequest = new SupportTicketUpdateRequest();
+        updateRequest.setResponse("Resolved");
+        updateRequest.setStatus(SupportTicketStatus.RESOLVED);
+        SupportTicket updated = supportTicketService.updateTicketStatus(1L, updateRequest);
         assertEquals(SupportTicketStatus.RESOLVED, updated.getStatus());
     }
 
     @Test
     void testUpdateTicketStatus_NotFound() {
         Mockito.when(supportTicketRepository.findById(anyLong())).thenReturn(Optional.empty());
+        SupportTicketUpdateRequest updateRequest = new SupportTicketUpdateRequest();
+        updateRequest.setResponse("Response");
+        updateRequest.setStatus(SupportTicketStatus.RESOLVED);
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            supportTicketService.updateTicketStatus(99L, "Response", SupportTicketStatus.RESOLVED);
+            supportTicketService.updateTicketStatus(99L, updateRequest);
         });
         assertTrue(exception.getMessage().contains("Support ticket not found"));
     }
 }
-
