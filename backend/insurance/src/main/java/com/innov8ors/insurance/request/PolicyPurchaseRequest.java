@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 public class PolicyPurchaseRequest {
     @NotNull
     private Long policyId;
+    @NotNull
     private BigDecimal premiumPaid;
 
     public PolicyPurchaseRequest() {}
