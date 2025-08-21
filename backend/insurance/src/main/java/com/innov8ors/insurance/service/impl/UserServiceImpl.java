@@ -13,6 +13,7 @@ import com.innov8ors.insurance.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.innov8ors.insurance.mapper.UserMapper.getRegisterResponseFromUser;
@@ -73,6 +74,12 @@ public class UserServiceImpl implements UserService {
         log.debug("Fetching user by ID: {}", id);
         return userDao.findById(id)
                 .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND));
+    }
+
+    @Override
+    public List<User> getAllUsers(){
+        log.debug("Fetching all users");
+        return userDao.findAll();
     }
 
     private void validateCredentials(UserLoginRequest userLoginRequest, User user) {
