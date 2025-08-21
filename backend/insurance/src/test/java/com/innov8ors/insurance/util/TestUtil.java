@@ -24,6 +24,8 @@ import com.innov8ors.insurance.request.SupportTicketCreateRequest;
 import com.innov8ors.insurance.request.SupportTicketUpdateRequest;
 import com.innov8ors.insurance.request.UserCreateRequest;
 import com.innov8ors.insurance.request.UserLoginRequest;
+import com.innov8ors.insurance.response.ClaimPaginatedResponse;
+import com.innov8ors.insurance.response.ClaimResponse;
 import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import org.springframework.data.domain.Page;
@@ -325,6 +327,30 @@ public class TestUtil {
                 .status(TEST_CLAIM_STATUS)
                 .reviewerComment(TEST_CLAIM_REVIEWER_COMMENT)
                 .userPolicy(getUserPolicy())
+                .build();
+    }
+
+    public static ClaimResponse getClaimResponse() {
+        return ClaimResponse.builder()
+                .id(TEST_CLAIM_ID)
+                .userPolicyId(TEST_USER_POLICY_ID)
+                .claimDate(TEST_CLAIM_DATE)
+                .claimAmount(TEST_CLAIM_AMOUNT)
+                .reason(TEST_CLAIM_REASON)
+                .status(TEST_CLAIM_STATUS)
+                .reviewerComment(TEST_CLAIM_REVIEWER_COMMENT)
+                .policyName(TEST_POLICY_NAME)
+                .policyType(TEST_POLICY_TYPE)
+                .build();
+    }
+
+    public static ClaimPaginatedResponse getClaimPaginatedResponse() {
+        return ClaimPaginatedResponse.builder()
+                .claims(List.of(getClaimResponse()))
+                .totalElements(1L)
+                .totalPages(1)
+                .size(10)
+                .page(0)
                 .build();
     }
 
