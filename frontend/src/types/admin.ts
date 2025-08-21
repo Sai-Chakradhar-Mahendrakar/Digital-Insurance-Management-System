@@ -1,4 +1,3 @@
-// src/types/admin.ts
 export interface PolicyUser {
   id: number
   policyId: number

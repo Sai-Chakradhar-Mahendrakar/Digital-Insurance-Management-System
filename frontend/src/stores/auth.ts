@@ -1,15 +1,15 @@
-// src/stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { decodeJWT, isTokenExpired, isAdminToken, type JWTPayload } from '@/utils/jwt'
 import type { User, LoginRequest, RegisterRequest, AuthResponse } from '@/types/auth'
 import { useAppStore } from '@/stores/app';
 
-const appStore = useAppStore();
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(localStorage.getItem('token'))
   const tokenPayload = ref<JWTPayload | null>(null)
+  const appStore = useAppStore();
 
   // Initialize token payload if token exists
   const initializeAuth = () => {
@@ -34,19 +34,24 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (credentials: LoginRequest) => {
     try {
+      // Import app store dynamically to avoid circular dependency
+      const { useAppStore } = await import('./app')
+      const appStore = useAppStore()
+
       const response = await appStore.httpClient.post(
         appStore.apiEndpoints.login,
         credentials,
         {
           headers: {
             'Content-Type': 'application/json',
-            'Cookie': appStore.config.sessionCookie,
+            Cookie: appStore.config.sessionCookie,
           },
         }
       )
 
       if (!response.ok) {
-        throw new Error('Login failed')
+        const errorText = await response.text()
+        throw new Error(errorText || 'Login failed')
       }
 
       const data: AuthResponse = await response.json()
@@ -65,6 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const adminLogin = async (credentials: LoginRequest) => {
     try {
+      // Direct fetch for admin login to avoid circular dependency issues
       const response = await fetch('http://localhost:8080/auth/login', {
         method: 'POST',
         headers: {
@@ -75,7 +81,8 @@ export const useAuthStore = defineStore('auth', () => {
       })
 
       if (!response.ok) {
-        throw new Error('Admin login failed')
+        const errorText = await response.text()
+        throw new Error(errorText || 'Admin login failed')
       }
 
       const data: AuthResponse = await response.json()
@@ -121,13 +128,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   const register = async (userData: RegisterRequest) => {
     try {
+      // Import app store dynamically to avoid circular dependency
+      const { useAppStore } = await import('./app')
+      const appStore = useAppStore()
+
       const response = await appStore.httpClient.post(
         appStore.apiEndpoints.register,
         userData
       )
 
       if (!response.ok) {
-        throw new Error('Registration failed')
+        const errorText = await response.text()
+        throw new Error(errorText || 'Registration failed')
       }
 
       const data: User = await response.json()

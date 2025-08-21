@@ -1,4 +1,3 @@
-<!-- src/views/user/ClaimsView.vue -->
 <template>
   <div class="min-h-screen bg-slate-50">
     <AppNavbar />

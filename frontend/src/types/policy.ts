@@ -1,4 +1,3 @@
-// src/types/policy.ts
 export interface Policy {
   id: number
   name: string

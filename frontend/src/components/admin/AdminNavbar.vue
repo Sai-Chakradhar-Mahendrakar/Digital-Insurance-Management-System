@@ -1,4 +1,3 @@
-<!-- src/components/admin/AdminNavbar.vue -->
 <template>
   <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
     <div class="px-6 py-4">

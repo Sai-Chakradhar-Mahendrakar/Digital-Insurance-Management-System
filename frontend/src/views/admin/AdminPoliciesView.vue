@@ -1,4 +1,3 @@
-<!-- src/views/admin/AdminPoliciesView.vue -->
 <template>
   <div class="min-h-screen bg-slate-50">
     <AdminNavbar />
@@ -445,7 +444,9 @@ const filteredPolicies = computed(() => {
 
   // Type filter
   if (selectedType.value) {
-    filtered = filtered.filter((policy) => policy.type.toLowerCase() === selectedType.value.toLowerCase())
+    filtered = filtered.filter(
+      (policy) => policy.type.toLowerCase() === selectedType.value.toLowerCase(),
+    )
   }
 
   // Sorting

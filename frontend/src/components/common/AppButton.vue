@@ -1,4 +1,3 @@
-<!-- src/components/common/AppButton.vue -->
 <template>
   <button :class="buttonClasses" :disabled="disabled" @click="$emit('click', $event)" :type="type">
     <slot />

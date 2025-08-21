@@ -1,4 +1,3 @@
-<!-- src/components/common/InlineError.vue -->
 <template>
   <Transition
     name="error"

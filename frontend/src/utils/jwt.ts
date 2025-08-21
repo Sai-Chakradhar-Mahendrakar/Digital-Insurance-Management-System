@@ -1,4 +1,3 @@
-// src/utils/jwt.ts
 export interface JWTPayload {
   role: string
   sub: string // email/username

@@ -1,4 +1,3 @@
-<!-- src/components/common/FeatureCard.vue -->
 <template>
   <div
     class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200 ease-in-out"

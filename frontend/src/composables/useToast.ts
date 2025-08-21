@@ -1,4 +1,3 @@
-// src/composables/useToast.ts
 import { ref, reactive } from 'vue'
 
 // Define the toast type more strictly

@@ -1,4 +1,3 @@
-<!-- src/views/admin/AdminDashboardView.vue -->
 <template>
   <div class="min-h-screen bg-slate-50">
     <AdminNavbar />
@@ -37,19 +36,27 @@
 
           <!-- Stats Cards -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatsCard title="Total Policies" value="24" trend="+12%" icon="shield" color="blue" />
-            <StatsCard title="Active Users" value="1,247" trend="+5%" icon="users" color="green" />
+            <StatsCard
+              title="Total Policies"
+              :value="policies.length.toString()"
+              icon="shield"
+              color="blue"
+            />
+            <StatsCard
+              title="Active Users"
+              :value="isLoadingActiveUsers ? 'Loading...' : String(activeUsers)"
+              icon="users"
+              color="green"
+            />
             <StatsCard
               title="Claims Processed"
-              value="89"
-              trend="+18%"
+              :value="approvedClaims.toString()"
               icon="file-text"
               color="yellow"
             />
             <StatsCard
               title="Revenue (₹)"
-              value="12.4L"
-              trend="+8%"
+              :value="totalPremium.toString()"
               icon="trending-up"
               color="purple"
             />
@@ -68,14 +75,14 @@
                 <Plus class="w-4 h-4" />
                 <span>Add New Policy</span>
               </AppButton>
-              <AppButton variant="secondary" class="flex items-center space-x-2">
+              <!-- <AppButton variant="secondary" class="flex items-center space-x-2">
                 <FileText class="w-4 h-4" />
                 <span>Generate Report</span>
-              </AppButton>
-              <AppButton variant="ghost" class="flex items-center space-x-2">
+              </AppButton> -->
+              <!-- <AppButton variant="ghost" class="flex items-center space-x-2">
                 <Settings class="w-4 h-4" />
                 <span>System Settings</span>
-              </AppButton>
+              </AppButton> -->
             </div>
           </div>
 
@@ -105,13 +112,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AdminNavbar from '@/components/admin/AdminNavbar.vue'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import StatsCard from '@/components/admin/StatsCard.vue'
 import AppButton from '@/components/common/AppButton.vue'
+import { useAdminPolicyStore } from '@/stores/adminPolicy'
+import { useAdminUserStore } from '@/stores/adminUser'
+import { useAdminClaimsStore } from '@/stores/adminClaims'
+
 import {
   Plus,
   FileText,
@@ -126,10 +137,23 @@ import {
 
 const router = useRouter()
 const authStore = useAuthStore()
-
+const adminPolicyStore = useAdminPolicyStore()
 const showTokenDetails = ref(false)
 const tokenInfo = computed(() => authStore.tokenInfo)
+const policies = computed(() => adminPolicyStore.policies)
 
+const adminUserStore = useAdminUserStore()
+const adminClaimsStore = useAdminClaimsStore()
+const { fetchActiveUsers, activeUsers, isLoadingActiveUsers, errorActiveUsers } = adminUserStore
+
+// const users = computed(() => adminUserStore.users)
+const approvedClaims = computed(
+  () => adminClaimsStore.claims.filter((c) => c.status === 'APPROVED').length,
+)
+const totalPremium = computed(() =>
+  adminPolicyStore.policies.reduce((sum, p) => sum + p.premiumAmount, 0),
+)
+// const { fetchActiveUsers } = adminUserStore
 const recentActivities = ref([
   { id: 1, type: 'policy', title: 'New health insurance policy created', time: '2 hours ago' },
   { id: 2, type: 'user', title: 'New user registration: John Doe', time: '4 hours ago' },
@@ -149,6 +173,13 @@ const getActivityIcon = (type: string) => {
   }
   return icons[type] || Shield
 }
+
+onMounted(async () => {
+  await adminPolicyStore.fetchAdminPolicies()
+})
+onMounted(() => {
+  fetchActiveUsers()
+})
 
 const formatTimestamp = (timestamp?: number) => {
   if (!timestamp) return 'N/A'

@@ -55,13 +55,14 @@
                 <Bell class="w-5 h-5" />
                 <!-- Notification Badge -->
                 <span
-                  v-if="unreadCount > 0"
+                  v-if="notificationCount > 0"
                   class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium"
                 >
-                  {{ unreadCount > 9 ? '9+' : unreadCount }}
+                  {{ notificationCount > 9 ? '9+' : notificationCount }}
                 </span>
               </button>
 
+              <!-- Notifications Dropdown -->
               <!-- Notifications Dropdown -->
               <div
                 v-if="showNotifications"
@@ -70,9 +71,9 @@
                 <div class="px-4 py-2 border-b border-slate-100 flex justify-between items-center">
                   <h3 class="font-semibold text-slate-900">Notifications</h3>
                   <button
-                    v-if="unreadCount > 0"
+                    v-if="notifications.some((n) => n.status === 'UNREAD')"
                     @click="markAllAsRead"
-                    class="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                    class="text-xs text-blue-600 hover:text-blue-800"
                   >
                     Mark all read
                   </button>
@@ -81,8 +82,7 @@
                   <div
                     v-for="notification in notifications"
                     :key="notification.id"
-                    class="px-4 py-3 hover:bg-slate-50 border-b border-slate-50 last:border-b-0 cursor-pointer transition-colors"
-                    :class="{ 'bg-blue-50': notification.status === 'UNREAD' }"
+                    class="px-4 py-3 hover:bg-slate-50 border-b border-slate-50 last:border-b-0 cursor-pointer"
                     @click="handleNotificationClick(notification)"
                   >
                     <div class="flex items-start space-x-3">
@@ -93,29 +93,15 @@
                         ]"
                       ></div>
                       <div class="flex-1">
-                        <p
-                          class="text-sm font-medium"
-                          :class="
-                            notification.status === 'UNREAD' ? 'text-slate-900' : 'text-slate-600'
-                          "
-                        >
-                          {{ notification.type }}
-                        </p>
-                        <p
-                          class="text-xs mt-1"
-                          :class="
-                            notification.status === 'UNREAD' ? 'text-slate-600' : 'text-slate-500'
-                          "
-                        >
-                          {{ notification.message }}
-                        </p>
+                        <p class="text-sm font-medium text-slate-900">{{ notification.type }}</p>
+                        <p class="text-xs text-slate-600 mt-1">{{ notification.message }}</p>
                         <p class="text-xs text-slate-400 mt-1">
                           {{ formatNotificationTime(notification.createdAt) }}
                         </p>
                       </div>
-                      <!-- Unread indicator -->
+                      <!-- Status indicator -->
                       <div v-if="notification.status === 'UNREAD'" class="flex-shrink-0">
-                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
                       </div>
                     </div>
                   </div>
@@ -181,7 +167,7 @@
       </nav>
     </div>
 
-    <!-- Notification Detail Modal (if you want to show details) -->
+    <!-- Notification Modal -->
     <NotificationDetail
       v-if="selectedNotification"
       :notification="selectedNotification"
@@ -196,7 +182,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notification'
 import AppButton from '@/components/common/AppButton.vue'
-import NotificationDetail from '@/components/notification/NotificationDetail.vue'
 import {
   Bell,
   User,
@@ -207,6 +192,7 @@ import {
   HelpCircle,
   LogOut,
 } from 'lucide-vue-next'
+import NotificationDetail from '@/components/notification/NotificationDetail.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -214,15 +200,16 @@ const notificationStore = useNotificationStore()
 
 const showNotifications = ref(false)
 const showProfile = ref(false)
-const selectedNotification = ref<any>(null)
+const selectedNotification = ref(null)
 const notificationRef = ref<HTMLElement>()
 const profileRef = ref<HTMLElement>()
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const user = computed(() => authStore.user)
 const notifications = computed(() => notificationStore.notifications)
-const notificationCount = computed(() => notifications.value.length)
-const unreadCount = computed(() => notifications.value.filter((n) => n.status === 'UNREAD').length)
+const notificationCount = computed(
+  () => notifications.value.filter((n) => n.status === 'UNREAD').length,
+)
 
 const navigateTo = (path: string) => {
   router.push(path)
@@ -245,25 +232,8 @@ const handleNotificationClick = async (notification: any) => {
       await notificationStore.markAsRead(notification.id)
     }
 
-    // Optional: Show notification detail modal
+    // Show the notification detail modal
     selectedNotification.value = notification
-
-    // Navigate based on notification type
-    switch (notification.type) {
-      case 'POLICY_RENEWAL':
-        navigateTo('/my-policies')
-        break
-      case 'CLAIM_UPDATE':
-        navigateTo('/claims')
-        break
-      case 'SUPPORT_RESPONSE':
-        navigateTo('/support')
-        break
-      default:
-        // For general notifications, you can just show the modal
-        // or navigate to a notifications page
-        break
-    }
 
     // Close the dropdown
     showNotifications.value = false

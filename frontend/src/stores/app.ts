@@ -1,4 +1,3 @@
-// frontend/src/stores/app.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
@@ -87,11 +86,11 @@ export const useAppStore = defineStore('app', () => {
 
     // User endpoints
     userPolicies: `${config.value.apiBaseUrl}/user/policies`,
-    userClaims: `${config.value.apiBaseUrl}/user/claims`,
+    userClaims: `${config.value.apiBaseUrl}/user/claims?size=10000`,
 
     // Admin endpoints
     adminPolicies: `${config.value.apiBaseUrl}/admin/policies`,
-    adminClaims: `${config.value.apiBaseUrl}/admin/claims`,
+    adminClaims: `${config.value.apiBaseUrl}/admin/claims?size=10000`,
     adminSupport: `${config.value.apiBaseUrl}/admin/support`,
     adminPolicyUsers: (policyId: number) =>
       `${config.value.apiBaseUrl}/admin/policies/${policyId}/users`,
@@ -114,23 +113,28 @@ export const useAppStore = defineStore('app', () => {
     userSupportTickets: `${config.value.apiBaseUrl}/support/user/getTicketsByUser`,
   }))
 
-  // Common request headers
-  const getAuthHeaders = () => {
-    const authStore = useAuthStore()
+  // Common request headers without auth
+  const getBaseHeaders = () => {
     return {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${authStore.token}`,
       Cookie: config.value.sessionCookie,
     }
+  }
+
+  // Get auth token from localStorage directly to avoid circular dependency
+  const getAuthToken = () => {
+    return localStorage.getItem('token')
   }
 
   // HTTP client wrapper
   const httpClient = {
     async get(url: string, options: RequestInit = {}) {
+      const token = getAuthToken()
       return fetch(url, {
         method: 'GET',
         headers: {
-          ...getAuthHeaders(),
+          ...getBaseHeaders(),
+          ...(token && { Authorization: `Bearer ${token}` }),
           ...options.headers,
         },
         credentials: 'include',
@@ -139,10 +143,12 @@ export const useAppStore = defineStore('app', () => {
     },
 
     async post(url: string, data?: any, options: RequestInit = {}) {
+      const token = getAuthToken()
       return fetch(url, {
         method: 'POST',
         headers: {
-          ...getAuthHeaders(),
+          ...getBaseHeaders(),
+          ...(token && { Authorization: `Bearer ${token}` }),
           ...options.headers,
         },
         credentials: 'include',
@@ -152,10 +158,12 @@ export const useAppStore = defineStore('app', () => {
     },
 
     async put(url: string, data?: any, options: RequestInit = {}) {
+      const token = getAuthToken()
       return fetch(url, {
         method: 'PUT',
         headers: {
-          ...getAuthHeaders(),
+          ...getBaseHeaders(),
+          ...(token && { Authorization: `Bearer ${token}` }),
           ...options.headers,
         },
         credentials: 'include',
@@ -165,10 +173,12 @@ export const useAppStore = defineStore('app', () => {
     },
 
     async patch(url: string, data?: any, options: RequestInit = {}) {
+      const token = getAuthToken()
       return fetch(url, {
         method: 'PATCH',
         headers: {
-          ...getAuthHeaders(),
+          ...getBaseHeaders(),
+          ...(token && { Authorization: `Bearer ${token}` }),
           ...options.headers,
         },
         credentials: 'include',
@@ -178,10 +188,12 @@ export const useAppStore = defineStore('app', () => {
     },
 
     async delete(url: string, options: RequestInit = {}) {
+      const token = getAuthToken()
       return fetch(url, {
         method: 'DELETE',
         headers: {
-          ...getAuthHeaders(),
+          ...getBaseHeaders(),
+          ...(token && { Authorization: `Bearer ${token}` }),
           ...options.headers,
         },
         credentials: 'include',
@@ -249,9 +261,7 @@ export const useAppStore = defineStore('app', () => {
     toggleTheme,
     toggleSidebar,
     updateConfig,
-    getAuthHeaders,
+    getBaseHeaders,
+    getAuthToken,
   }
 })
-
-// Import auth store to avoid circular dependency
-import { useAuthStore } from './auth'
