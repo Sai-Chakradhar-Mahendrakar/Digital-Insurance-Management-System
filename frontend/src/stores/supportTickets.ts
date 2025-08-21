@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
+import { useAppStore } from './app'
 
 export interface SupportTicket {
   id: number
@@ -25,6 +26,7 @@ export interface CreateTicketRequest {
 
 export const useSupportTicketsStore = defineStore('supportTickets', () => {
   const authStore = useAuthStore()
+  const appStore = useAppStore()
 
   const tickets = ref<SupportTicket[]>([])
   const isLoading = ref(false)
@@ -35,16 +37,10 @@ export const useSupportTicketsStore = defineStore('supportTickets', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8080/support', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-        body: JSON.stringify(ticketData),
-      })
+      const response = await appStore.httpClient.post(
+        appStore.apiEndpoints.createSupportTicket,
+        ticketData
+      )
 
       if (!response.ok) {
         throw new Error(`Failed to create ticket: ${response.status}`)
@@ -67,14 +63,9 @@ export const useSupportTicketsStore = defineStore('supportTickets', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8080/support/user/getTicketsByUser', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-      })
+      const response = await appStore.httpClient.get(
+        `${appStore.config.apiBaseUrl}/support/user/getTicketsByUser`
+      )
 
       if (!response.ok) {
         throw new Error(`Failed to fetch tickets: ${response.status}`)

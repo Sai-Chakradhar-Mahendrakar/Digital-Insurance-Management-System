@@ -30,6 +30,7 @@
           <button
             @click="$emit('close')"
             class="text-slate-400 hover:text-slate-600 transition-colors"
+            data-testid="close-button"
           >
             <X class="w-6 h-6" />
           </button>
@@ -39,30 +40,104 @@
         <form @submit.prevent="handleSubmit" class="space-y-6">
           <!-- Subject -->
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Subject *</label>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-sm font-medium text-slate-700">Subject *</label>
+              <!-- Tooltip for Subject Requirements -->
+              <div class="relative group">
+                <Info class="w-4 h-4 text-slate-400 cursor-help" />
+                <div class="absolute right-0 top-6 z-10 invisible group-hover:visible">
+                  <div class="bg-slate-800 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap">
+                    Minimum 10 characters required
+                    <div class="absolute -top-1 right-3 w-2 h-2 bg-slate-800 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <input
               v-model="form.subject"
               type="text"
               required
+              minlength="10"
               maxlength="200"
-              class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200"
-              placeholder="Brief description of your issue"
+              :class="[
+                'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-100 transition-all duration-200',
+                fieldErrors.subject 
+                  ? 'border-red-300 focus:border-red-500 bg-red-50' 
+                  : 'border-slate-200 focus:border-blue-500'
+              ]"
+              placeholder="Brief description of your issue (Min 10 characters)..."
             />
-            <p class="text-xs text-slate-500 mt-1">{{ form.subject.length }}/200 characters</p>
+            <!-- Character Count and Validation Message -->
+            <div class="flex justify-between items-center mt-1">
+              <div class="text-xs">
+                <span v-if="fieldErrors.subject" class="text-red-600 font-medium">
+                  {{ fieldErrors.subject }}
+                </span>
+                <span v-else-if="form.subject.length < 10 && form.subject.length > 0" class="text-amber-600">
+                  {{ 10 - form.subject.length }} more characters needed
+                </span>
+              </div>
+              <span 
+                :class="[
+                  'text-xs',
+                  form.subject.length < 10 ? 'text-red-500' : 
+                  form.subject.length > 180 ? 'text-amber-500' : 'text-slate-500'
+                ]"
+              >
+                {{ form.subject.length }}/80
+              </span>
+            </div>
           </div>
 
           <!-- Description -->
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Description *</label>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-sm font-medium text-slate-700">Description *</label>
+              <!-- Tooltip for Description Requirements -->
+              <div class="relative group">
+                <Info class="w-4 h-4 text-slate-400 cursor-help" />
+                <div class="absolute right-0 top-6 z-10 invisible group-hover:visible">
+                  <div class="bg-slate-800 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap">
+                    Minimum 10 characters required
+                    <div class="absolute -top-1 right-3 w-2 h-2 bg-slate-800 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <textarea
               v-model="form.description"
               required
               rows="6"
+              minlength="10"
               maxlength="1000"
-              class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100 resize-none transition-all duration-200"
-              placeholder="Please provide detailed information about your issue or question..."
+              :class="[
+                'w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-100 resize-none transition-all duration-200',
+                fieldErrors.description 
+                  ? 'border-red-300 focus:border-red-500 bg-red-50' 
+                  : 'border-slate-200 focus:border-blue-500'
+              ]"
+              placeholder="Please provide detailed information about your issue or question (min 10 characters)..."
             ></textarea>
-            <p class="text-xs text-slate-500 mt-1">{{ form.description.length }}/1000 characters</p>
+            <!-- Character Count and Validation Message -->
+            <div class="flex justify-between items-center mt-1">
+              <div class="text-xs">
+                <span v-if="fieldErrors.description" class="text-red-600 font-medium">
+                  {{ fieldErrors.description }}
+                </span>
+                <span v-else-if="form.description.length < 10 && form.description.length > 0" class="text-amber-600">
+                  {{ 10 - form.description.length }} more characters needed
+                </span>
+              </div>
+              <span 
+                :class="[
+                  'text-xs',
+                  form.description.length < 10 ? 'text-red-500' : 
+                  form.description.length > 900 ? 'text-amber-500' : 'text-slate-500'
+                ]"
+              >
+                {{ form.description.length }}/1000
+              </span>
+            </div>
           </div>
 
           <!-- Optional References -->
@@ -110,8 +185,25 @@
             </div>
           </div>
 
-          <!-- Error Display -->
-          <div v-if="errorMessage" class="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <!-- Backend Field Errors Display -->
+          <div v-if="hasFieldErrors" class="space-y-2">
+            <div 
+              v-for="(error, field) in fieldErrors" 
+              :key="field"
+              class="p-3 bg-red-50 border border-red-200 rounded-lg"
+            >
+              <div class="flex items-center">
+                <AlertCircle class="w-4 h-4 text-red-600 mr-2 flex-shrink-0" />
+                <div>
+                  <p class="text-red-800 text-sm font-medium capitalize">{{ field }} Error</p>
+                  <p class="text-red-700 text-sm">{{ error }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- General Error Display -->
+          <div v-if="errorMessage && !hasFieldErrors" class="p-4 bg-red-50 border border-red-200 rounded-lg">
             <div class="flex items-center">
               <AlertCircle class="w-5 h-5 text-red-600 mr-3" />
               <p class="text-red-800 text-sm font-medium">{{ errorMessage }}</p>
@@ -158,6 +250,7 @@ const supportTicketsStore = useSupportTicketsStore()
 
 const isLoading = ref(false)
 const errorMessage = ref('')
+const fieldErrors = ref<Record<string, string>>({})
 
 const form = reactive({
   subject: '',
@@ -166,18 +259,56 @@ const form = reactive({
   claimId: null as number | null,
 })
 
+const hasFieldErrors = computed(() => Object.keys(fieldErrors.value).length > 0)
+
 const isFormValid = computed(() => {
   return (
-    form.subject.trim().length > 0 &&
-    form.description.trim().length > 0 &&
+    form.subject.trim().length >= 10 &&
+    form.description.trim().length >= 10 &&
     form.subject.length <= 200 &&
     form.description.length <= 1000
   )
 })
 
+// Parse backend validation errors
+const parseBackendErrors = (error: any) => {
+  fieldErrors.value = {}
+  
+  if (error.response?.data?.additionalInfo) {
+    const violations = error.response.data.additionalInfo
+    
+    for (const [key, violation] of Object.entries(violations)) {
+      if (typeof violation === 'string') {
+        // Parse violation messages like "subject => size must be between 10 and 2147483647"
+        const match = violation.match(/(\w+)\s*=>\s*(.+)/)
+        if (match) {
+          const [, fieldName, message] = match
+          
+          // Convert technical messages to user-friendly ones
+          let friendlyMessage = message
+          if (message.includes('size must be between')) {
+            const sizeMatch = message.match(/size must be between (\d+) and (\d+)/)
+            if (sizeMatch) {
+              const [, min] = sizeMatch
+              if (fieldName === 'subject') {
+                friendlyMessage = `Subject must be at least ${min} characters long`
+              } else if (fieldName === 'description') {
+                friendlyMessage = `Description must be at least ${min} characters long`
+              }
+            }
+          }
+          
+          fieldErrors.value[fieldName] = friendlyMessage
+        }
+      }
+    }
+  }
+}
+
 const handleSubmit = async () => {
   try {
     errorMessage.value = ''
+    fieldErrors.value = {}
     isLoading.value = true
 
     const ticketData = {

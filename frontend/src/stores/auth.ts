@@ -3,7 +3,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { decodeJWT, isTokenExpired, isAdminToken, type JWTPayload } from '@/utils/jwt'
 import type { User, LoginRequest, RegisterRequest, AuthResponse } from '@/types/auth'
+import { useAppStore } from '@/stores/app';
 
+const appStore = useAppStore();
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(localStorage.getItem('token'))
@@ -32,14 +34,16 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (credentials: LoginRequest) => {
     try {
-      const response = await fetch('http://localhost:8080/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        body: JSON.stringify(credentials),
-      })
+      const response = await appStore.httpClient.post(
+        appStore.apiEndpoints.login,
+        credentials,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': appStore.config.sessionCookie,
+          },
+        }
+      )
 
       if (!response.ok) {
         throw new Error('Login failed')
@@ -117,14 +121,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   const register = async (userData: RegisterRequest) => {
     try {
-      const response = await fetch('http://localhost:8080/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        body: JSON.stringify(userData),
-      })
+      const response = await appStore.httpClient.post(
+        appStore.apiEndpoints.register,
+        userData
+      )
 
       if (!response.ok) {
         throw new Error('Registration failed')
