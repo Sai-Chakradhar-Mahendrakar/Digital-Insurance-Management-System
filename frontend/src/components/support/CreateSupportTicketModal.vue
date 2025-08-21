@@ -190,7 +190,13 @@ const handleSubmit = async () => {
     const newTicket = await supportTicketsStore.createSupportTicket(ticketData)
     emit('submitted', newTicket)
   } catch (error: unknown) {
-    errorMessage.value = error instanceof Error ? error.message : 'Failed to create support ticket'
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any
+      errorMessage.value =
+        err.response?.data?.errorMessage ||
+        err.message ||
+        'Failed to create support ticket'
+    }
   } finally {
     isLoading.value = false
   }
