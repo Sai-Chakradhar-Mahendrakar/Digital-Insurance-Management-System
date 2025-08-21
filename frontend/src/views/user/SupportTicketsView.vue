@@ -126,10 +126,6 @@
               <span v-if="ticket.policyId">Policy ID: #{{ ticket.policyId }}</span>
               <span v-if="ticket.claimId">Claim ID: #{{ ticket.claimId }}</span>
             </div>
-            <div class="flex items-center space-x-2">
-              <Clock class="w-3 h-3" />
-              <span>{{ getTimeAgo(ticket.createdAt) }}</span>
-            </div>
           </div>
         </div>
       </div>
@@ -223,20 +219,6 @@ const formatDate = (dateString: string): string => {
     hour: '2-digit',
     minute: '2-digit',
   })
-}
-
-const getTimeAgo = (dateString: string): string => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffTime = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-  const diffHours = Math.floor(diffTime / (1000 * 60 * 60))
-  const diffMinutes = Math.floor(diffTime / (1000 * 60))
-
-  if (diffDays > 0) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-  if (diffHours > 0) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-  if (diffMinutes > 0) return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`
-  return 'Just now'
 }
 
 onMounted(async () => {
