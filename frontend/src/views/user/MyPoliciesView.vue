@@ -203,7 +203,7 @@
           @view="viewPolicyDetails"
           @makeClaim="handleMakeClaim"
           @reapply="handleReapply"
-          @renew="handleRenew"
+          @renew="handlePolicyRenewed"
         />
       </div>
 
@@ -307,6 +307,15 @@ const filteredPolicies = computed(() => {
   return filtered
 })
 
+const handlePolicyRenewed = async (renewedPolicy: UserPolicy) => {
+  // Refresh the policies list to show updated data
+  try {
+    await userPolicyStore.fetchUserPolicies()
+  } catch (error) {
+    console.error('Failed to refresh policies after renewal:', error)
+  }
+}
+
 // Pagination
 const totalPages = computed(() => Math.ceil(filteredPolicies.value.length / itemsPerPage))
 const paginatedPolicies = computed(() => {
@@ -368,9 +377,14 @@ const refreshPolicies = async () => {
       successMessage.value = ''
     }, 3000)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to refresh policies'
-    errorMessage.value = message
-    toast.error('Refresh Failed', message)
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any
+      errorMessage.value =
+        err.response?.data?.errorMessage ||
+        err.message ||
+        'Failed to load policies'
+    }
+    toast.error('Refresh Failed', errorMessage.value)
   }
 }
 

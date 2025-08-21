@@ -3,10 +3,12 @@ package com.innov8ors.insurance.entity;
 import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.enums.NotificationStatus;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @Entity
 @Table(name = "notification")
 public class Notification {
