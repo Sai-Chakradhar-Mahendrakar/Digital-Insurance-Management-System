@@ -28,6 +28,7 @@ public class Constant {
         public static final String UNAUTHORIZED_ACCESS = "Unauthorized access";
         public static final String INCORRECT_PASSWORD = "Incorrect password";
         public static final String INTERNAL_SERVER_ERROR = "Internal server error";
+        public static final String PREMIUM_PAID_MUST_EQUAL_TO_PREMIUM_AMOUNT = "Premium paid must equal to premium amount";
         public static final String NOT_ELIGIBLE_FOR_RENEWAL = "User is not eligible for renewal of policy";
     }
 

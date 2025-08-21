@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static com.innov8ors.insurance.util.Constant.ErrorMessage.CLAIMS_ALLOWED_ONLY_FOR_ACTIVE_POLICIES;
@@ -38,6 +39,7 @@ import static com.innov8ors.insurance.util.TestUtil.TEST_CLAIM_STATUS;
 import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_COVERAGE_AMOUNT;
 import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_ID;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ID;
+import static com.innov8ors.insurance.util.TestUtil.TEST_USER_POLICY_ID;
 import static com.innov8ors.insurance.util.TestUtil.getClaim;
 import static com.innov8ors.insurance.util.TestUtil.getClaimCreateRequest;
 import static com.innov8ors.insurance.util.TestUtil.getClaimStatusUpdateRequest;
@@ -50,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -91,14 +94,11 @@ class ClaimServiceImplTest {
         doReturn(getClaim())
                 .when(claimDao)
                 .persist(any());
-        doReturn(null)
-                .when(userPolicyService)
-                .updateUserPolicy(any(), any(), any());
 
         ClaimResponse claimResponse = claimService.submitClaim(getClaimCreateRequest(), TEST_USER_ID);
 
         assertNotNull(claimResponse);
-        assertEquals(TEST_POLICY_ID, claimResponse.getUserPolicyId());
+        assertEquals(TEST_USER_POLICY_ID, claimResponse.getUserPolicyId());
         assertEquals(ClaimStatus.PENDING, claimResponse.getStatus());
         assertEquals(TEST_CLAIM_AMOUNT, claimResponse.getClaimAmount());
         assertEquals(TEST_CLAIM_DATE, claimResponse.getClaimDate());
@@ -106,10 +106,6 @@ class ClaimServiceImplTest {
         verify(userPolicyService).getByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
         verify(policyService).getById(TEST_POLICY_ID);
         verify(claimDao).persist(any(Claim.class));
-        UserPolicyUpdateRequest expectedUserPolicyUpdateRequest = UserPolicyUpdateRequest.builder()
-                .totalAmountClaimed(TEST_CLAIM_AMOUNT)
-                .build();
-        verify(userPolicyService).updateUserPolicy(TEST_USER_ID, TEST_POLICY_ID, expectedUserPolicyUpdateRequest);
         verifyNoMoreInteractions(userPolicyService, policyService, claimDao);
     }
 
@@ -167,7 +163,16 @@ class ClaimServiceImplTest {
                 .findById(TEST_CLAIM_ID);
         doReturn(getClaim())
                 .when(claimDao)
-                .persist(any());
+                .persist(any(Claim.class));
+        doReturn(getUserPolicy())
+                .when(userPolicyService)
+                .getById(any());
+        doReturn(getPolicy())
+                .when(policyService)
+                .getById(any());
+        doReturn(List.of(getClaim()))
+                .when(claimDao)
+                .getByUserPolicyId(any());
 
         ClaimResponse claimResponse = claimService.updateClaimStatus(TEST_USER_ID, TEST_CLAIM_ID, getClaimStatusUpdateRequest());
 
@@ -175,6 +180,12 @@ class ClaimServiceImplTest {
         assertEquals(TEST_CLAIM_ID, claimResponse.getId());
         assertEquals(TEST_CLAIM_STATUS, claimResponse.getStatus());
         assertEquals(TEST_CLAIM_REVIEWER_COMMENT, claimResponse.getReviewerComment());
+        verify(claimDao).findById(TEST_CLAIM_ID);
+        verify(claimDao).persist(any(Claim.class));
+        verify(userPolicyService).getById(TEST_USER_POLICY_ID);
+        verify(policyService).getById(TEST_POLICY_ID);
+        verify(claimDao).getByUserPolicyId(TEST_USER_POLICY_ID);
+        verifyNoMoreInteractions(claimDao, userPolicyService, policyService);
     }
 
     @Test

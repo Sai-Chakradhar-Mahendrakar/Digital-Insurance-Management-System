@@ -36,4 +36,6 @@ public interface UserPolicyService {
     UserPolicyResponse renewPolicy(Long userId, Long policyId);
 
     UserPolicyPaginatedResponse getRenewablePolicies(Long userId, Integer page, Integer size);
+
+    UserPolicy getById(Long userPolicyId);
 }

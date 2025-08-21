@@ -253,6 +253,7 @@ public class TestUtil {
     public static PolicyPurchaseRequest getPolicyPurchaseRequest() {
         PolicyPurchaseRequest request = new PolicyPurchaseRequest();
         request.setPolicyId(TEST_POLICY_ID);
+        request.setPremiumPaid(TEST_POLICY_PREMIUM_PAID);
         return request;
     }
 
@@ -275,7 +276,7 @@ public class TestUtil {
     public static Claim getClaim() {
         return Claim.builder()
                 .id(TEST_CLAIM_ID)
-                .userPolicyId(TEST_POLICY_ID)
+                .userPolicyId(TEST_USER_POLICY_ID)
                 .claimDate(TEST_CLAIM_DATE)
                 .claimAmount(TEST_CLAIM_AMOUNT)
                 .reason(TEST_CLAIM_REASON)
