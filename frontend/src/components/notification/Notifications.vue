@@ -60,19 +60,20 @@
   </template>
   
   <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, type Ref } from 'vue';
 import { useNotificationStore } from '@/stores/notification';
 import NotificationDetail from './NotificationDetail.vue';
+import type { Notification } from '@/stores/notification';
 
 const notificationStore = useNotificationStore();
 const selectedFilter = ref<'ALL' | 'UNREAD' | 'IMPORTANT'>('ALL');
-const selectedNotification = ref(null);
+const selectedNotification = ref<Notification | null>(null);
 
 const filteredNotifications = computed(() =>
   notificationStore.filteredNotifications(selectedFilter.value).value
 );
 
-const openNotification = async (notification) => {
+const openNotification = async (notification: Notification) => {
   selectedNotification.value = notification;
   if (notification.status === 'UNREAD') {
     await notificationStore.markAsRead(notification.id);
@@ -92,4 +93,3 @@ const formatDate = (dateString: string) => {
 onMounted(() => {
   notificationStore.fetchNotifications();
 });
-</script>
