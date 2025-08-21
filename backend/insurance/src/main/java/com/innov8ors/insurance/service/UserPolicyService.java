@@ -33,5 +33,9 @@ public interface UserPolicyService {
 
     UserPolicy updateUserPolicy(Long userId, Long policyId, UserPolicyUpdateRequest userPolicyUpdateRequest);
 
+    UserPolicyResponse renewPolicy(Long userId, Long policyId);
+
+    UserPolicyPaginatedResponse getRenewablePolicies(Long userId, Integer page, Integer size);
+
     UserPolicy getById(Long userPolicyId);
 }
