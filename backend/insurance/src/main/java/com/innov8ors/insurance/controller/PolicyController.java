@@ -30,6 +30,6 @@ public class PolicyController {
                                              @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.debug("Received request to get policies with type: {}, page: {}, size: {}", type.orElse("all"), page, size);
         Page<Policy> policiesPage = policyService.getPolicies(type.orElse(null), page, size);
-        return getResponseFromPoliciesPage(policiesPage);
+        return getResponseFromPoliciesPage(policiesPage, page, size);
     }
 }

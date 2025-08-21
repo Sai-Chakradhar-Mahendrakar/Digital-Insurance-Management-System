@@ -37,7 +37,6 @@ import static com.innov8ors.insurance.util.TestUtil.TEST_USER_EMAIL;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ID;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_PASSWORD;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ROLE;
-import static com.innov8ors.insurance.util.TestUtil.getAdmin;
 import static com.innov8ors.insurance.util.TestUtil.getSupportTicket;
 import static com.innov8ors.insurance.util.TestUtil.getSupportTicketCreateRequest;
 import static com.innov8ors.insurance.util.TestUtil.getSupportTicketUpdateRequest;

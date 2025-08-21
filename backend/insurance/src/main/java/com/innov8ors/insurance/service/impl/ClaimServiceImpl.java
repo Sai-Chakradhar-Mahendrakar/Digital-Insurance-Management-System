@@ -114,7 +114,7 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     @Override
-    public ClaimResponse updateClaimStatus(Long userId, Long claimId, ClaimStatusUpdateRequest claimStatusUpdateRequest) {
+    public ClaimResponse updateClaimStatus(Long claimId, ClaimStatusUpdateRequest claimStatusUpdateRequest) {
         log.info("Updating claim status for claim ID: {} to status: {}", claimId, claimStatusUpdateRequest.getStatus());
 
         Claim claim = checkAndGetClaim(claimId);
@@ -132,9 +132,9 @@ public class ClaimServiceImpl implements ClaimService {
 
         UserPolicy updatedUserPolicy = updateUserPolicyAfterClaimSubmission(updatedClaim, existingUserPolicy);
 
-        sendNotification(updatedClaim, userId);
+        sendNotification(updatedClaim, updatedUserPolicy.getUserId());
 
-        updateOtherClaims(userId, claimId, claim.getUserPolicyId(), policy, updatedUserPolicy);
+        updateOtherClaims(updatedUserPolicy.getUserId(), claimId, claim.getUserPolicyId(), policy, updatedUserPolicy);
 
         return mapToClaimResponse(updatedClaim);
     }
