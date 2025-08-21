@@ -13,14 +13,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
     private final JwtFilter jwtFilter;
-
     private final UserDetailsService userDetailsService;
-
     public SecurityConfig(JwtFilter jwtFilter, UserDetailsService userDetailsService) {
         this.jwtFilter = jwtFilter;
         this.userDetailsService = userDetailsService;
@@ -28,13 +27,24 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(customizer -> customizer.disable()).
-                authorizeHttpRequests(request -> request
+        return http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors // <-- Add this block
+                        .configurationSource(request -> {
+                            var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                            corsConfig.setAllowedOrigins(List.of("http://localhost:5173"));
+                            corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                            corsConfig.setAllowedHeaders(List.of("*"));
+                            corsConfig.setAllowCredentials(true);
+                            return corsConfig;
+                        })
+                )
+                .authorizeHttpRequests(request -> request
                         .requestMatchers("/auth/**", "/policies").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()).
-                httpBasic(Customizer.withDefaults()).
-                sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .anyRequest().authenticated())
+                .httpBasic(Customizer.withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -44,7 +54,6 @@ public class SecurityConfig {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
         provider.setUserDetailsService(userDetailsService);
-
         return provider;
     }
 }
