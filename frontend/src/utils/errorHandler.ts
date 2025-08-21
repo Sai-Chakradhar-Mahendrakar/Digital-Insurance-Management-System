@@ -1,4 +1,3 @@
-// src/utils/errorHandler.ts
 export const handleUnknownError = (error: unknown): string => {
   if (error instanceof Error) {
     return error.message

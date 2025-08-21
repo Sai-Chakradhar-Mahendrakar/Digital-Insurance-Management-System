@@ -1,4 +1,3 @@
-<!-- src/components/user/PolicyCard.vue -->
 <template>
   <div
     v-if="userPolicy && userPolicy.policyType"

@@ -1,4 +1,3 @@
-<!-- src/views/admin/AdminLoginView.vue -->
 <template>
   <div
     class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"

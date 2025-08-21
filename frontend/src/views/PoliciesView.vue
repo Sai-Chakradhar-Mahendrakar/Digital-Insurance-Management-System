@@ -1,4 +1,3 @@
-<!-- src/views/PoliciesView.vue -->
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100">
     <AppNavbar />

@@ -1,4 +1,3 @@
-<!-- src/views/LoginView.vue -->
 <template>
   <div
     class="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"

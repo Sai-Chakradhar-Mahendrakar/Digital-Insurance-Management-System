@@ -1,4 +1,3 @@
-// src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { isTokenExpired, isAdminToken } from '@/utils/jwt'
@@ -135,7 +134,36 @@ const routes = [
       title: 'Support Center',
     }
   },
-
+  {
+    path: '/notifications',
+    name: 'notifications',
+    component: () => import('@/components/notification/Notifications.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Notifications',
+    },
+  },
+  {
+    path: '/notifications/:id',
+    name: 'notification-detail',
+    component: () => import('@/components/notification/NotificationDetail.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Notification Detail',
+    },
+    props: true,
+  },
+  {
+    path: '/admin/notifications',
+    name: 'admin-notification',
+    component: () => import('@/components/notification/AdminNotification.vue'),
+    meta: {
+      requiresAdmin: true,
+      layout: 'admin',
+      title: 'Send Notification',
+    },
+  },
+  
   // 404 Not Found - Must be last
   {
     path: '/:pathMatch(.*)*',
