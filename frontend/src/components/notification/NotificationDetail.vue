@@ -26,7 +26,7 @@
     id: number;
     userId: number;
     message: string;
-    type: 'POLICY_RENEWAL' | 'CLAIM_UPDATE' | 'SUPPORT_RESPONSE' | 'SYSTEM_ALERT | 'GENERAL' ;
+    type: 'POLICY_RENEWAL' | 'CLAIM_UPDATE' | 'SUPPORT_RESPONSE' | 'SYSTEM_ALERT' | 'GENERAL' ;
     status: 'UNREAD' | 'READ';
     createdAt: string;
     readAt: string | null;
