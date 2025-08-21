@@ -1,4 +1,3 @@
-<!-- src/components/layout/AppNavbar.vue -->
 <template>
   <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 lg:px-8 py-4">

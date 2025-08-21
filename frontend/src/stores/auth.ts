@@ -1,4 +1,3 @@
-// src/stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { decodeJWT, isTokenExpired, isAdminToken, type JWTPayload } from '@/utils/jwt'

@@ -1,4 +1,3 @@
-<!-- src/components/admin/AdminSidebar.vue -->
 <template>
   <aside class="w-64 bg-white border-r border-slate-200 min-h-screen">
     <nav class="p-4">

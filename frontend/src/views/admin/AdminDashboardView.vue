@@ -1,4 +1,3 @@
-<!-- src/views/admin/AdminDashboardView.vue -->
 <template>
   <div class="min-h-screen bg-slate-50">
     <AdminNavbar />

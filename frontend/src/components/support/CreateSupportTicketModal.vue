@@ -1,4 +1,3 @@
-<!-- src/components/support/CreateSupportTicketModal.vue -->
 <template>
   <div class="fixed inset-0 z-50 overflow-y-auto">
     <div

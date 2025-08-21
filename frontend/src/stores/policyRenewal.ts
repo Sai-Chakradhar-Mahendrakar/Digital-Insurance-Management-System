@@ -1,4 +1,3 @@
-// src/stores/policyRenewal.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
