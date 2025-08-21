@@ -200,7 +200,7 @@ export const useNotificationStore = defineStore('notification', () => {
 
   const onDropdownOpen = async (notification: Notification) => {
     if (notification.status === 'UNREAD') {
-      await notificationStore.markAsRead(notification.id)
+      await markAsRead(notification.id)
     }
   }
 

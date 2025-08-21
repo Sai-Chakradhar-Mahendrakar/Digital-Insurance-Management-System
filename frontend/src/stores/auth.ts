@@ -5,11 +5,12 @@ import { decodeJWT, isTokenExpired, isAdminToken, type JWTPayload } from '@/util
 import type { User, LoginRequest, RegisterRequest, AuthResponse } from '@/types/auth'
 import { useAppStore } from '@/stores/app';
 
-const appStore = useAppStore();
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(localStorage.getItem('token'))
   const tokenPayload = ref<JWTPayload | null>(null)
+  const appStore = useAppStore();
 
   // Initialize token payload if token exists
   const initializeAuth = () => {

@@ -12,8 +12,8 @@ const fetchActiveUsers = async () => {
   try {
     const appStore = useAppStore()
     const authStore = useAuthStore()
-    const response = await fetch(`${appStore.apiBaseUrl}/admin/activeUsers`, {
-      headers: {
+    const response = await fetch(`${appStore.config.apiBaseUrl}/admin/activeUsers`, {
+        headers: {
         Authorization: `Bearer ${authStore.token}`,
       },
       credentials: 'include',
