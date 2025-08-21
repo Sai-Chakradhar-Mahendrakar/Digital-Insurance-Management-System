@@ -64,25 +64,27 @@
               </button>
 
               <!-- Notifications Dropdown -->
+              <!-- Notifications Dropdown -->
               <div
                 v-if="showNotifications"
                 class="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50"
               >
-                <div class="px-4 py-2 border-b border-slate-100">
+                <div class="px-4 py-2 border-b border-slate-100 flex justify-between items-center">
                   <h3 class="font-semibold text-slate-900">Notifications</h3>
+                  <button
+                    v-if="notifications.some((n) => n.status === 'UNREAD')"
+                    @click="markAllAsRead"
+                    class="text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    Mark all read
+                  </button>
                 </div>
                 <div class="max-h-80 overflow-y-auto">
                   <div
                     v-for="notification in notifications"
                     :key="notification.id"
                     class="px-4 py-3 hover:bg-slate-50 border-b border-slate-50 last:border-b-0 cursor-pointer"
-                    @click="
-                      async () => {
-                        if (notification.status === 'UNREAD') {
-                          await notificationStore.markAsRead(notification.id)
-                        }
-                      }
-                    "
+                    @click="handleNotificationClick(notification)"
                   >
                     <div class="flex items-start space-x-3">
                       <div
@@ -91,12 +93,16 @@
                           notification.status === 'UNREAD' ? 'bg-blue-500' : 'bg-gray-300',
                         ]"
                       ></div>
-                      <div>
+                      <div class="flex-1">
                         <p class="text-sm font-medium text-slate-900">{{ notification.type }}</p>
                         <p class="text-xs text-slate-600 mt-1">{{ notification.message }}</p>
                         <p class="text-xs text-slate-400 mt-1">
                           {{ formatNotificationTime(notification.createdAt) }}
                         </p>
+                      </div>
+                      <!-- Status indicator -->
+                      <div v-if="notification.status === 'UNREAD'" class="flex-shrink-0">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
                       </div>
                     </div>
                   </div>
@@ -161,6 +167,13 @@
         </div>
       </nav>
     </div>
+
+    <!-- Notification Modal -->
+    <NotificationDetail
+      v-if="selectedNotification"
+      :notification="selectedNotification"
+      @close="selectedNotification = null"
+    />
   </header>
 </template>
 
@@ -180,6 +193,7 @@ import {
   HelpCircle,
   LogOut,
 } from 'lucide-vue-next'
+import NotificationDetail from '@/components/notification/NotificationDetail.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -187,13 +201,16 @@ const notificationStore = useNotificationStore()
 
 const showNotifications = ref(false)
 const showProfile = ref(false)
+const selectedNotification = ref(null)
 const notificationRef = ref<HTMLElement>()
 const profileRef = ref<HTMLElement>()
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const user = computed(() => authStore.user)
 const notifications = computed(() => notificationStore.notifications)
-const notificationCount = computed(() => notifications.value.length)
+const notificationCount = computed(
+  () => notifications.value.filter((n) => n.status === 'UNREAD').length,
+)
 
 const navigateTo = (path: string) => {
   router.push(path)
@@ -206,6 +223,31 @@ const toggleNotifications = async () => {
   showProfile.value = false
   if (showNotifications.value) {
     await notificationStore.fetchNotifications()
+  }
+}
+
+const handleNotificationClick = async (notification: any) => {
+  try {
+    // Mark as read if it's unread
+    if (notification.status === 'UNREAD') {
+      await notificationStore.markAsRead(notification.id)
+    }
+
+    // Show the notification detail modal
+    selectedNotification.value = notification
+
+    // Close the dropdown
+    showNotifications.value = false
+  } catch (error) {
+    console.error('Failed to mark notification as read:', error)
+  }
+}
+
+const markAllAsRead = async () => {
+  try {
+    await notificationStore.markAllAsRead()
+  } catch (error) {
+    console.error('Failed to mark all notifications as read:', error)
   }
 }
 

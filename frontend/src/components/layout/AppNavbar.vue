@@ -56,10 +56,10 @@
                 <Bell class="w-5 h-5" />
                 <!-- Notification Badge -->
                 <span
-                  v-if="notificationCount > 0"
+                  v-if="unreadCount > 0"
                   class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium"
                 >
-                  {{ notificationCount > 9 ? '9+' : notificationCount }}
+                  {{ unreadCount > 9 ? '9+' : unreadCount }}
                 </span>
               </button>
 
@@ -68,23 +68,55 @@
                 v-if="showNotifications"
                 class="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50"
               >
-                <div class="px-4 py-2 border-b border-slate-100">
+                <div class="px-4 py-2 border-b border-slate-100 flex justify-between items-center">
                   <h3 class="font-semibold text-slate-900">Notifications</h3>
+                  <button
+                    v-if="unreadCount > 0"
+                    @click="markAllAsRead"
+                    class="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    Mark all read
+                  </button>
                 </div>
                 <div class="max-h-80 overflow-y-auto">
                   <div
                     v-for="notification in notifications"
                     :key="notification.id"
-                    class="px-4 py-3 hover:bg-slate-50 border-b border-slate-50 last:border-b-0"
+                    class="px-4 py-3 hover:bg-slate-50 border-b border-slate-50 last:border-b-0 cursor-pointer transition-colors"
+                    :class="{ 'bg-blue-50': notification.status === 'UNREAD' }"
+                    @click="handleNotificationClick(notification)"
                   >
                     <div class="flex items-start space-x-3">
-                      <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <div>
-                        <p class="text-sm font-medium text-slate-900">{{ notification.type }}</p>
-                        <p class="text-xs text-slate-600 mt-1">{{ notification.message }}</p>
+                      <div
+                        :class="[
+                          'w-2 h-2 rounded-full mt-2 flex-shrink-0',
+                          notification.status === 'UNREAD' ? 'bg-blue-500' : 'bg-gray-300',
+                        ]"
+                      ></div>
+                      <div class="flex-1">
+                        <p
+                          class="text-sm font-medium"
+                          :class="
+                            notification.status === 'UNREAD' ? 'text-slate-900' : 'text-slate-600'
+                          "
+                        >
+                          {{ notification.type }}
+                        </p>
+                        <p
+                          class="text-xs mt-1"
+                          :class="
+                            notification.status === 'UNREAD' ? 'text-slate-600' : 'text-slate-500'
+                          "
+                        >
+                          {{ notification.message }}
+                        </p>
                         <p class="text-xs text-slate-400 mt-1">
                           {{ formatNotificationTime(notification.createdAt) }}
                         </p>
+                      </div>
+                      <!-- Unread indicator -->
+                      <div v-if="notification.status === 'UNREAD'" class="flex-shrink-0">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
                       </div>
                     </div>
                   </div>
@@ -149,6 +181,13 @@
         </div>
       </nav>
     </div>
+
+    <!-- Notification Detail Modal (if you want to show details) -->
+    <NotificationDetail
+      v-if="selectedNotification"
+      :notification="selectedNotification"
+      @close="selectedNotification = null"
+    />
   </header>
 </template>
 
@@ -158,6 +197,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notification'
 import AppButton from '@/components/common/AppButton.vue'
+import NotificationDetail from '@/components/notification/NotificationDetail.vue'
 import {
   Bell,
   User,
@@ -175,6 +215,7 @@ const notificationStore = useNotificationStore()
 
 const showNotifications = ref(false)
 const showProfile = ref(false)
+const selectedNotification = ref<any>(null)
 const notificationRef = ref<HTMLElement>()
 const profileRef = ref<HTMLElement>()
 
@@ -182,6 +223,7 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 const user = computed(() => authStore.user)
 const notifications = computed(() => notificationStore.notifications)
 const notificationCount = computed(() => notifications.value.length)
+const unreadCount = computed(() => notifications.value.filter((n) => n.status === 'UNREAD').length)
 
 const navigateTo = (path: string) => {
   router.push(path)
@@ -194,6 +236,48 @@ const toggleNotifications = async () => {
   showProfile.value = false
   if (showNotifications.value) {
     await notificationStore.fetchNotifications()
+  }
+}
+
+const handleNotificationClick = async (notification: any) => {
+  try {
+    // Mark as read if it's unread
+    if (notification.status === 'UNREAD') {
+      await notificationStore.markAsRead(notification.id)
+    }
+
+    // Optional: Show notification detail modal
+    selectedNotification.value = notification
+
+    // Navigate based on notification type
+    switch (notification.type) {
+      case 'POLICY_RENEWAL':
+        navigateTo('/my-policies')
+        break
+      case 'CLAIM_UPDATE':
+        navigateTo('/claims')
+        break
+      case 'SUPPORT_RESPONSE':
+        navigateTo('/support')
+        break
+      default:
+        // For general notifications, you can just show the modal
+        // or navigate to a notifications page
+        break
+    }
+
+    // Close the dropdown
+    showNotifications.value = false
+  } catch (error) {
+    console.error('Failed to mark notification as read:', error)
+  }
+}
+
+const markAllAsRead = async () => {
+  try {
+    await notificationStore.markAllAsRead()
+  } catch (error) {
+    console.error('Failed to mark all notifications as read:', error)
   }
 }
 
@@ -231,7 +315,6 @@ const handleClickOutside = (event: Event) => {
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   // Fetch notifications from API when authenticated
-  console.log('Mounted AppNavbar')
   if (isAuthenticated.value) {
     notificationStore.fetchNotifications()
   }
