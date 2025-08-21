@@ -13,6 +13,7 @@ import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.mapper.NotificationMapper;
 import com.innov8ors.insurance.request.SupportTicketUpdateRequest;
 import com.innov8ors.insurance.service.NotificationService;
+import com.innov8ors.insurance.util.NotificationUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,7 +41,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             ticket.setUserId(userId); // Set userId from authenticated principal
             SupportTicket savedTicket = supportTicketRepository.save(ticket);
             log.info("Support ticket created with id: {}", savedTicket.getId());
-            notificationService.sendNotification(NotificationMapper.createNotificationSendRequest(userId, "Your support ticket has been created successfully. Ticket ID: " + savedTicket.getId(), NotificationType.SUPPORT_RESPONSE));
+            NotificationUtil.send(notificationService, userId, "Your support ticket has been created successfully. Ticket ID: " + savedTicket.getId(), NotificationType.SUPPORT_RESPONSE);
             return savedTicket;
         } catch (Exception e) {
             log.error("Error creating support ticket for userId: {}: {}", userId, e.getMessage(), e);
@@ -70,9 +71,9 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             }
             SupportTicket updatedTicket = supportTicketRepository.save(ticket);
             log.info("Support ticket updated with id: {}", updatedTicket.getId());
-            notificationService.sendNotification(NotificationMapper.createNotificationSendRequest(updatedTicket.getUserId(),
+            NotificationUtil.send(notificationService, updatedTicket.getUserId(),
                     "Your support ticket has been updated. Ticket ID: " + updatedTicket.getId() + ", Status: " + updatedTicket.getStatus(),
-                    NotificationType.SUPPORT_RESPONSE));
+                    NotificationType.SUPPORT_RESPONSE);
             return updatedTicket;
         }
         throw new NotFoundException("Support ticket not found ticketId: " + ticketId);

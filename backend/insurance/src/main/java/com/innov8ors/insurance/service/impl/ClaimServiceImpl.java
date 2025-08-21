@@ -18,6 +18,7 @@ import com.innov8ors.insurance.service.ClaimService;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.UserPolicyService;
 import com.innov8ors.insurance.service.NotificationService;
+import com.innov8ors.insurance.util.NotificationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -130,7 +131,7 @@ public class ClaimServiceImpl implements ClaimService {
         log.info("Claim status updated successfully for claim ID: {}", claimId);
 
         UserPolicy updatedUserPolicy = updateUserPolicyAfterClaimSubmission(updatedClaim, existingUserPolicy);
-        notificationService.sendNotification(NotificationMapper.createNotificationSendRequest(userId, "Your claim status has been updated to " + claim.getStatus(), NotificationType.CLAIM_UPDATE));
+        NotificationUtil.send(notificationService, userId, "Your claim status has been updated to " + claim.getStatus(), NotificationType.CLAIM_UPDATE);
         updateOtherClaims(userId, claimId, claim.getUserPolicyId(), policy, updatedUserPolicy);
 
         return mapToClaimResponse(updatedClaim);
@@ -146,7 +147,7 @@ public class ClaimServiceImpl implements ClaimService {
                         claim.setStatus(ClaimStatus.REJECTED);
                         claim.setReviewerComment("Claim amount exceeds policy coverage after this claim.");
                         claimDao.persist(claim);
-                        notificationService.sendNotification(NotificationMapper.createNotificationSendRequest(userId, "Your claim status has been updated to " + claim.getStatus(), NotificationType.CLAIM_UPDATE));
+                        NotificationUtil.send(notificationService, userId, "Your claim status has been updated to " + claim.getStatus(), NotificationType.CLAIM_UPDATE);
                     }
                 });
     }
