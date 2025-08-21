@@ -12,6 +12,7 @@ import com.innov8ors.insurance.request.UserPolicyUpdateRequest;
 import com.innov8ors.insurance.response.ClaimPaginatedResponse;
 import com.innov8ors.insurance.response.ClaimResponse;
 import com.innov8ors.insurance.service.ClaimService;
+import com.innov8ors.insurance.service.NotificationService;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.UserPolicyService;
 import org.junit.jupiter.api.AfterEach;
@@ -68,6 +69,9 @@ class ClaimServiceImplTest {
     @Mock
     private PolicyService policyService;
 
+    @Mock
+    private NotificationService notificationService;
+
     private ClaimService claimService;
 
     private AutoCloseable closeable;
@@ -75,7 +79,7 @@ class ClaimServiceImplTest {
     @BeforeEach
     void setUp() {
         closeable = openMocks(this);
-        claimService = new ClaimServiceImpl(claimDao, userPolicyService, policyService);
+        claimService = new ClaimServiceImpl(claimDao, userPolicyService, policyService, notificationService);
     }
 
     @AfterEach

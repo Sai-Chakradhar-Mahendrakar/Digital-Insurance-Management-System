@@ -13,6 +13,7 @@ import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.mapper.NotificationMapper;
 import com.innov8ors.insurance.request.SupportTicketUpdateRequest;
 import com.innov8ors.insurance.service.NotificationService;
+import com.innov8ors.insurance.util.NotificationUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,15 +33,6 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         this.notificationService = notificationService;
     }
 
-    private void sendSupportTicketNotification(Long userId, String message) {
-        NotificationSendRequest notificationRequest = NotificationMapper.toSupportTicketNotification(
-            userId,
-            message,
-            NotificationType.SUPPORT_RESPONSE
-        );
-        notificationService.sendNotification(notificationRequest);
-    }
-
     @Override
     public SupportTicket createTicket(SupportTicketCreateRequest request, Long userId) {
         try {
@@ -49,7 +41,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             ticket.setUserId(userId); // Set userId from authenticated principal
             SupportTicket savedTicket = supportTicketRepository.save(ticket);
             log.info("Support ticket created with id: {}", savedTicket.getId());
-            sendSupportTicketNotification(userId, "Your support ticket has been created successfully. Ticket ID: " + savedTicket.getId());
+            NotificationUtil.send(notificationService, userId, "Your support ticket has been created successfully. Ticket ID: " + savedTicket.getId(), NotificationType.SUPPORT_RESPONSE);
             return savedTicket;
         } catch (Exception e) {
             log.error("Error creating support ticket for userId: {}: {}", userId, e.getMessage(), e);
@@ -79,8 +71,9 @@ public class SupportTicketServiceImpl implements SupportTicketService {
             }
             SupportTicket updatedTicket = supportTicketRepository.save(ticket);
             log.info("Support ticket updated with id: {}", updatedTicket.getId());
-            sendSupportTicketNotification(updatedTicket.getUserId(),
-                    "Your support ticket has been updated. Ticket ID: " + updatedTicket.getId() + ", Status: " + updatedTicket.getStatus());
+            NotificationUtil.send(notificationService, updatedTicket.getUserId(),
+                    "Your support ticket has been updated. Ticket ID: " + updatedTicket.getId() + ", Status: " + updatedTicket.getStatus(),
+                    NotificationType.SUPPORT_RESPONSE);
             return updatedTicket;
         }
         throw new NotFoundException("Support ticket not found ticketId: " + ticketId);
