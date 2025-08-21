@@ -7,13 +7,8 @@ import com.innov8ors.insurance.enums.ClaimStatus;
 import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
 import com.innov8ors.insurance.request.PolicyCreateRequest;
 import com.innov8ors.insurance.request.SupportTicketUpdateRequest;
-import com.innov8ors.insurance.response.ClaimPaginatedResponse;
-import com.innov8ors.insurance.response.ClaimResponse;
-import com.innov8ors.insurance.response.UserPolicyResponse;
-import com.innov8ors.insurance.service.ClaimService;
-import com.innov8ors.insurance.service.PolicyService;
-import com.innov8ors.insurance.service.SupportTicketService;
-import com.innov8ors.insurance.service.UserPolicyService;
+import com.innov8ors.insurance.response.*;
+import com.innov8ors.insurance.service.*;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,9 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.innov8ors.insurance.request.NotificationSendBulkRequest;
-import com.innov8ors.insurance.service.NotificationService;
-import com.innov8ors.insurance.request.NotificationSendBulkRequest;
-import com.innov8ors.insurance.response.NotificationResponse;
+import com.innov8ors.insurance.response.UserPaginatedResponse;
 import com.innov8ors.insurance.service.NotificationService;
 
 import java.util.List;
@@ -49,13 +42,22 @@ public class AdminController {
     private final UserPolicyService userPolicyService;
     private final ClaimService claimService;
     private final NotificationService notificationService;
+    private final UserService userService;
 
-    public AdminController(PolicyService policyService, UserPolicyService userPolicyService, SupportTicketService supportTicketService, ClaimService claimService, NotificationService notificationService) {
+    public AdminController(
+            PolicyService policyService,
+            UserPolicyService userPolicyService,
+            SupportTicketService supportTicketService,
+            ClaimService claimService,
+            NotificationService notificationService,
+            UserService userService)
+    {
         this.policyService = policyService;
         this.userPolicyService = userPolicyService;
         this.supportTicketService = supportTicketService;
         this.claimService = claimService;
         this.notificationService = notificationService;
+        this.userService = userService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -119,5 +121,14 @@ public class AdminController {
     public ResponseEntity<Void> sendNotificationsBulk(@Valid @RequestBody NotificationSendBulkRequest request) {
         notificationService.sendNotificationsBulk(request);
         return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/activeUsers")
+    public ResponseEntity<UserPaginatedResponse> getActiveUsers(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                                @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        log.info("Received request for get all users");
+        UserPaginatedResponse users = userService.getAllUsers(page, size);
+        return ResponseEntity.ok(users);
     }
 }
