@@ -58,7 +58,8 @@ public class ClaimServiceImpl implements ClaimService {
 
     public ClaimServiceImpl(ClaimDao claimDao,
                             UserPolicyService userPolicyService,
-                            PolicyService policyService, NotificationService notificationService) {
+                            PolicyService policyService,
+                            NotificationService notificationService) {
         this.claimDao = claimDao;
         this.userPolicyService = userPolicyService;
         this.policyService = policyService;
@@ -110,7 +111,6 @@ public class ClaimServiceImpl implements ClaimService {
         Page<Claim> claims = claimDao.getByUserId(userId, PageRequest.of(page, size, Sort.by(CLAIM_DATE_PLACEHOLDER)));
         return getClaimPaginatedResponse(page, size, claims);
     }
-
 
     @Override
     public ClaimResponse updateClaimStatus(Long userId, Long claimId, ClaimStatusUpdateRequest claimStatusUpdateRequest) {
