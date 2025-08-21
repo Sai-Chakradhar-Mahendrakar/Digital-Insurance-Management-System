@@ -247,10 +247,6 @@
         <!-- Footer -->
         <div class="flex justify-end space-x-3 mt-8">
           <AppButton variant="ghost" @click="$emit('close')"> Close </AppButton>
-          <AppButton v-if="userPolicy.status === 'ACTIVE'" variant="primary">
-            <FileText class="w-4 h-4 mr-2" />
-            Download Policy Document
-          </AppButton>
           <AppButton v-if="userPolicy.status === 'PENDING'" variant="primary">
             <Phone class="w-4 h-4 mr-2" />
             Contact Support

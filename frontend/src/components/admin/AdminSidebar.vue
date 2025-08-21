@@ -41,15 +41,6 @@
             <span class="font-medium">Support Tickets</span>
           </router-link>
         </li>
-        <li>
-          <router-link
-            to="/admin/settings"
-            class="flex items-center space-x-3 px-4 py-3 text-slate-700 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
-          >
-            <Settings class="w-5 h-5" />
-            <span class="font-medium">Settings</span>
-          </router-link>
-        </li>
       </ul>
     </nav>
   </aside>
