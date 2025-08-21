@@ -36,8 +36,6 @@ public class Policy {
     private String type;
 
     @Column(name = "description")
-    @NotEmpty
-    @Size(max = 1000, message = "Description cannot exceed 1000 characters")
     private String description;
 
     @Column(name = "premium_amount", nullable = false)
