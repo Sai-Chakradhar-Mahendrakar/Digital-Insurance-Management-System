@@ -6,6 +6,7 @@ import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.exception.AlreadyExistsException;
 import com.innov8ors.insurance.exception.BadRequestException;
+import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.mapper.UserPolicyMapper;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import static com.innov8ors.insurance.util.Constant.ErrorMessage.PREMIUM_PAID_MUST_EQUAL_TO_PREMIUM_AMOUNT;
 import static com.innov8ors.insurance.util.Constant.ErrorMessage.USER_ALREADY_HAS_POLICY;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.USER_POLICY_NOT_FOUND;
 import static com.innov8ors.insurance.util.Constant.UserPolicyConstants.START_DATE_PLACEHOLDER;
 
 @Service
@@ -183,5 +185,13 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         log.info("Saving updated user policy for user ID: {}, policy ID: {}", userId, policyId);
 
         return userPolicyDao.persist(userPolicy);
+    }
+
+    @Override
+    public UserPolicy getById(Long userPolicyId) {
+        return userPolicyDao.findById(userPolicyId).orElseThrow(() -> {
+            log.error("User Policy not found for ID: {}", userPolicyId);
+            return new NotFoundException(USER_POLICY_NOT_FOUND);
+        });
     }
 }

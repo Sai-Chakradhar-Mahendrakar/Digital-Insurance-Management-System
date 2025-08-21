@@ -26,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Objects;
 
 import static com.innov8ors.insurance.mapper.ClaimMapper.getClaimFromRequest;
 import static com.innov8ors.insurance.mapper.ClaimMapper.getClaimPaginatedResponse;
@@ -65,26 +67,17 @@ public class ClaimServiceImpl implements ClaimService {
 
         Policy policy = policyService.getById(request.getPolicyId());
 
-        validateClaimRequest(request, userId, userPolicy, policy);
+        validateClaimRequest(request, userPolicy, policy);
 
         Claim claim = getClaimFromRequest(request, userPolicy);
 
         Claim savedClaim = claimDao.persist(claim);
         savedClaim.setUserPolicy(userPolicy);
         log.info("Claim submitted successfully with ID: {}", savedClaim.getId());
-        updateUserPolicyAfterClaimSubmission(savedClaim, userPolicy, policy);
-        log.info("User policy updated after claim submission for user ID: {} and policy ID: {}", userId, request.getPolicyId());
         return mapToClaimResponse(savedClaim);
     }
 
-    private void updateUserPolicyAfterClaimSubmission(Claim savedClaim, UserPolicy userPolicy, Policy policy) {
-        UserPolicyUpdateRequest userPolicyUpdateRequest = UserPolicyUpdateRequest.builder()
-                .totalAmountClaimed(userPolicy.getTotalAmountClaimed().add(savedClaim.getClaimAmount()))
-                .build();
-        userPolicyService.updateUserPolicy(userPolicy.getUserId(), userPolicy.getPolicyId(), userPolicyUpdateRequest);
-    }
-
-    private void validateClaimRequest(ClaimCreateRequest request, Long userId, UserPolicy userPolicy, Policy policy) {
+    private void validateClaimRequest(ClaimCreateRequest request, UserPolicy userPolicy, Policy policy) {
         if (userPolicy.getStatus() != UserPolicyStatus.ACTIVE  &&
         userPolicy.getStatus() != UserPolicyStatus.RENEWED) {
             log.error("Claims can only be submitted for active policies. User Policy ID: {}", userPolicy.getId());
@@ -119,6 +112,10 @@ public class ClaimServiceImpl implements ClaimService {
 
         Claim claim = checkAndGetClaim(claimId);
 
+        UserPolicy existingUserPolicy = userPolicyService.getById(claim.getUserPolicyId());
+
+        Policy policy = policyService.getById(existingUserPolicy.getPolicyId());
+
         validateClaimUpdateRequest(claimStatusUpdateRequest, claim);
 
         updateClaimStatus(claimStatusUpdateRequest, claim);
@@ -126,7 +123,25 @@ public class ClaimServiceImpl implements ClaimService {
         Claim updatedClaim = claimDao.persist(claim);
         log.info("Claim status updated successfully for claim ID: {}", claimId);
 
+        UserPolicy updatedUserPolicy = updateUserPolicyAfterClaimSubmission(updatedClaim, existingUserPolicy);
+
+        updateOtherClaims(userId, claimId, claim.getUserPolicyId(), policy, updatedUserPolicy);
+
         return mapToClaimResponse(updatedClaim);
+    }
+
+    private void updateOtherClaims(Long userId, Long claimId, Long userPolicyId, Policy policy, UserPolicy userPolicy) {
+        List<Claim> otherClaims = claimDao.getByUserPolicyId(userPolicyId);
+        otherClaims.forEach(claim -> {
+                    if(Objects.equals(claim.getId(), claimId)) {
+                        return;
+                    }
+                    if(claim.getClaimAmount().compareTo(policy.getCoverageAmount().subtract(userPolicy.getTotalAmountClaimed())) > 0) {
+                        claim.setStatus(ClaimStatus.REJECTED);
+                        claim.setReviewerComment("Claim amount exceeds policy coverage after this claim.");
+                        claimDao.persist(claim);
+                    }
+                });
     }
 
     private void updateClaimStatus(ClaimStatusUpdateRequest request, Claim claim) {
@@ -149,6 +164,16 @@ public class ClaimServiceImpl implements ClaimService {
         if (request.getStatus() == ClaimStatus.PENDING) {
             throw new BadRequestException(CANNOT_SET_STATUS_BACK_TO_PENDING);
         }
+    }
+
+    private UserPolicy updateUserPolicyAfterClaimSubmission(Claim updatedClaim, UserPolicy userPolicy) {
+        if(updatedClaim.getStatus() != ClaimStatus.APPROVED) {
+            return userPolicy;
+        }
+        UserPolicyUpdateRequest userPolicyUpdateRequest = UserPolicyUpdateRequest.builder()
+                .totalAmountClaimed(userPolicy.getTotalAmountClaimed().add(updatedClaim.getClaimAmount()))
+                .build();
+        return userPolicyService.updateUserPolicy(userPolicy.getUserId(), userPolicy.getPolicyId(), userPolicyUpdateRequest);
     }
 
     private Claim checkAndGetClaim(Long claimId) {

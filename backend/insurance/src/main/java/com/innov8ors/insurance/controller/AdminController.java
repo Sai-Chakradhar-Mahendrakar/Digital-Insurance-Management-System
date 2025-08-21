@@ -30,6 +30,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.innov8ors.insurance.request.NotificationSendBulkRequest;
+import com.innov8ors.insurance.response.NotificationResponse;
+import com.innov8ors.insurance.service.NotificationService;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,12 +46,14 @@ public class AdminController {
     private final SupportTicketService supportTicketService;
     private final UserPolicyService userPolicyService;
     private final ClaimService claimService;
+    private final NotificationService notificationService;
 
-    public AdminController(PolicyService policyService, UserPolicyService userPolicyService, SupportTicketService supportTicketService, ClaimService claimService) {
+    public AdminController(PolicyService policyService, UserPolicyService userPolicyService, SupportTicketService supportTicketService, ClaimService claimService, NotificationService notificationService) {
         this.policyService = policyService;
         this.userPolicyService = userPolicyService;
         this.supportTicketService = supportTicketService;
         this.claimService = claimService;
+        this.notificationService = notificationService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -74,8 +79,8 @@ public class AdminController {
             @PathVariable Long ticketId,
             @Valid @RequestBody SupportTicketUpdateRequest request) {
         log.info("Updating ticket status to {} for ticketId: {} with response: {}", request.getStatus(), ticketId, request.getResponse());
-        SupportTicket ticket = supportTicketService.updateTicketStatus(ticketId, request.getResponse(), request.getStatus());
-        log.info("Ticket {} status updated to {}", ticketId, request.getStatus());
+        SupportTicket ticket = supportTicketService.updateTicketStatus(ticketId, request);
+        log.info("Ticket {} status updated to {}", ticketId, ticket.getStatus());
         return ticket;
     }
 
@@ -106,5 +111,12 @@ public class AdminController {
         log.info("Admin fetching all claims");
         ClaimPaginatedResponse claims = claimService.getAllClaims(status.orElse(null), page, size);
         return ResponseEntity.ok(claims);
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/sendNotification")
+    public ResponseEntity<List<NotificationResponse>> sendNotification(
+            @RequestBody NotificationSendBulkRequest request) {
+        List<NotificationResponse> response = notificationService.sendNotification(request);
+        return ResponseEntity.ok(response);
     }
 }
