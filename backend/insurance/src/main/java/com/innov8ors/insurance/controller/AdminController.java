@@ -31,6 +31,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.innov8ors.insurance.request.NotificationSendBulkRequest;
+import com.innov8ors.insurance.service.NotificationService;
+import com.innov8ors.insurance.request.NotificationSendBulkRequest;
 import com.innov8ors.insurance.response.NotificationResponse;
 import com.innov8ors.insurance.service.NotificationService;
 
@@ -114,9 +116,8 @@ public class AdminController {
     }
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/sendNotification")
-    public ResponseEntity<List<NotificationResponse>> sendNotification(
-            @RequestBody NotificationSendBulkRequest request) {
-        List<NotificationResponse> response = notificationService.sendNotification(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Void> sendNotificationsBulk(@Valid @RequestBody NotificationSendBulkRequest request) {
+        notificationService.sendNotificationsBulk(request);
+        return ResponseEntity.ok().build();
     }
 }
