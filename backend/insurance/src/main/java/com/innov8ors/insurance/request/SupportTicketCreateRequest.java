@@ -13,7 +13,8 @@ public class SupportTicketCreateRequest {
     private Long policyId;
     private Long claimId;
     @NotNull
-    @Size(min = 80)
+    @Size(min = 10)
+    @Size(max=80)
     private String subject;
     @NotNull
     private String description;
