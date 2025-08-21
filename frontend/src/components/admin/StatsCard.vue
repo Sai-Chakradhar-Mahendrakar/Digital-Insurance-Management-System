@@ -23,12 +23,13 @@ import { Shield, Users, FileText, TrendingUp } from 'lucide-vue-next'
 interface Props {
   title: string
   value: string
-  trend: string
+  trend?: string
   icon: string
   color: 'blue' | 'green' | 'yellow' | 'purple'
 }
 
 const props = defineProps<Props>()
+const safeTrend = computed(() => props.trend ?? '')
 
 const iconComponent = computed(() => {
   const icons: Record<string, any> = {
@@ -40,9 +41,10 @@ const iconComponent = computed(() => {
   return icons[props.icon as keyof typeof icons] || Shield
 })
 
-// Rest of the component remains the same...
 const trendClass = computed(() => {
-  return props.trend.includes('+') ? 'text-green-600' : 'text-red-600'
+  if (safeTrend.value.includes('+')) return 'text-green-600'
+  if (safeTrend.value.includes('-')) return 'text-red-600'
+  return 'text-slate-500'
 })
 
 const iconBgClass = computed(() => {

@@ -80,7 +80,7 @@
                     <div class="flex items-start space-x-3">
                       <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                       <div>
-                        <p class="text-sm font-medium text-slate-900">{{ notification.title }}</p>
+                        <p class="text-sm font-medium text-slate-900">{{ notification.type }}</p>
                         <p class="text-xs text-slate-600 mt-1">{{ notification.message }}</p>
                         <p class="text-xs text-slate-400 mt-1">
                           {{ formatNotificationTime(notification.createdAt) }}
@@ -156,6 +156,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationStore } from '@/stores/notification'
 import AppButton from '@/components/common/AppButton.vue'
 import {
   Bell,
@@ -170,29 +171,16 @@ import {
 
 const router = useRouter()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 
 const showNotifications = ref(false)
 const showProfile = ref(false)
 const notificationRef = ref<HTMLElement>()
 const profileRef = ref<HTMLElement>()
 
-const notifications = ref([
-  {
-    id: 1,
-    title: 'Policy Renewal Due',
-    message: 'Your health insurance policy expires in 30 days',
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 2,
-    title: 'Claim Approved',
-    message: 'Your recent claim has been approved and processed',
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  },
-])
-
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const user = computed(() => authStore.user)
+const notifications = computed(() => notificationStore.notifications)
 const notificationCount = computed(() => notifications.value.length)
 
 const navigateTo = (path: string) => {
@@ -201,9 +189,12 @@ const navigateTo = (path: string) => {
   showNotifications.value = false
 }
 
-const toggleNotifications = () => {
+const toggleNotifications = async () => {
   showNotifications.value = !showNotifications.value
   showProfile.value = false
+  if (showNotifications.value) {
+    await notificationStore.fetchNotifications()
+  }
 }
 
 const toggleProfile = () => {
@@ -239,6 +230,11 @@ const handleClickOutside = (event: Event) => {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  // Fetch notifications from API when authenticated
+  console.log('Mounted AppNavbar')
+  if (isAuthenticated.value) {
+    notificationStore.fetchNotifications()
+  }
 })
 
 onUnmounted(() => {

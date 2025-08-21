@@ -445,7 +445,9 @@ const filteredPolicies = computed(() => {
 
   // Type filter
   if (selectedType.value) {
-    filtered = filtered.filter((policy) => policy.type.toLowerCase() === selectedType.value.toLowerCase())
+    filtered = filtered.filter(
+      (policy) => policy.type.toLowerCase() === selectedType.value.toLowerCase(),
+    )
   }
 
   // Sorting
