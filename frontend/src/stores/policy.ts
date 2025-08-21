@@ -4,11 +4,12 @@ import { ref, computed } from 'vue'
 import { useUserPolicyStore } from './userPolicy'
 import { useAuthStore } from './auth'
 import type { Policy, PolicyResponse } from '@/types/policy'
-
+import { useAppStore } from './app'
 
 export const usePolicyStore = defineStore('policy', () => {
   const userPolicyStore = useUserPolicyStore()
   const authStore = useAuthStore()
+  const appStore = useAppStore()
   const policies = ref<Policy[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
@@ -18,12 +19,8 @@ export const usePolicyStore = defineStore('policy', () => {
     error.value = null
 
     try {
-      const response = await fetch(`http://localhost:8080/policies?size=${size}`, {
-        method: 'GET',
-        headers: {
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-      })
+      const url = `${appStore.apiEndpoints.policies}?size=${size}`
+      const response = await appStore.httpClient.get(url)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch policies: ${response.status} ${response.statusText}`)

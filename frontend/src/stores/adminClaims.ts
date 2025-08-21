@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
+import { useAppStore } from './app'
 
 export interface AdminClaim {
   id: number
@@ -31,6 +32,7 @@ interface UpdateClaimStatus {
 
 export const useAdminClaimsStore = defineStore('adminClaims', () => {
   const authStore = useAuthStore()
+  const appStore = useAppStore()
 
   const claims = ref<AdminClaim[]>([])
   const isLoading = ref(false)
@@ -41,14 +43,7 @@ export const useAdminClaimsStore = defineStore('adminClaims', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8080/admin/claims', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-      })
+      const response = await appStore.httpClient.get(appStore.apiEndpoints.adminClaims)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch claims: ${response.status}`)
@@ -69,16 +64,10 @@ export const useAdminClaimsStore = defineStore('adminClaims', () => {
     error.value = null
 
     try {
-      const response = await fetch(`http://localhost:8080/admin/claim/${claimId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-        body: JSON.stringify(updateData),
-      })
+      const response = await appStore.httpClient.put(
+        appStore.apiEndpoints.updateClaimStatus(claimId),
+        updateData
+      )
 
       if (!response.ok) {
         throw new Error(`Failed to update claim: ${response.status}`)

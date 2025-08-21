@@ -465,7 +465,7 @@ const formatDate = (dateString: string): string => {
 
 // Initialize component
 onMounted(() => {
-  console.log('ViewPolicyModal mounted with policy:', props.policy)
+  // console.log('ViewPolicyModal mounted with policy:', props.policy)
   if (activeTab.value === 'users') {
     loadEnrolledUsers()
   }
