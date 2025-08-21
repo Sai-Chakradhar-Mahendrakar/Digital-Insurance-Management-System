@@ -96,6 +96,15 @@ const routes = [
       title: 'My Policies'
     }
   },
+  {
+    path: '/support',
+    name: 'user-support',
+    component: () => import('@/views/user/SupportTicketsView.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Support Center',
+    }
+  },
   // 404 Not Found - Must be last
   {
     path: '/:pathMatch(.*)*',
