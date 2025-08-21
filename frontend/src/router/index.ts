@@ -88,6 +88,17 @@ const routes = [
     },
   },
   {
+    path: '/admin/support',
+    name: 'admin-support',
+    component: () => import('@/views/admin/AdminSupportView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      layout: 'admin',
+      title: 'Support Management - Admin'
+    }
+  },
+  {
     path: '/my-policies',
     name: 'my-policies',
     component: () => import('@/views/user/MyPoliciesView.vue'),
