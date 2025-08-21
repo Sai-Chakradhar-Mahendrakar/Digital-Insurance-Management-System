@@ -19,11 +19,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
 
@@ -43,13 +47,33 @@ class SupportTicketControllerTest {
     @Configuration
     static class TestSecurityConfig {
         @Bean
-        public org.springframework.security.core.userdetails.UserDetailsService userDetailsService() {
-            org.springframework.security.core.userdetails.UserDetails user = org.springframework.security.core.userdetails.User.withUsername("test@example.com")
+        public UserDetailsService userDetailsService() {
+            UserDetails user = User.withUsername("test@example.com")
                     .password("password")
                     .authorities("ROLE_USER", "ROLE_ADMIN")
                     .build();
-            return new org.springframework.security.provisioning.InMemoryUserDetailsManager(user);
+            return new InMemoryUserDetailsManager(user);
         }
+    }
+
+    private SupportTicket createSupportTicket(Long id, String subject, SupportTicketStatus status) {
+        SupportTicket ticket = new SupportTicket();
+        ticket.setId(id);
+        ticket.setSubject(subject);
+        ticket.setStatus(status);
+        return ticket;
+    }
+
+    private com.innov8ors.insurance.entity.User createUser(Long id, String name, String email, Role role) {
+        com.innov8ors.insurance.entity.User user = new com.innov8ors.insurance.entity.User();
+        user.setId(id);
+        user.setName(name);
+        user.setEmail(email);
+        user.setPasswordHash("password");
+        user.setPhone("1234567890");
+        user.setAddress("Test Address");
+        user.setRole(role);
+        return user;
     }
 
     @Test
@@ -59,19 +83,10 @@ class SupportTicketControllerTest {
         request.setClaimId(456L);
         request.setSubject("Need help");
         request.setDescription("I have a question.");
-        SupportTicket ticket = new SupportTicket();
-        ticket.setId(1L);
-        ticket.setSubject("Need help");
+        SupportTicket ticket = createSupportTicket(1L, "Need help", SupportTicketStatus.OPEN);
         Mockito.when(supportTicketService.createTicket(Mockito.any(), Mockito.anyLong())).thenReturn(ticket);
 
-        com.innov8ors.insurance.entity.User user = new com.innov8ors.insurance.entity.User();
-        user.setId(99L);
-        user.setName("Test User");
-        user.setEmail("test@example.com");
-        user.setPasswordHash("password");
-        user.setPhone("1234567890");
-        user.setAddress("Test Address");
-        user.setRole(Role.USER);
+        com.innov8ors.insurance.entity.User user = createUser(99L, "Test User", "test@example.com", Role.USER);
         UserPrincipal principal = new UserPrincipal(user);
         UsernamePasswordAuthenticationToken auth =
             new UsernamePasswordAuthenticationToken(principal, null, AuthorityUtils.createAuthorityList("ROLE_USER"));
@@ -85,9 +100,18 @@ class SupportTicketControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
+    void testCreateTicket_InvalidInput() throws Exception {
+        SupportTicketCreateRequest request = new SupportTicketCreateRequest(); // missing required fields
+        mockMvc.perform(MockMvcRequestBuilders.post("/support")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
     void testGetTicketsByUser() throws Exception {
-        SupportTicket ticket = new SupportTicket();
-        ticket.setId(1L);
+        SupportTicket ticket = createSupportTicket(1L, "Need help", SupportTicketStatus.OPEN);
         Mockito.when(supportTicketService.getTicketsByUser(1L)).thenReturn(List.of(ticket));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/support/user/1")
@@ -97,23 +121,29 @@ class SupportTicketControllerTest {
     }
 
     @Test
+    void testGetTicketsByUser_Unauthorized() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/support/user/getTicketsByUser"))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void testGetTicketsByUser_NotFound() throws Exception {
+        Mockito.when(supportTicketService.getTicketsByUser(999L)).thenReturn(List.of());
+        mockMvc.perform(MockMvcRequestBuilders.get("/support/user/999"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$").isEmpty());
+    }
+
+    @Test
     void testUpdateTicketStatus() throws Exception {
-        SupportTicket ticket = new SupportTicket();
-        ticket.setId(1L);
-        ticket.setStatus(SupportTicketStatus.RESOLVED);
+        SupportTicket ticket = createSupportTicket(1L, "Need help", SupportTicketStatus.RESOLVED);
         SupportTicketUpdateRequest updateRequest = new SupportTicketUpdateRequest();
         updateRequest.setResponse("Resolved");
         updateRequest.setStatus(SupportTicketStatus.RESOLVED);
         Mockito.when(supportTicketService.updateTicketStatus(1L, updateRequest)).thenReturn(ticket);
 
-        com.innov8ors.insurance.entity.User user = new com.innov8ors.insurance.entity.User();
-        user.setId(99L);
-        user.setName("Test Admin");
-        user.setEmail("admin@example.com");
-        user.setPasswordHash("password");
-        user.setPhone("1234567890");
-        user.setAddress("Admin Address");
-        user.setRole(Role.ADMIN);
+        com.innov8ors.insurance.entity.User user = createUser(99L, "Test Admin", "admin@example.com", Role.ADMIN);
         UserPrincipal principal = new UserPrincipal(user);
         UsernamePasswordAuthenticationToken auth =
             new UsernamePasswordAuthenticationToken(principal, null, AuthorityUtils.createAuthorityList("ROLE_ADMIN"));
@@ -121,6 +151,18 @@ class SupportTicketControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.put("/support/1")
                 .param("response", "Resolved")
                 .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user("test@example.com").roles("ADMIN")))
+                .andExpect(MockMvcResultMatchers.status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void testUpdateTicketStatus_NotFound() throws Exception {
+        SupportTicketUpdateRequest updateRequest = new SupportTicketUpdateRequest();
+        updateRequest.setResponse("Resolved");
+        updateRequest.setStatus(SupportTicketStatus.RESOLVED);
+        Mockito.when(supportTicketService.updateTicketStatus(Mockito.anyLong(), Mockito.eq(updateRequest))).thenThrow(new RuntimeException("Support ticket not found"));
+        mockMvc.perform(MockMvcRequestBuilders.put("/support/999")
+                .param("response", "Resolved"))
                 .andExpect(MockMvcResultMatchers.status().isForbidden());
     }
 }

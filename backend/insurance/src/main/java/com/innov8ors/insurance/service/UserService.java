@@ -3,6 +3,7 @@ package com.innov8ors.insurance.service;
 import com.innov8ors.insurance.entity.User;
 import com.innov8ors.insurance.request.UserCreateRequest;
 import com.innov8ors.insurance.request.UserLoginRequest;
+import com.innov8ors.insurance.response.UserPaginatedResponse;
 import com.innov8ors.insurance.response.UserRegisterResponse;
 
 public interface UserService {
@@ -15,4 +16,6 @@ public interface UserService {
     User getByEmail(String email);
 
     User getById(Long id);
+
+    UserPaginatedResponse getAllUsers(Integer page, Integer size);
 }

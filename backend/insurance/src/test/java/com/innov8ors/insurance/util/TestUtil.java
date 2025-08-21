@@ -12,12 +12,15 @@ import com.innov8ors.insurance.enums.Role;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.request.ClaimCreateRequest;
 import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
+import com.innov8ors.insurance.request.NotificationByPolicyRequest;
+import com.innov8ors.insurance.request.NotificationRequest;
 import com.innov8ors.insurance.request.NotificationSendBulkRequest;
 import com.innov8ors.insurance.request.NotificationSendRequest;
 import com.innov8ors.insurance.request.PolicyCreateRequest;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.request.UserCreateRequest;
 import com.innov8ors.insurance.request.UserLoginRequest;
+import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -327,14 +330,58 @@ public class TestUtil {
                 .build();
     }
 
+    public static NotificationRequest getNotificationRequest() {
+        return NotificationRequest.builder()
+                .message(TEST_NOTIFICATION_MESSAGE)
+                .type(TEST_NOTIFICATION_TYPE)
+                .build();
+    }
+
     public static NotificationSendBulkRequest getNotificationSendBulkRequest() {
         return NotificationSendBulkRequest.builder()
                 .userId(List.of(TEST_USER_ID))
-                .notificationSendRequest(getNotificationSendRequest())
+                .request(getNotificationRequest())
                 .build();
     }
 
     public static List<Notification> getNotifications() {
         return List.of(getNotification());
+    }
+
+    public static NotificationByPolicyRequest getNotificationByPolicyRequest() {
+        return NotificationByPolicyRequest.builder()
+                .policyId(TEST_POLICY_ID)
+                .request(getNotificationRequest())
+                .build();
+    }
+
+    public static UserPolicyPaginatedResponse getUserPolicyPaginatedResponse() {
+        return UserPolicyPaginatedResponse.builder()
+                .userPolicies(List.of(getUserPolicyResponse()))
+                .page(0)
+                .size(10)
+                .totalElements(1L)
+                .totalPages(1)
+                .build();
+    }
+
+    private static UserPolicyResponse getUserPolicyResponse() {
+        return UserPolicyResponse.builder()
+                .id(TEST_USER_POLICY_ID)
+                .policyId(TEST_POLICY_ID)
+                .policyName(TEST_POLICY_NAME)
+                .policyType(TEST_POLICY_TYPE)
+                .startDate(TEST_POLICY_START_DATE)
+                .endDate(TEST_POLICY_END_DATE)
+                .status(TEST_USER_POLICY_STATUS)
+                .premiumPaid(TEST_POLICY_PREMIUM_PAID)
+                .totalAmountClaimed(BigDecimal.ZERO) // Assuming no claims made yet
+                .userId(TEST_USER_ID)
+                .userName(TEST_USER_NAME)
+                .userEmail(TEST_USER_EMAIL)
+                .userPhone(TEST_USER_PHONE)
+                .userAddress(TEST_USER_ADDRESS)
+                .coverageAmount(TEST_POLICY_COVERAGE_AMOUNT)
+                .build();
     }
 }

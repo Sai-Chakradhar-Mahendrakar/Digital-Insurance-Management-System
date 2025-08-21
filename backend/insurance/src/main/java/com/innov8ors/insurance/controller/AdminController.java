@@ -5,18 +5,22 @@ import com.innov8ors.insurance.entity.SupportTicket;
 import com.innov8ors.insurance.entity.UserPrincipal;
 import com.innov8ors.insurance.enums.ClaimStatus;
 import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
+import com.innov8ors.insurance.request.NotificationByPolicyRequest;
+import com.innov8ors.insurance.request.NotificationSendBulkRequest;
 import com.innov8ors.insurance.request.PolicyCreateRequest;
 import com.innov8ors.insurance.request.SupportTicketUpdateRequest;
 import com.innov8ors.insurance.response.ClaimPaginatedResponse;
 import com.innov8ors.insurance.response.ClaimResponse;
-import com.innov8ors.insurance.response.UserPolicyResponse;
+import com.innov8ors.insurance.response.UserPaginatedResponse;
+import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.service.ClaimService;
+import com.innov8ors.insurance.service.NotificationService;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.SupportTicketService;
 import com.innov8ors.insurance.service.UserPolicyService;
+import com.innov8ors.insurance.service.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,11 +34,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.innov8ors.insurance.request.NotificationSendBulkRequest;
-import com.innov8ors.insurance.service.NotificationService;
-import com.innov8ors.insurance.request.NotificationSendBulkRequest;
-import com.innov8ors.insurance.response.NotificationResponse;
-import com.innov8ors.insurance.service.NotificationService;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,13 +48,22 @@ public class AdminController {
     private final UserPolicyService userPolicyService;
     private final ClaimService claimService;
     private final NotificationService notificationService;
+    private final UserService userService;
 
-    public AdminController(PolicyService policyService, UserPolicyService userPolicyService, SupportTicketService supportTicketService, ClaimService claimService, NotificationService notificationService) {
+    public AdminController(
+            PolicyService policyService,
+            UserPolicyService userPolicyService,
+            SupportTicketService supportTicketService,
+            ClaimService claimService,
+            NotificationService notificationService,
+            UserService userService)
+    {
         this.policyService = policyService;
         this.userPolicyService = userPolicyService;
         this.supportTicketService = supportTicketService;
         this.claimService = claimService;
         this.notificationService = notificationService;
+        this.userService = userService;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -67,7 +75,7 @@ public class AdminController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/policies/{policyId}/users")
-    public Page<UserPolicyResponse> getUsersByPolicyId(
+    public UserPolicyPaginatedResponse getUsersByPolicyId(
             @PathVariable Long policyId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -114,10 +122,28 @@ public class AdminController {
         ClaimPaginatedResponse claims = claimService.getAllClaims(status.orElse(null), page, size);
         return ResponseEntity.ok(claims);
     }
+
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/sendNotification")
+    @PostMapping("/sendNotifications/user")
     public ResponseEntity<Void> sendNotificationsBulk(@Valid @RequestBody NotificationSendBulkRequest request) {
         notificationService.sendNotificationsBulk(request);
         return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/sendNotifications/policy")
+    public ResponseEntity<Void> sendNotificationByPolicy(@Valid @RequestBody NotificationByPolicyRequest request) {
+        log.info("Sending notification by policy ID: {}", request.getPolicyId());
+        notificationService.sendNotificationByPolicy(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/activeUsers")
+    public ResponseEntity<UserPaginatedResponse> getActiveUsers(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                                @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        log.info("Received request for get all users");
+        UserPaginatedResponse users = userService.getAllUsers(page, size);
+        return ResponseEntity.ok(users);
     }
 }
