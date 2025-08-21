@@ -11,13 +11,13 @@ export interface UserPolicy {
   id: number
   policyId: number
   policyName: string
-  policyType: 'Health' | 'Auto' | 'Life' | 'Home'
+  policyType: string
   startDate: string
   endDate: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'EXPIRED'
   premiumPaid: number
   totalAmountClaimed: number | null
-  coverageAmount: number // Now included in the response
+  coverageAmount: number 
   userId: number
   userName: string
   userEmail: string
