@@ -2,6 +2,7 @@ package com.innov8ors.insurance.service.impl;
 
 import com.innov8ors.insurance.entity.Notification;
 import com.innov8ors.insurance.exception.NotFoundException;
+import com.innov8ors.insurance.mapper.NotificationMapper;
 import com.innov8ors.insurance.repository.dao.NotificationDao;
 import com.innov8ors.insurance.response.NotificationResponse;
 import com.innov8ors.insurance.service.NotificationService;
@@ -108,7 +109,7 @@ public class NotificationServiceImplTest {
                 .when(notificationDao)
                 .persist(any());
 
-        NotificationResponse response = notificationService.sendNotification(getNotificationSendRequest());
+        NotificationResponse response = notificationService.sendNotification(NotificationMapper.createNotificationSendRequest(TEST_USER_ID, TEST_NOTIFICATION_MESSAGE, TEST_NOTIFICATION_TYPE));
 
         assertEquals(TEST_USER_ID, response.getUserId());
         assertEquals(TEST_NOTIFICATION_MESSAGE, response.getMessage());
@@ -126,7 +127,7 @@ public class NotificationServiceImplTest {
                 .getById(TEST_USER_ID);
 
         try {
-            notificationService.sendNotification(getNotificationSendRequest());
+            notificationService.sendNotification(NotificationMapper.createNotificationSendRequest(TEST_USER_ID, TEST_NOTIFICATION_MESSAGE, TEST_NOTIFICATION_TYPE));
             fail("Expected NotFoundException was not thrown");
         } catch (Exception e) {
             assertInstanceOf(NotFoundException.class, e);

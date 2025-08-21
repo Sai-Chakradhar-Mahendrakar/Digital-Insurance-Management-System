@@ -91,12 +91,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendNotificationsBulk(NotificationSendBulkRequest request) {
         for (Long userId : request.getUserId()) {
             NotificationRequest notificationRequest = request.getRequest();
-            NotificationSendRequest notificationSendRequest = NotificationSendRequest.builder()
-                    .userId(userId)
-                    .message(notificationRequest.getMessage())
-                    .type(notificationRequest.getType())
-                    .build();
-            sendNotification(notificationSendRequest);
+            sendNotification(NotificationMapper.createNotificationSendRequest(userId, notificationRequest.getMessage(), notificationRequest.getType()));
         }
     }
 

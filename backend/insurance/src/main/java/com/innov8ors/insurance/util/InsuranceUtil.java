@@ -17,4 +17,6 @@ public class InsuranceUtil {
 
     public static ModelMapper MAPPER = new ModelMapper();
     public static ObjectMapper objectMapper = new ObjectMapper();
+
+    // write method to construct a proper notification message
 }

@@ -16,6 +16,14 @@ public class NotificationMapper {
                 .build();
     }
 
+    public static NotificationSendRequest createNotificationSendRequest(Long userId, String message, NotificationType type) {
+        return NotificationSendRequest.builder()
+                .userId(userId)
+                .message(message)
+                .type(type)
+                .build();
+    }
+
     public static NotificationPaginatedResponse getNotificationPaginatedResponse(Page<Notification> notifications, Integer page, Integer size) {
         return NotificationPaginatedResponse.builder()
                 .notifications(notifications.stream()
