@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,8 +106,9 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     }
 
     @Transactional
-    // todo: Add a scheduled task to run this method periodically
+    @Scheduled(cron = "0 * * * * ?")
     public void updateExpiredPolicies() {
+        System.out.println("Running scheduled task to update expired policies...");
         List<UserPolicy> expiredPolicies = userPolicyDao
                 .findByStatusAndEndDateBefore(UserPolicyStatus.ACTIVE, LocalDateTime.now());
 
