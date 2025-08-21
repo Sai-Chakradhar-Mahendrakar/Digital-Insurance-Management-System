@@ -8,7 +8,6 @@ import com.innov8ors.insurance.request.SupportTicketCreateRequest;
 import com.innov8ors.insurance.service.SupportTicketService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.request.NotificationSendRequest;
 import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.mapper.NotificationMapper;
