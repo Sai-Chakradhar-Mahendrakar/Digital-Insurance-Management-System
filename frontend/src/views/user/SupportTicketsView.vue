@@ -53,7 +53,6 @@
       <div class="mb-8 flex justify-between items-center">
         <h2 class="text-xl font-semibold text-slate-900">Your Support Tickets</h2>
         <AppButton variant="primary" @click="showCreateModal = true">
-          <Plus class="w-4 h-4 mr-2" />
           Create New Ticket
         </AppButton>
       </div>
@@ -78,7 +77,6 @@
         <h3 class="text-xl font-semibold text-slate-900 mb-2">No Support Tickets</h3>
         <p class="text-slate-600 mb-6">You haven't created any support tickets yet.</p>
         <AppButton variant="primary" @click="showCreateModal = true">
-          <Plus class="w-4 h-4 mr-2" />
           Create Your First Ticket
         </AppButton>
       </div>

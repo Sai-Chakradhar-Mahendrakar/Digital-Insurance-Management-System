@@ -113,7 +113,7 @@ public class NotificationServiceImpl implements NotificationService {
         List<Notification> notifications = notificationDao.findByUserIdAndStatus(userId, NotificationStatus.UNREAD);
         for (Notification notification : notifications) {
             notification.setStatus(NotificationStatus.READ);
-            notification.setReadAt(java.time.LocalDateTime.now());
+            notification.setReadAt(LocalDateTime.now());
         }
         notificationDao.saveAll(notifications);
     }

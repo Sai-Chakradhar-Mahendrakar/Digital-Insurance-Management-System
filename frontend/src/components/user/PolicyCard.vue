@@ -32,6 +32,18 @@
       </div>
     </div>
 
+    <!-- Expiration Warning for Active Policies -->
+    <div v-if="userPolicy.status === 'ACTIVE' && isExpiringSoon(userPolicy.endDate)" class="mb-4">
+      <div class="bg-orange-50 border border-orange-200 rounded-lg p-3">
+        <div class="flex items-center">
+          <AlertTriangle class="w-4 h-4 text-orange-600 mr-2" />
+          <span class="text-sm text-orange-800 font-medium">
+            Policy expires in {{ getDaysUntilExpiry(userPolicy.endDate) }} days - Consider renewal
+          </span>
+        </div>
+      </div>
+    </div>
+
     <!-- Coverage Amount & Premium -->
     <div class="grid grid-cols-2 gap-4 mb-6">
       <div
@@ -240,6 +252,45 @@
       </AppButton>
     </div>
 
+    <!-- Renewal Call-to-Action for Expiring Policies -->
+    <div v-if="userPolicy.status === 'ACTIVE' && isExpiringSoon(userPolicy.endDate)" class="mb-4">
+      <div
+        class="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-lg p-4"
+      >
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <RefreshCw class="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <h4 class="font-semibold text-orange-900">Renewal Available</h4>
+              <p class="text-sm text-orange-700">
+                Expires in {{ getDaysUntilExpiry(userPolicy.endDate) }} days
+              </p>
+            </div>
+          </div>
+          <AppButton
+            variant="ghost"
+            size="small"
+            @click="confirmRenewal"
+            :disabled="isRenewing"
+            class="flex items-center space-x-2"
+          >
+            <span v-if="!isRenewing" class="flex items-center">
+              <RefreshCw class="w-4 h-4 mr-1" />
+              Renew Now
+            </span>
+            <span v-else class="flex items-center">
+              <div
+                class="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin mr-1"
+              ></div>
+              Renewing...
+            </span>
+          </AppButton>
+        </div>
+      </div>
+    </div>
+
     <!-- Status Timeline -->
     <div class="pt-4 border-t border-slate-200">
       <div
@@ -270,6 +321,29 @@
         </div>
       </div>
 
+      <div
+        v-else-if="userPolicy.status === 'APPROVED'"
+        class="flex items-center text-sm text-emerald-600 bg-emerald-50 p-3 rounded-lg"
+      >
+        <CheckCircle class="w-4 h-4 mr-2" />
+        <span class="font-medium">Policy approved! Activation will begin shortly.</span>
+      </div>
+
+      <div v-else-if="userPolicy.status === 'REJECTED'" class="space-y-2">
+        <div class="flex items-center text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+          <XCircle class="w-4 h-4 mr-2" />
+          <span class="font-medium">Application was rejected. Contact support for details.</span>
+        </div>
+        <AppButton
+          variant="primary"
+          size="small"
+          @click="$emit('reapply', userPolicy)"
+          class="w-full"
+        >
+          Submit New Application
+        </AppButton>
+      </div>
+
       <div v-else-if="userPolicy.status === 'EXPIRED'" class="space-y-2">
         <div class="flex items-center text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
           <AlertTriangle class="w-4 h-4 mr-2" />
@@ -282,10 +356,96 @@
           size="small"
           @click="$emit('renew', userPolicy)"
           class="w-full"
+          :disabled="isRenewing"
         >
-          <RefreshCw class="w-4 h-4 mr-2" />
-          Renew Policy
+          <span v-if="!isRenewing" class="flex items-center justify-center">
+            <RefreshCw class="w-4 h-4 mr-2" />
+            Renew Policy
+          </span>
+          <span v-else class="flex items-center justify-center">
+            <div
+              class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"
+            ></div>
+            Renewing...
+          </span>
         </AppButton>
+      </div>
+    </div>
+
+    <!-- Renewal Confirmation Modal -->
+    <div v-if="showRenewalModal" class="fixed inset-0 z-50 overflow-y-auto">
+      <div
+        class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <!-- Background overlay -->
+        <div
+          class="fixed inset-0 transition-opacity bg-slate-500 bg-opacity-75"
+          @click="closeRenewalModal"
+        ></div>
+
+        <!-- Modal -->
+        <div
+          class="inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-xl"
+        >
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <RefreshCw class="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-slate-900">Confirm Renewal</h3>
+                <span class="text-sm text-slate-500">{{ userPolicy.policyName }}</span>
+              </div>
+            </div>
+            <button @click="closeRenewalModal" class="text-slate-400 hover:text-slate-600">
+              <X class="w-5 h-5" />
+            </button>
+          </div>
+
+          <!-- Renewal Details -->
+          <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+            <div class="text-sm space-y-2">
+              <div class="flex justify-between">
+                <span class="text-green-700">Renewal Premium:</span>
+                <span class="font-semibold text-green-900">{{
+                  formatINR(userPolicy.premiumPaid)
+                }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-green-700">New Term:</span>
+                <span class="font-semibold text-green-900">12 Months</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-green-700">Coverage:</span>
+                <span class="font-semibold text-green-900">{{
+                  formatINR(userPolicy.coverageAmount)
+                }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+            <p class="text-sm text-blue-800">
+              Your policy will be renewed for another 12 months with continuous coverage and no gaps
+              in protection.
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div class="flex justify-end space-x-3">
+            <AppButton variant="ghost" @click="closeRenewalModal"> Cancel </AppButton>
+            <AppButton variant="primary" @click="confirmRenewal" :disabled="isRenewing">
+              <span v-if="!isRenewing">Confirm Renewal</span>
+              <span v-else class="flex items-center">
+                <div
+                  class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"
+                ></div>
+                Processing...
+              </span>
+            </AppButton>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -303,7 +463,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { useToast } from '@/composables/useToast'
+import { usePolicyRenewalStore } from '@/stores/policyRenewal'
+import { useAuthStore } from '@/stores/auth'
 import {
   Clock,
   CheckCircle,
@@ -322,9 +485,7 @@ import {
   BarChart3,
   Hash,
   User,
-  Mail,
-  Phone,
-  MapPin,
+  X,
 } from 'lucide-vue-next'
 import AppButton from '@/components/common/AppButton.vue'
 import type { UserPolicy } from '@/stores/userPolicy'
@@ -335,12 +496,18 @@ interface Props {
 
 const props = defineProps<Props>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'view', userPolicy: UserPolicy): void
   (e: 'makeClaim', userPolicy: UserPolicy): void
   (e: 'reapply', userPolicy: UserPolicy): void
   (e: 'renew', userPolicy: UserPolicy): void
 }>()
+
+const toast = useToast()
+const policyRenewalStore = usePolicyRenewalStore()
+const authStore = useAuthStore()
+const showRenewalModal = ref(false)
+const isRenewing = ref(false)
 
 // Computed values with null safety
 const availableCoverage = computed(() => {
@@ -374,6 +541,34 @@ const policyProgressPercentage = computed(() => {
   return Math.round((elapsed / totalDuration) * 100)
 })
 
+const closeRenewalModal = () => {
+  showRenewalModal.value = false
+}
+
+const confirmRenewal = async () => {
+  if (!props.userPolicy?.policyId) return
+
+  isRenewing.value = true
+  try {
+    // Use the store method instead of direct API call
+    const renewedPolicy = await policyRenewalStore.renewPolicy(props.userPolicy.policyId)
+
+    toast.success(
+      'Policy Renewed Successfully!',
+      `${renewedPolicy.policyName} has been renewed until ${formatDate(renewedPolicy.endDate)}`,
+    )
+
+    // Emit the renew event with the updated policy to refresh parent component
+    emit('renew', renewedPolicy as UserPolicy)
+    closeRenewalModal()
+  } catch (error) {
+    toast.error('Renewal Failed', 'Failed to renew your policy. Please try again.')
+    console.error('Renewal error:', error)
+  } finally {
+    isRenewing.value = false
+  }
+}
+
 // Helper functions with null safety
 const getDaysUntilExpiry = (endDate: string): number => {
   if (!endDate) return 0
@@ -386,6 +581,10 @@ const getPolicyTypeIcon = (type: string) => {
     Auto: Car,
     Life: Shield,
     Home: Home,
+    health: Heart,
+    auto: Car,
+    life: Shield,
+    home: Home,
   }
   return icons[type as keyof typeof icons] || FileText
 }
@@ -580,28 +779,3 @@ const formatDate = (dateString: string): string => {
   })
 }
 </script>
-
-<style scoped>
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.shimmer {
-  animation: shimmer 2.5s infinite linear;
-}
-
-.bg-stripes {
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 4px,
-    rgba(255, 255, 255, 0.1) 4px,
-    rgba(255, 255, 255, 0.1) 8px
-  );
-}
-</style>

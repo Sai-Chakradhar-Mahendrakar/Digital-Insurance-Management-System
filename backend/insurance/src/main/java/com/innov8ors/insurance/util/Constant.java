@@ -14,6 +14,7 @@ public class Constant {
     public static class ErrorMessage {
         public static final String USER_NOT_FOUND = "User not found";
         public static final String POLICY_NOT_FOUND = "Policy not found";
+        public static final String POLICY_NOT_FOUND_OR_DOESNT_BELONG_TO_USER = "Policy not found or doesn't belong to user";
         public static final String CLAIM_NOT_FOUND = "Claim with given Id not found";
         public static final String USER_POLICY_NOT_FOUND = "User policy with given Id not found or does not belong to user";
         public static final String NOTIFICATION_NOT_FOUND_OR_DOES_NOT_BELONG_TO_USER = "Notification with given Id not found or does not belong to user";
@@ -28,6 +29,8 @@ public class Constant {
         public static final String UNAUTHORIZED_ACCESS = "Unauthorized access";
         public static final String INCORRECT_PASSWORD = "Incorrect password";
         public static final String INTERNAL_SERVER_ERROR = "Internal server error";
+        public static final String PREMIUM_PAID_MUST_EQUAL_TO_PREMIUM_AMOUNT = "Premium paid must equal to premium amount";
+        public static final String NOT_ELIGIBLE_FOR_RENEWAL = "User is not eligible for renewal of policy";
     }
 
     public static class PolicyConstants {

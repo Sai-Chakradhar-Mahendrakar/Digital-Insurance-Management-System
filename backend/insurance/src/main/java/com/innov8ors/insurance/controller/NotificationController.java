@@ -3,6 +3,7 @@ package com.innov8ors.insurance.controller;
 import com.innov8ors.insurance.enums.NotificationStatus;
 import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.response.NotificationPaginatedResponse;
+import com.innov8ors.insurance.request.NotificationSendRequest;
 import com.innov8ors.insurance.response.NotificationResponse;
 import com.innov8ors.insurance.service.NotificationService;
 import org.springframework.http.ResponseEntity;
