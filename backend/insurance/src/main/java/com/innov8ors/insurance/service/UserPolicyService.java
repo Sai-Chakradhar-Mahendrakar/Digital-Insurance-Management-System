@@ -5,7 +5,6 @@ import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.request.UserPolicyUpdateRequest;
 import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
-import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -29,7 +28,7 @@ public interface UserPolicyService {
 
     UserPolicy getByUserIdAndPolicyId(Long userId, Long policyId);
 
-    Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size);
+    UserPolicyPaginatedResponse getUsersByPolicyId(Long policyId, Integer page, Integer size);
 
     UserPolicy updateUserPolicy(Long userId, Long policyId, UserPolicyUpdateRequest userPolicyUpdateRequest);
 

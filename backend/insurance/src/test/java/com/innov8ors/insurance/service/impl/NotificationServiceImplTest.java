@@ -5,6 +5,7 @@ import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.repository.dao.NotificationDao;
 import com.innov8ors.insurance.response.NotificationResponse;
 import com.innov8ors.insurance.service.NotificationService;
+import com.innov8ors.insurance.service.UserPolicyService;
 import com.innov8ors.insurance.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,12 +20,16 @@ import static com.innov8ors.insurance.util.TestUtil.TEST_NOTIFICATION_ID;
 import static com.innov8ors.insurance.util.TestUtil.TEST_NOTIFICATION_MESSAGE;
 import static com.innov8ors.insurance.util.TestUtil.TEST_NOTIFICATION_STATUS;
 import static com.innov8ors.insurance.util.TestUtil.TEST_NOTIFICATION_TYPE;
+import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_ID;
 import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ID;
 import static com.innov8ors.insurance.util.TestUtil.getNotification;
+import static com.innov8ors.insurance.util.TestUtil.getNotificationByPolicyRequest;
 import static com.innov8ors.insurance.util.TestUtil.getNotificationSendBulkRequest;
 import static com.innov8ors.insurance.util.TestUtil.getNotificationSendRequest;
 import static com.innov8ors.insurance.util.TestUtil.getNotifications;
 import static com.innov8ors.insurance.util.TestUtil.getUser;
+import static com.innov8ors.insurance.util.TestUtil.getUserPolicy;
+import static com.innov8ors.insurance.util.TestUtil.getUserPolicyPaginatedResponse;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -43,6 +48,9 @@ public class NotificationServiceImplTest {
     @Mock
     private UserService userService;
 
+    @Mock
+    private UserPolicyService userPolicyService;
+
     private NotificationService notificationService;
 
     private AutoCloseable closeable;
@@ -50,7 +58,7 @@ public class NotificationServiceImplTest {
     @BeforeEach
     public void setUp() {
         closeable = openMocks(this);
-        notificationService = new NotificationServiceImpl(notificationDao, userService);
+        notificationService = new NotificationServiceImpl(notificationDao, userService, userPolicyService);
     }
 
     @AfterEach
@@ -158,5 +166,25 @@ public class NotificationServiceImplTest {
         verify(notificationDao).findByUserIdAndStatus(TEST_USER_ID, TEST_NOTIFICATION_STATUS);
         verify(notificationDao).saveAll(anyList());
         verifyNoMoreInteractions(notificationDao);
+    }
+
+    @Test
+    public void testSuccessfulSendNotificationByPolicy() {
+        doReturn(getUser())
+                .when(userService)
+                .getById(TEST_USER_ID);
+        doReturn(getNotification())
+                .when(notificationDao)
+                .persist(any());
+        doReturn(getUserPolicyPaginatedResponse())
+                .when(userPolicyService)
+                .getUsersByPolicyId(any(), any(), any());
+
+        notificationService.sendNotificationByPolicy(getNotificationByPolicyRequest());
+
+        verify(userService).getById(TEST_USER_ID);
+        verify(notificationDao).persist(any(Notification.class));
+        verify(userPolicyService).getUsersByPolicyId(TEST_POLICY_ID, 0, Integer.MAX_VALUE);
+        verifyNoMoreInteractions(notificationDao, userService);
     }
 }

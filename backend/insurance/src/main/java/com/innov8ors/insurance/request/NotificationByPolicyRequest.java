@@ -2,18 +2,20 @@ package com.innov8ors.insurance.request;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class NotificationSendBulkRequest {
+public class NotificationByPolicyRequest {
     @NotNull
-    private List<Long> userId;
+    private Long policyId;
 
-    @Valid
     @NotNull
+    @Valid
     private NotificationRequest request;
 }

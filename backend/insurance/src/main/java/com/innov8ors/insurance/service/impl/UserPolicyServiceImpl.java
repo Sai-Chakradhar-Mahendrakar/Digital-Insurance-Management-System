@@ -7,8 +7,6 @@ import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.exception.BadRequestException;
 import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.exception.AlreadyExistsException;
-import com.innov8ors.insurance.exception.BadRequestException;
-import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.mapper.UserPolicyMapper;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
@@ -145,25 +143,11 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     }
 
     @Override
-    public Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size) {
+    public UserPolicyPaginatedResponse getUsersByPolicyId(Long policyId, Integer page, Integer size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<UserPolicy> userPolicies = userPolicyDao.findByPolicyIdWithUser(policyId, pageRequest);
 
-        return userPolicies.map(userPolicy -> UserPolicyResponse.builder()
-                .id(userPolicy.getId())
-                .policyId(userPolicy.getPolicyId())
-                .policyName(userPolicy.getPolicy().getName())
-                .policyType(userPolicy.getPolicy().getType())
-                .userId(userPolicy.getUser().getId())
-                .userName(userPolicy.getUser().getName())
-                .userEmail(userPolicy.getUser().getEmail())
-                .userPhone(userPolicy.getUser().getPhone())
-                .userAddress(userPolicy.getUser().getAddress())
-                .startDate(userPolicy.getStartDate())
-                .endDate(userPolicy.getEndDate())
-                .status(userPolicy.getStatus())
-                .premiumPaid(userPolicy.getPremiumPaid())
-                .build());
+        return UserPolicyMapper.getPolicyPaginatedResponse(userPolicies, page, size);
     }
 
     @Override
