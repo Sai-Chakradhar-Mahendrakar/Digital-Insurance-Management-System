@@ -1,19 +1,24 @@
 package com.innov8ors.insurance.service.impl;
 
 import com.innov8ors.insurance.entity.User;
+import com.innov8ors.insurance.enums.Role;
 import com.innov8ors.insurance.error.InsuranceServiceErrorType;
 import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.exception.UnauthorizedException;
+import com.innov8ors.insurance.mapper.UserMapper;
 import com.innov8ors.insurance.repository.dao.UserDao;
 import com.innov8ors.insurance.request.UserCreateRequest;
 import com.innov8ors.insurance.request.UserLoginRequest;
+import com.innov8ors.insurance.response.UserPaginatedResponse;
 import com.innov8ors.insurance.response.UserRegisterResponse;
 import com.innov8ors.insurance.service.TokenService;
 import com.innov8ors.insurance.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 import static com.innov8ors.insurance.mapper.UserMapper.getRegisterResponseFromUser;
@@ -77,9 +82,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAllUsers(){
+    public UserPaginatedResponse getAllUsers(Integer page, Integer size){
         log.debug("Fetching all users");
-        return userDao.findAll();
+        Page<User> users = userDao.getByRole(Role.USER, PageRequest.of(page, size, Sort.by("name").ascending()));
+        return UserMapper.getPaginatedResponseFromUser(users, page, size);
     }
 
     private void validateCredentials(UserLoginRequest userLoginRequest, User user) {

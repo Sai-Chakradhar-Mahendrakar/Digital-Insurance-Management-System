@@ -2,7 +2,6 @@ package com.innov8ors.insurance.controller;
 
 import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.SupportTicket;
-import com.innov8ors.insurance.entity.User;
 import com.innov8ors.insurance.entity.UserPrincipal;
 import com.innov8ors.insurance.enums.ClaimStatus;
 import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
@@ -27,8 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.innov8ors.insurance.request.NotificationSendBulkRequest;
-import com.innov8ors.insurance.request.NotificationSendBulkRequest;
-import com.innov8ors.insurance.response.ActiveUsersResponse;
+import com.innov8ors.insurance.response.UserPaginatedResponse;
 import com.innov8ors.insurance.service.NotificationService;
 
 import java.util.List;
@@ -127,9 +125,10 @@ public class AdminController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/activeUsers")
-    public ResponseEntity<ActiveUsersResponse> getActiveUsers() {
-        List<User> users = userService.getAllUsers();
-        ActiveUsersResponse response = new ActiveUsersResponse(users);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<UserPaginatedResponse> getActiveUsers(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                                @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        log.info("Received request for get all users");
+        UserPaginatedResponse users = userService.getAllUsers(page, size);
+        return ResponseEntity.ok(users);
     }
 }
