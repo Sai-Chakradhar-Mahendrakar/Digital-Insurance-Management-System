@@ -88,19 +88,6 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void sendNotificationsBulk(NotificationSendBulkRequest request) {
-        for (Long userId : request.getUserId()) {
-            NotificationRequest notificationRequest = request.getRequest();
-            NotificationSendRequest notificationSendRequest = NotificationSendRequest.builder()
-                    .userId(userId)
-                    .message(notificationRequest.getMessage())
-                    .type(notificationRequest.getType())
-                    .build();
-            sendNotification(notificationSendRequest);
-        }
-    }
-
-    @Override
     public NotificationResponse sendNotification(NotificationSendRequest request) {
         User user = userService.getById(request.getUserId());
         Notification notification = getNotificationFromRequest(request, user);
@@ -141,5 +128,13 @@ public class NotificationServiceImpl implements NotificationService {
                 .request(request.getRequest())
                 .build();
         sendNotificationsBulk(notificationSendBulkRequest);
+    }
+
+    @Override
+    public void sendNotificationsBulk(NotificationSendBulkRequest request) {
+        for (Long userId : request.getUserId()) {
+            NotificationRequest notificationRequest = request.getRequest();
+            sendNotification(NotificationMapper.createNotificationSendRequest(userId, notificationRequest.getMessage(), notificationRequest.getType()));
+        }
     }
 }

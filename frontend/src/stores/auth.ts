@@ -3,7 +3,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { decodeJWT, isTokenExpired, isAdminToken, type JWTPayload } from '@/utils/jwt'
 import type { User, LoginRequest, RegisterRequest, AuthResponse } from '@/types/auth'
+import { useAppStore } from '@/stores/app';
 
+const appStore = useAppStore();
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(localStorage.getItem('token'))

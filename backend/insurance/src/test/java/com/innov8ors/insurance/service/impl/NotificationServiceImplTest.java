@@ -2,6 +2,7 @@ package com.innov8ors.insurance.service.impl;
 
 import com.innov8ors.insurance.entity.Notification;
 import com.innov8ors.insurance.exception.NotFoundException;
+import com.innov8ors.insurance.mapper.NotificationMapper;
 import com.innov8ors.insurance.repository.dao.NotificationDao;
 import com.innov8ors.insurance.response.NotificationResponse;
 import com.innov8ors.insurance.service.NotificationService;

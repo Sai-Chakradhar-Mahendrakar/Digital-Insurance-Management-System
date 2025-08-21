@@ -5,6 +5,7 @@ import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.ClaimStatus;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
+import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.exception.BadRequestException;
 import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.repository.dao.ClaimDao;
@@ -16,6 +17,8 @@ import com.innov8ors.insurance.response.ClaimResponse;
 import com.innov8ors.insurance.service.ClaimService;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.UserPolicyService;
+import com.innov8ors.insurance.service.NotificationService;
+import com.innov8ors.insurance.util.NotificationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.innov8ors.insurance.mapper.NotificationMapper;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -51,13 +55,16 @@ public class ClaimServiceImpl implements ClaimService {
     private final UserPolicyService userPolicyService;
 
     private final PolicyService policyService;
+    private final NotificationService notificationService;
 
     public ClaimServiceImpl(ClaimDao claimDao,
                             UserPolicyService userPolicyService,
-                            PolicyService policyService) {
+                            PolicyService policyService,
+                            NotificationService notificationService) {
         this.claimDao = claimDao;
         this.userPolicyService = userPolicyService;
         this.policyService = policyService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -125,9 +132,15 @@ public class ClaimServiceImpl implements ClaimService {
 
         UserPolicy updatedUserPolicy = updateUserPolicyAfterClaimSubmission(updatedClaim, existingUserPolicy);
 
+        sendNotification(updatedClaim, userId);
+
         updateOtherClaims(userId, claimId, claim.getUserPolicyId(), policy, updatedUserPolicy);
 
         return mapToClaimResponse(updatedClaim);
+    }
+
+    private void sendNotification(Claim claim, Long userId) {
+        NotificationUtil.send(notificationService, userId, "Your claim " + claim.getId() + " status has been updated to " + claim.getStatus(), NotificationType.CLAIM_UPDATE);
     }
 
     private void updateOtherClaims(Long userId, Long claimId, Long userPolicyId, Policy policy, UserPolicy userPolicy) {
@@ -140,6 +153,7 @@ public class ClaimServiceImpl implements ClaimService {
                         claim.setStatus(ClaimStatus.REJECTED);
                         claim.setReviewerComment("Claim amount exceeds policy coverage after this claim.");
                         claimDao.persist(claim);
+                        sendNotification(claim, userId);
                     }
                 });
     }
