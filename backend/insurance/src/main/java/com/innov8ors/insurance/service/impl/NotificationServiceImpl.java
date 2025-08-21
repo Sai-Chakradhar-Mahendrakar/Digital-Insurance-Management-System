@@ -7,11 +7,16 @@ import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.mapper.NotificationMapper;
 import com.innov8ors.insurance.repository.dao.NotificationDao;
+import com.innov8ors.insurance.request.NotificationByPolicyRequest;
+import com.innov8ors.insurance.request.NotificationRequest;
 import com.innov8ors.insurance.request.NotificationSendBulkRequest;
 import com.innov8ors.insurance.request.NotificationSendRequest;
 import com.innov8ors.insurance.response.NotificationPaginatedResponse;
 import com.innov8ors.insurance.response.NotificationResponse;
+import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
+import com.innov8ors.insurance.response.UserPolicyResponse;
 import com.innov8ors.insurance.service.NotificationService;
+import com.innov8ors.insurance.service.UserPolicyService;
 import com.innov8ors.insurance.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,8 +25,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
 import static com.innov8ors.insurance.util.Constant.ErrorMessage.NOTIFICATION_NOT_FOUND_OR_DOES_NOT_BELONG_TO_USER;
 import static com.innov8ors.insurance.util.Constant.NotificationConstants.ID_PLACEHOLDER;
@@ -34,10 +39,12 @@ import static com.innov8ors.insurance.util.Constant.NotificationConstants.USER_P
 public class NotificationServiceImpl implements NotificationService {
     private final NotificationDao notificationDao;
     private final UserService userService;
+    private final UserPolicyService userPolicyService;
 
-    public NotificationServiceImpl(NotificationDao notificationDao, UserService userService) {
+    public NotificationServiceImpl(NotificationDao notificationDao, UserService userService, UserPolicyService userPolicyService) {
         this.notificationDao = notificationDao;
         this.userService = userService;
+        this.userPolicyService = userPolicyService;
     }
 
     @Override
@@ -83,8 +90,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendNotificationsBulk(NotificationSendBulkRequest request) {
         for (Long userId : request.getUserId()) {
-            NotificationSendRequest notificationSendRequest = request.getNotificationSendRequest();
-            notificationSendRequest.setUserId(userId);
+            NotificationRequest notificationRequest = request.getRequest();
+            NotificationSendRequest notificationSendRequest = NotificationSendRequest.builder()
+                    .userId(userId)
+                    .message(notificationRequest.getMessage())
+                    .type(notificationRequest.getType())
+                    .build();
             sendNotification(notificationSendRequest);
         }
     }
@@ -116,5 +127,19 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setReadAt(LocalDateTime.now());
         }
         notificationDao.saveAll(notifications);
+    }
+
+    @Override
+    public void sendNotificationByPolicy(NotificationByPolicyRequest request) {
+        UserPolicyPaginatedResponse usersWithPolicy = userPolicyService.getUsersByPolicyId(request.getPolicyId(), 0, Integer.MAX_VALUE);
+        List<Long> userIds = usersWithPolicy.getUserPolicies()
+                .stream()
+                .map(UserPolicyResponse::getUserId)
+                .toList();
+        NotificationSendBulkRequest notificationSendBulkRequest = NotificationSendBulkRequest.builder()
+                .userId(userIds)
+                .request(request.getRequest())
+                .build();
+        sendNotificationsBulk(notificationSendBulkRequest);
     }
 }
