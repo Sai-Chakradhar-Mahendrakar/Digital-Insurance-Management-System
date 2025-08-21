@@ -5,6 +5,7 @@ import com.innov8ors.insurance.entity.User;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.exception.AlreadyExistsException;
+import com.innov8ors.insurance.exception.BadRequestException;
 import com.innov8ors.insurance.mapper.UserPolicyMapper;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
@@ -21,10 +22,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.PREMIUM_PAID_MUST_EQUAL_TO_PREMIUM_AMOUNT;
 import static com.innov8ors.insurance.util.Constant.ErrorMessage.USER_ALREADY_HAS_POLICY;
 import static com.innov8ors.insurance.util.Constant.UserPolicyConstants.START_DATE_PLACEHOLDER;
 
@@ -68,10 +69,7 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     public UserPolicyResponse purchasePolicy(Long userId, PolicyPurchaseRequest request) {
         Policy policy = policyService.getById(request.getPolicyId());
 
-        if (isExistsByUserIdAndPolicyId(userId, request.getPolicyId())) {
-            log.error("User with ID {} already has policy with ID {}", userId, request.getPolicyId());
-            throw new AlreadyExistsException(USER_ALREADY_HAS_POLICY);
-        }
+        validatePurchaseRequest(userId, request, policy);
 
         UserPolicy userPolicy = getUserPolicy(userId, request, policy);
 
@@ -85,6 +83,17 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         userPolicy.setPolicy(policy);
 
         return UserPolicyMapper.convertToResponse(userPolicy);
+    }
+
+    private void validatePurchaseRequest(Long userId, PolicyPurchaseRequest request, Policy policy) {
+        if (isExistsByUserIdAndPolicyId(userId, request.getPolicyId())) {
+            log.error("User with ID {} already has policy with ID {}", userId, request.getPolicyId());
+            throw new AlreadyExistsException(USER_ALREADY_HAS_POLICY);
+        }
+        if(request.getPremiumPaid().compareTo(policy.getPremiumAmount()) != 0) {
+            log.error("Premium paid {} must be equal to  {}", request.getPremiumPaid(), policy.getPremiumAmount());
+            throw new BadRequestException(PREMIUM_PAID_MUST_EQUAL_TO_PREMIUM_AMOUNT);
+        }
     }
 
     @Override

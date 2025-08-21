@@ -253,6 +253,7 @@ public class TestUtil {
     public static PolicyPurchaseRequest getPolicyPurchaseRequest() {
         PolicyPurchaseRequest request = new PolicyPurchaseRequest();
         request.setPolicyId(TEST_POLICY_ID);
+        request.setPremiumPaid(TEST_POLICY_PREMIUM_PAID);
         return request;
     }
 
