@@ -1,16 +1,22 @@
 package com.innov8ors.insurance.controller;
 
-import com.innov8ors.insurance.request.NotificationSendRequest;
-import com.innov8ors.insurance.response.NotificationResponse;
+import com.innov8ors.insurance.entity.UserPrincipal;
+import com.innov8ors.insurance.enums.NotificationStatus;
+import com.innov8ors.insurance.enums.NotificationType;
+import com.innov8ors.insurance.response.NotificationPaginatedResponse;
 import com.innov8ors.insurance.service.NotificationService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import com.innov8ors.insurance.entity.UserPrincipal;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/notifications")
@@ -22,13 +28,14 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
-    // GET /notifications/{userId}
-    // Fetch all notifications for a user
-    // using @AuthenticationPrincipal to get the user ID from the security context
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/user")
-    public ResponseEntity<List<NotificationResponse>> getAllNotifications(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        List<NotificationResponse> notifications = notificationService.getNotificationsByUserId(userPrincipal.getId());
+    public ResponseEntity<NotificationPaginatedResponse> getAllNotifications(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                                          @RequestParam(required = false) Optional<NotificationStatus> notificationStatus,
+                                                                          @RequestParam(required = false) Optional<NotificationType> notificationType,
+                                                                          @RequestParam(required = false, defaultValue = "0") Integer page,
+                                                                          @RequestParam(required = false, defaultValue = "10") Integer size) {
+        NotificationPaginatedResponse notifications = notificationService.getNotificationsByUserId(userPrincipal.getId(), notificationStatus.orElse(null), notificationType.orElse(null), page, size);
         return ResponseEntity.ok(notifications);
     }
 

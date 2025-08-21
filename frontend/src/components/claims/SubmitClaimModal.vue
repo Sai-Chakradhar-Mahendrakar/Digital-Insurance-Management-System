@@ -223,7 +223,13 @@ const handleSubmit = async () => {
     const newClaim = await claimsStore.submitClaim(claimData)
     emit('submitted', newClaim)
   } catch (error: unknown) {
-    errorMessage.value = error instanceof Error ? error.message : 'Failed to submit claim'
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any
+      errorMessage.value =
+        err.response?.data?.errorMessage ||
+        err.message ||
+        'Failed to submit claim'
+    }
   } finally {
     isLoading.value = false
   }

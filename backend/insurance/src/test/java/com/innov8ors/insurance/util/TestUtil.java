@@ -1,18 +1,30 @@
 package com.innov8ors.insurance.util;
 
 import com.innov8ors.insurance.entity.Claim;
+import com.innov8ors.insurance.entity.Notification;
 import com.innov8ors.insurance.entity.Policy;
+import com.innov8ors.insurance.entity.SupportTicket;
 import com.innov8ors.insurance.entity.User;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.ClaimStatus;
+import com.innov8ors.insurance.enums.NotificationStatus;
+import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.enums.Role;
+import com.innov8ors.insurance.enums.SupportTicketStatus;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.request.ClaimCreateRequest;
 import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
+import com.innov8ors.insurance.request.NotificationByPolicyRequest;
+import com.innov8ors.insurance.request.NotificationRequest;
+import com.innov8ors.insurance.request.NotificationSendBulkRequest;
+import com.innov8ors.insurance.request.NotificationSendRequest;
 import com.innov8ors.insurance.request.PolicyCreateRequest;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
+import com.innov8ors.insurance.request.SupportTicketCreateRequest;
+import com.innov8ors.insurance.request.SupportTicketUpdateRequest;
 import com.innov8ors.insurance.request.UserCreateRequest;
 import com.innov8ors.insurance.request.UserLoginRequest;
+import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -29,13 +41,21 @@ import static com.innov8ors.insurance.util.InsuranceUtil.encodePassword;
 
 public class TestUtil {
     public static final Long TEST_USER_ID = 600900L;
+    public static final Long TEST_ADMIN_ID = 600901L;
     public static final String TEST_USER_NAME = "testUser";
+    public static final String TEST_ADMIN_NAME = "testAdmin";
     public static final String TEST_USER_EMAIL = "testUser@gmail.com";
+    public static final String TEST_ADMIN_EMAIL = "testAdmin@gmail.com";
     public static final String TEST_USER_PASSWORD = "testPassword";
+    public static final String TEST_ADMIN_PASSWORD = "testAdminPassword";
     public static final String TEST_USER_PASSWORD_HASH = encodePassword(TEST_USER_PASSWORD);
+    public static final String TEST_ADMIN_PASSWORD_HASH = encodePassword(TEST_ADMIN_PASSWORD);
     public static final String TEST_USER_PHONE = "1234567890";
+    public static final String TEST_ADMIN_PHONE = "0987654321";
     public static final String TEST_USER_ADDRESS = "123 Test Street, Test City, TC 12345";
+    public static final String TEST_ADMIN_ADDRESS = "456 Admin Avenue, Admin City, AC 67890";
     public static final Role TEST_USER_ROLE = Role.USER;
+    public static final Role TEST_ADMIN_ROLE = Role.ADMIN;
     public static final String TEST_TOKEN = "testToken";
     public static final Long TEST_POLICY_ID = 1L;
     public static final String TEST_POLICY_NAME = "Test Policy";
@@ -55,6 +75,16 @@ public class TestUtil {
     public static final String TEST_CLAIM_REASON = "Test claim reason";
     public static final ClaimStatus TEST_CLAIM_STATUS = ClaimStatus.PENDING;
     public static final String TEST_CLAIM_REVIEWER_COMMENT = "Initial claim submission";
+    public static final Long TEST_NOTIFICATION_ID = 1L;
+    public static final String TEST_NOTIFICATION_MESSAGE = "Test notification message";
+    public static final NotificationType TEST_NOTIFICATION_TYPE = NotificationType.GENERAL;
+    public static final NotificationStatus TEST_NOTIFICATION_STATUS = NotificationStatus.UNREAD;
+    public static final LocalDateTime TEST_CREATED_AT = LocalDateTime.now();
+    public static final String TEST_SUPPORT_TICKET_SUBJECT = "Test Support Subject";
+    public static final String TEST_SUPPORT_TICKET_DESCRIPTION = "This is a test support ticket description.";
+    public static final Long TEST_SUPPORT_TICKET_ID = 420L;
+    public static final SupportTicketStatus TEST_SUPPORT_TICKET_STATUS = SupportTicketStatus.OPEN;
+    public static final String TEST_SUPPORT_TICKET_RESPONSE = "This is a test response to the support ticket.";
 
 
     public static User getUser() {
@@ -66,6 +96,18 @@ public class TestUtil {
                 .phone(TEST_USER_PHONE)
                 .address(TEST_USER_ADDRESS)
                 .role(TEST_USER_ROLE)
+                .build();
+    }
+
+    public static User getAdmin() {
+        return User.builder()
+                .id(TEST_ADMIN_ID)
+                .name(TEST_ADMIN_NAME)
+                .email(TEST_ADMIN_EMAIL)
+                .passwordHash(TEST_ADMIN_PASSWORD_HASH)
+                .phone(TEST_ADMIN_PHONE)
+                .address(TEST_ADMIN_ADDRESS)
+                .role(Role.ADMIN)
                 .build();
     }
 
@@ -295,5 +337,118 @@ public class TestUtil {
 
     public static Page<Claim> getClaimsPage() {
         return new PageImpl<>(List.of(getClaim()));
+    }
+
+    public static Notification getNotification() {
+        return Notification.builder()
+                .id(TEST_NOTIFICATION_ID)
+                .message(TEST_NOTIFICATION_MESSAGE)
+                .type(TEST_NOTIFICATION_TYPE)
+                .status(TEST_NOTIFICATION_STATUS)
+                .createdAt(TEST_CREATED_AT)
+                .readAt(null)
+                .user(getUser())
+                .build();
+    }
+
+    public static NotificationSendRequest getNotificationSendRequest() {
+        return NotificationSendRequest.builder()
+                .userId(TEST_USER_ID)
+                .message(TEST_NOTIFICATION_MESSAGE)
+                .type(TEST_NOTIFICATION_TYPE)
+                .build();
+    }
+
+    public static NotificationRequest getNotificationRequest() {
+        return NotificationRequest.builder()
+                .message(TEST_NOTIFICATION_MESSAGE)
+                .type(TEST_NOTIFICATION_TYPE)
+                .build();
+    }
+
+    public static NotificationSendBulkRequest getNotificationSendBulkRequest() {
+        return NotificationSendBulkRequest.builder()
+                .userId(List.of(TEST_USER_ID))
+                .request(getNotificationRequest())
+                .build();
+    }
+
+    public static List<Notification> getNotifications() {
+        return List.of(getNotification());
+    }
+
+    public static NotificationByPolicyRequest getNotificationByPolicyRequest() {
+        return NotificationByPolicyRequest.builder()
+                .policyId(TEST_POLICY_ID)
+                .request(getNotificationRequest())
+                .build();
+    }
+
+    public static UserPolicyPaginatedResponse getUserPolicyPaginatedResponse() {
+        return UserPolicyPaginatedResponse.builder()
+                .userPolicies(List.of(getUserPolicyResponse()))
+                .page(0)
+                .size(10)
+                .totalElements(1L)
+                .totalPages(1)
+                .build();
+    }
+
+    private static UserPolicyResponse getUserPolicyResponse() {
+        return UserPolicyResponse.builder()
+                .id(TEST_USER_POLICY_ID)
+                .policyId(TEST_POLICY_ID)
+                .policyName(TEST_POLICY_NAME)
+                .policyType(TEST_POLICY_TYPE)
+                .startDate(TEST_POLICY_START_DATE)
+                .endDate(TEST_POLICY_END_DATE)
+                .status(TEST_USER_POLICY_STATUS)
+                .premiumPaid(TEST_POLICY_PREMIUM_PAID)
+                .totalAmountClaimed(BigDecimal.ZERO) // Assuming no claims made yet
+                .userId(TEST_USER_ID)
+                .userName(TEST_USER_NAME)
+                .userEmail(TEST_USER_EMAIL)
+                .userPhone(TEST_USER_PHONE)
+                .userAddress(TEST_USER_ADDRESS)
+                .coverageAmount(TEST_POLICY_COVERAGE_AMOUNT)
+                .build();
+    }
+
+    public static SupportTicket getSupportTicket(SupportTicketStatus status) {
+        return getSupportTicket(TEST_SUPPORT_TICKET_ID, TEST_SUPPORT_TICKET_SUBJECT, TEST_SUPPORT_TICKET_STATUS);
+    }
+
+    public static SupportTicket getSupportTicket(Long id, String subject, SupportTicketStatus status) {
+        SupportTicket ticket = new SupportTicket();
+        ticket.setId(id);
+        ticket.setSubject(subject);
+        ticket.setStatus(status);
+        return ticket;
+    }
+
+    public static SupportTicket createSupportTicket(Long id, Long userId, String subject, SupportTicketStatus status) {
+        SupportTicket ticket = new SupportTicket();
+        ticket.setId(id);
+        ticket.setUserId(userId);
+        ticket.setSubject(subject);
+        ticket.setStatus(status);
+        ticket.setCreatedAt(java.time.LocalDateTime.now());
+        return ticket;
+    }
+
+    public static SupportTicketCreateRequest getSupportTicketCreateRequest() {
+        SupportTicketCreateRequest request = new SupportTicketCreateRequest();
+        request.setPolicyId(TEST_POLICY_ID);
+        request.setClaimId(TEST_CLAIM_ID);
+        request.setSubject(TEST_SUPPORT_TICKET_SUBJECT);
+        request.setDescription(TEST_SUPPORT_TICKET_DESCRIPTION);
+        return request;
+    }
+
+    public static SupportTicketUpdateRequest getSupportTicketUpdateRequest() {
+        return SupportTicketUpdateRequest.builder()
+                .response(TEST_SUPPORT_TICKET_RESPONSE)
+                .status(SupportTicketStatus.RESOLVED)
+                .build();
     }
 }

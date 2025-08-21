@@ -1,20 +1,25 @@
 package com.innov8ors.insurance.service;
 
+import com.innov8ors.insurance.enums.NotificationStatus;
+import com.innov8ors.insurance.enums.NotificationType;
+import com.innov8ors.insurance.request.NotificationByPolicyRequest;
 import com.innov8ors.insurance.request.NotificationSendBulkRequest;
 import com.innov8ors.insurance.request.NotificationSendRequest;
+import com.innov8ors.insurance.response.NotificationPaginatedResponse;
 import com.innov8ors.insurance.response.NotificationResponse;
-
-import java.util.List;
+import jakarta.validation.Valid;
 
 public interface NotificationService {
 
-    List<NotificationResponse> getNotificationsByUserId(Long userId);
+    NotificationPaginatedResponse getNotificationsByUserId(Long userId, NotificationStatus notificationStatus, NotificationType notificationType, Integer page, Integer size);
 
-    List<NotificationResponse> sendNotification(NotificationSendBulkRequest request);
+    void sendNotificationsBulk(NotificationSendBulkRequest request);
 
     NotificationResponse sendNotification(NotificationSendRequest request);
 
     void markNotificationAsRead(Long notificationId, Long userId);
 
     void markAllNotificationsAsRead(Long userId);
+
+    void sendNotificationByPolicy(NotificationByPolicyRequest request);
 }

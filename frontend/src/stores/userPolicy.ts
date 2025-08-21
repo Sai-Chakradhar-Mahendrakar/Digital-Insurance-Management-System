@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useAuthStore } from './auth'
+import { useAppStore } from './app'
 
 export interface PolicyPurchase {
   policyId: number
@@ -36,6 +37,7 @@ export interface UserPoliciesApiResponse {
 
 export const useUserPolicyStore = defineStore('userPolicy', () => {
   const authStore = useAuthStore()
+  const appStore = useAppStore()
 
   // State
   const userPolicies = ref<UserPolicy[]>([])
@@ -150,16 +152,11 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8080/user/policy/purchase', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-        body: JSON.stringify(purchaseData),
-      })
+      // Use appStore for consistent API calls
+      const response = await appStore.httpClient.post(
+        appStore.apiEndpoints.policyPurchase,
+        purchaseData
+      )
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -183,29 +180,22 @@ export const useUserPolicyStore = defineStore('userPolicy', () => {
     }
   }
 
+
   const fetchUserPolicies = async (size = 1000, page = 0) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/user/policies?size=${size}&page=${page}`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${authStore.token}`,
-            Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-          },
-          credentials: 'include',
-        },
-      )
+      // Use appStore instead of hardcoded URLs
+      const url = `${appStore.apiEndpoints.userPolicies}?size=${size}&page=${page}`
+      const response = await appStore.httpClient.get(url)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch user policies: ${response.status}`)
       }
 
       const data: UserPoliciesApiResponse = await response.json()
-
+      
       // Handle the API structure
       userPolicies.value = data.userPolicies || []
       totalElements.value = data.totalElements || 0

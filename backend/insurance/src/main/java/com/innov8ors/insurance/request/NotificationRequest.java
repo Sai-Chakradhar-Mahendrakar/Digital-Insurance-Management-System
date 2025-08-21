@@ -1,23 +1,21 @@
 package com.innov8ors.insurance.request;
 
+import com.innov8ors.insurance.enums.NotificationType;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SupportTicketCreateRequest {
-    private Long policyId;
-    private Long claimId;
+@Builder
+public class NotificationRequest {
+    @NotEmpty
+    private String message;
+
     @NotNull
-    @Size(min = 10)
-    @Size(max=80)
-    private String subject;
-    @NotNull
-    private String description;
+    private NotificationType type = NotificationType.GENERAL;
 }

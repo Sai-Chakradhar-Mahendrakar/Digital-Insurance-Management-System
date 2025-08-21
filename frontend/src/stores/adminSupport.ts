@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
+import { useAppStore } from './app'
 
 export interface AdminSupportTicket {
   id: number
@@ -23,6 +24,7 @@ export interface UpdateTicketRequest {
 
 export const useAdminSupportStore = defineStore('adminSupport', () => {
   const authStore = useAuthStore()
+  const appStore = useAppStore()
 
   const tickets = ref<AdminSupportTicket[]>([])
   const isLoading = ref(false)
@@ -33,14 +35,7 @@ export const useAdminSupportStore = defineStore('adminSupport', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8080/admin/support/fetchAll', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-      })
+      const response = await appStore.httpClient.get(appStore.apiEndpoints.fetchAllSupportTickets)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch tickets: ${response.status}`)
@@ -63,16 +58,10 @@ export const useAdminSupportStore = defineStore('adminSupport', () => {
     error.value = null
 
     try {
-      const response = await fetch(`http://localhost:8080/admin/support/${ticketId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-        body: JSON.stringify(updateData),
-      })
+      const response = await appStore.httpClient.patch(
+        appStore.apiEndpoints.updateSupportTicket(ticketId),
+        updateData
+      )
 
       if (!response.ok) {
         throw new Error(`Failed to update ticket: ${response.status}`)

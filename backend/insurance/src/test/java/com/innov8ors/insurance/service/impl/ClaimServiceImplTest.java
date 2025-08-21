@@ -8,10 +8,10 @@ import com.innov8ors.insurance.exception.BadRequestException;
 import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.repository.dao.ClaimDao;
 import com.innov8ors.insurance.request.ClaimCreateRequest;
-import com.innov8ors.insurance.request.UserPolicyUpdateRequest;
 import com.innov8ors.insurance.response.ClaimPaginatedResponse;
 import com.innov8ors.insurance.response.ClaimResponse;
 import com.innov8ors.insurance.service.ClaimService;
+import com.innov8ors.insurance.service.NotificationService;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.UserPolicyService;
 import org.junit.jupiter.api.AfterEach;
@@ -52,7 +52,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -68,6 +67,9 @@ class ClaimServiceImplTest {
     @Mock
     private PolicyService policyService;
 
+    @Mock
+    private NotificationService notificationService;
+
     private ClaimService claimService;
 
     private AutoCloseable closeable;
@@ -75,7 +77,7 @@ class ClaimServiceImplTest {
     @BeforeEach
     void setUp() {
         closeable = openMocks(this);
-        claimService = new ClaimServiceImpl(claimDao, userPolicyService, policyService);
+        claimService = new ClaimServiceImpl(claimDao, userPolicyService, policyService, notificationService);
     }
 
     @AfterEach

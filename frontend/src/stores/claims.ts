@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
+import { useAppStore } from './app'
 
 export interface ClaimCreate {
   policyId: number
@@ -33,6 +34,7 @@ interface ClaimsResponse {
 
 export const useClaimsStore = defineStore('claims', () => {
   const authStore = useAuthStore()
+  const appStore = useAppStore()
 
   const claims = ref<Claim[]>([])
   const isLoading = ref(false)
@@ -43,16 +45,10 @@ export const useClaimsStore = defineStore('claims', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8080/claim', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-        body: JSON.stringify(claimData),
-      })
+      const response = await appStore.httpClient.post(
+        appStore.apiEndpoints.submitClaim,
+        claimData
+      )
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -76,14 +72,7 @@ export const useClaimsStore = defineStore('claims', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8080/user/claims', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-      })
+      const response = await appStore.httpClient.get(appStore.apiEndpoints.userClaims)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch claims: ${response.status}`)
@@ -104,14 +93,9 @@ export const useClaimsStore = defineStore('claims', () => {
     error.value = null
 
     try {
-      const response = await fetch(`http://localhost:8080/claim/${claimId}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-      })
+      const response = await appStore.httpClient.get(
+        `${appStore.config.apiBaseUrl}/claim/${claimId}`
+      )
 
       if (!response.ok) {
         throw new Error(`Failed to fetch claim: ${response.status}`)
