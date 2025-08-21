@@ -108,7 +108,7 @@ public class NotificationServiceImplTest {
                 .when(notificationDao)
                 .persist(any());
 
-        NotificationResponse response = notificationService.sendNotification(getNotificationSendRequest());
+        NotificationResponse response = notificationService.sendNotification(TEST_USER_ID, TEST_NOTIFICATION_MESSAGE, TEST_NOTIFICATION_TYPE);
 
         assertEquals(TEST_USER_ID, response.getUserId());
         assertEquals(TEST_NOTIFICATION_MESSAGE, response.getMessage());
@@ -126,7 +126,7 @@ public class NotificationServiceImplTest {
                 .getById(TEST_USER_ID);
 
         try {
-            notificationService.sendNotification(getNotificationSendRequest());
+            notificationService.sendNotification(TEST_USER_ID, TEST_NOTIFICATION_MESSAGE, TEST_NOTIFICATION_TYPE);
             fail("Expected NotFoundException was not thrown");
         } catch (Exception e) {
             assertInstanceOf(NotFoundException.class, e);

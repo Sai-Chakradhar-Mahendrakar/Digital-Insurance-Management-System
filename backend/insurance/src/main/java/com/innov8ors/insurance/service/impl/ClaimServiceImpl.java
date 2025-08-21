@@ -5,6 +5,7 @@ import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.ClaimStatus;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
+import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.exception.BadRequestException;
 import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.repository.dao.ClaimDao;
@@ -16,6 +17,7 @@ import com.innov8ors.insurance.response.ClaimResponse;
 import com.innov8ors.insurance.service.ClaimService;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.UserPolicyService;
+import com.innov8ors.insurance.service.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,13 +53,15 @@ public class ClaimServiceImpl implements ClaimService {
     private final UserPolicyService userPolicyService;
 
     private final PolicyService policyService;
+    private final NotificationService notificationService;
 
     public ClaimServiceImpl(ClaimDao claimDao,
                             UserPolicyService userPolicyService,
-                            PolicyService policyService) {
+                            PolicyService policyService, NotificationService notificationService) {
         this.claimDao = claimDao;
         this.userPolicyService = userPolicyService;
         this.policyService = policyService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -106,6 +110,7 @@ public class ClaimServiceImpl implements ClaimService {
         return getClaimPaginatedResponse(page, size, claims);
     }
 
+
     @Override
     public ClaimResponse updateClaimStatus(Long userId, Long claimId, ClaimStatusUpdateRequest claimStatusUpdateRequest) {
         log.info("Updating claim status for claim ID: {} to status: {}", claimId, claimStatusUpdateRequest.getStatus());
@@ -124,7 +129,7 @@ public class ClaimServiceImpl implements ClaimService {
         log.info("Claim status updated successfully for claim ID: {}", claimId);
 
         UserPolicy updatedUserPolicy = updateUserPolicyAfterClaimSubmission(updatedClaim, existingUserPolicy);
-
+        notificationService.sendNotification(userId, "Your claim status has been updated to " + claim.getStatus(), NotificationType.CLAIM_UPDATE);
         updateOtherClaims(userId, claimId, claim.getUserPolicyId(), policy, updatedUserPolicy);
 
         return mapToClaimResponse(updatedClaim);
@@ -140,6 +145,7 @@ public class ClaimServiceImpl implements ClaimService {
                         claim.setStatus(ClaimStatus.REJECTED);
                         claim.setReviewerComment("Claim amount exceeds policy coverage after this claim.");
                         claimDao.persist(claim);
+                        notificationService.sendNotification(userId, "Your claim status has been updated to " + claim.getStatus(), NotificationType.CLAIM_UPDATE);
                     }
                 });
     }

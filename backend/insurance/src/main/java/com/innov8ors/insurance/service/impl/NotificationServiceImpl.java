@@ -91,18 +91,18 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendNotificationsBulk(NotificationSendBulkRequest request) {
         for (Long userId : request.getUserId()) {
             NotificationRequest notificationRequest = request.getRequest();
-            NotificationSendRequest notificationSendRequest = NotificationSendRequest.builder()
-                    .userId(userId)
-                    .message(notificationRequest.getMessage())
-                    .type(notificationRequest.getType())
-                    .build();
-            sendNotification(notificationSendRequest);
+            sendNotification(userId, notificationRequest.getMessage(), notificationRequest.getType());
         }
     }
 
     @Override
-    public NotificationResponse sendNotification(NotificationSendRequest request) {
-        User user = userService.getById(request.getUserId());
+    public NotificationResponse sendNotification(Long userId, String message, NotificationType type) {
+        User user = userService.getById(userId);
+        NotificationSendRequest request = NotificationSendRequest.builder()
+                .userId(userId)
+                .message(message)
+                .type(type)
+                .build();
         Notification notification = getNotificationFromRequest(request, user);
         Notification saved = notificationDao.persist(notification);
         return NotificationMapper.toNotificationResponse(saved);
