@@ -3,7 +3,7 @@ CREATE TABLE public.support_ticket (
     user_id BIGINT NOT NULL,
     policy_id BIGINT,
     claim_id BIGINT,
-    subject VARCHAR(255) NOT NULL,
+    subject VARCHAR(80) NOT NULL,
     description TEXT NOT NULL,
     status VARCHAR(8) NOT NULL CHECK (status IN ('OPEN', 'RESOLVED')),
     response TEXT,
