@@ -2,10 +2,10 @@
 <template>
   <div class="min-h-screen bg-slate-50">
     <AdminNavbar />
-    
+
     <div class="flex">
       <AdminSidebar />
-      
+
       <!-- Main Content -->
       <main class="flex-1 p-8">
         <div class="max-w-7xl mx-auto">
@@ -15,8 +15,8 @@
               <h1 class="text-3xl font-bold text-slate-900 font-poppins mb-2">Manage Policies</h1>
               <p class="text-slate-600 font-inter">Create, edit, and manage insurance policies</p>
             </div>
-            <AppButton 
-              variant="primary" 
+            <AppButton
+              variant="primary"
               @click="showAddPolicyModal = true"
               class="flex items-center space-x-2"
             >
@@ -26,22 +26,22 @@
           </div>
 
           <!-- Error Display -->
-          <InlineError 
-            :error="errorMessage" 
+          <InlineError
+            :error="errorMessage"
             title="Operation Failed"
             :dismissible="true"
             @dismiss="clearError"
           />
 
           <!-- Success Message -->
-          <div v-if="successMessage" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div
+            v-if="successMessage"
+            class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg"
+          >
             <div class="flex items-center">
               <CheckCircle class="w-5 h-5 text-green-600 mr-3" />
               <p class="text-green-800 text-sm font-medium">{{ successMessage }}</p>
-              <button 
-                @click="clearSuccess"
-                class="ml-auto text-green-600 hover:text-green-800"
-              >
+              <button @click="clearSuccess" class="ml-auto text-green-600 hover:text-green-800">
                 <X class="w-4 h-4" />
               </button>
             </div>
@@ -99,21 +99,25 @@
           <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-6 border-b border-slate-200">
               <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-900">All Policies ({{ filteredPolicies.length }})</h3>
+                <h3 class="text-lg font-semibold text-slate-900">
+                  All Policies ({{ filteredPolicies.length }})
+                </h3>
                 <div class="flex items-center space-x-4">
                   <!-- Search Bar -->
                   <div class="relative">
-                    <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search
+                      class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400"
+                    />
                     <input
                       v-model="searchQuery"
                       type="text"
                       placeholder="Search policies..."
                       class="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200"
-                    >
+                    />
                   </div>
-                  
+
                   <!-- Filter by Type -->
-                  <select 
+                  <select
                     v-model="selectedType"
                     class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
@@ -126,8 +130,8 @@
                   </select>
 
                   <!-- Refresh Button -->
-                  <AppButton 
-                    variant="ghost" 
+                  <AppButton
+                    variant="ghost"
                     @click="refreshPolicies"
                     :disabled="isLoading"
                     class="flex items-center space-x-2"
@@ -142,7 +146,9 @@
             <!-- Loading State -->
             <div v-if="isLoading" class="flex items-center justify-center py-12">
               <div class="flex flex-col items-center">
-                <div class="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <div
+                  class="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"
+                ></div>
                 <p class="text-slate-600">Loading policies...</p>
               </div>
             </div>
@@ -154,32 +160,22 @@
                 {{ searchQuery || selectedType ? 'No matching policies' : 'No policies found' }}
               </h3>
               <p class="text-slate-600 mb-4">
-                {{ searchQuery || selectedType 
-                  ? 'Try adjusting your search criteria' 
-                  : 'Get started by creating your first insurance policy' 
+                {{
+                  searchQuery || selectedType
+                    ? 'Try adjusting your search criteria'
+                    : 'Get started by creating your first insurance policy'
                 }}
               </p>
               <div class="flex justify-center space-x-3">
-                <AppButton 
+                <AppButton
                   v-if="!searchQuery && !selectedType"
-                  variant="primary" 
+                  variant="primary"
                   @click="showAddPolicyModal = true"
                 >
                   Create First Policy
                 </AppButton>
-                <AppButton 
-                  v-else
-                  variant="ghost" 
-                  @click="clearFilters"
-                >
-                  Clear Filters
-                </AppButton>
-                <AppButton 
-                  variant="secondary" 
-                  @click="refreshPolicies"
-                >
-                  Refresh Data
-                </AppButton>
+                <AppButton v-else variant="ghost" @click="clearFilters"> Clear Filters </AppButton>
+                <AppButton variant="secondary" @click="refreshPolicies"> Refresh Data </AppButton>
               </div>
             </div>
 
@@ -188,71 +184,108 @@
               <table class="w-full">
                 <thead class="bg-slate-50">
                   <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      <button @click="sortBy('name')" class="flex items-center hover:text-slate-700">
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                    >
+                      <button
+                        @click="sortBy('name')"
+                        class="flex items-center hover:text-slate-700"
+                      >
                         Policy
                         <ArrowUpDown class="w-3 h-3 ml-1" />
                       </button>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      <button @click="sortBy('type')" class="flex items-center hover:text-slate-700">
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                    >
+                      <button
+                        @click="sortBy('type')"
+                        class="flex items-center hover:text-slate-700"
+                      >
                         Type
                         <ArrowUpDown class="w-3 h-3 ml-1" />
                       </button>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      <button @click="sortBy('premiumAmount')" class="flex items-center hover:text-slate-700">
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                    >
+                      <button
+                        @click="sortBy('premiumAmount')"
+                        class="flex items-center hover:text-slate-700"
+                      >
                         Premium (₹)
                         <ArrowUpDown class="w-3 h-3 ml-1" />
                       </button>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      <button @click="sortBy('coverageAmount')" class="flex items-center hover:text-slate-700">
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                    >
+                      <button
+                        @click="sortBy('coverageAmount')"
+                        class="flex items-center hover:text-slate-700"
+                      >
                         Coverage (₹)
                         <ArrowUpDown class="w-3 h-3 ml-1" />
                       </button>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                    >
                       Duration
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                    >
                       Created
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th
+                      class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                    >
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-slate-200">
-                  <tr 
-                    v-for="policy in paginatedPolicies" 
-                    :key="policy.id" 
+                  <tr
+                    v-for="policy in paginatedPolicies"
+                    :key="policy.id"
                     class="hover:bg-slate-50 transition-colors duration-150"
                   >
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex items-center">
                         <div class="flex-shrink-0">
-                          <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <div
+                            class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"
+                          >
                             <Shield class="w-4 h-4 text-blue-600" />
                           </div>
                         </div>
                         <div class="ml-4">
                           <div class="text-sm font-medium text-slate-900">{{ policy.name }}</div>
-                          <div class="text-sm text-slate-500 max-w-xs truncate">{{ policy.description }}</div>
+                          <div class="text-sm text-slate-500 max-w-xs truncate">
+                            {{ policy.description }}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <span :class="getTypeColor(policy.type)" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      <span
+                        :class="getTypeColor(policy.type)"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      >
                         {{ policy.type }}
                       </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm font-medium text-slate-900">{{ formatINR(policy.premiumAmount) }}</div>
+                      <div class="text-sm font-medium text-slate-900">
+                        {{ formatINR(policy.premiumAmount) }}
+                      </div>
                       <div class="text-sm text-slate-500">Annual</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm font-medium text-slate-900">{{ formatINR(policy.coverageAmount) }}</div>
+                      <div class="text-sm font-medium text-slate-900">
+                        {{ formatINR(policy.coverageAmount) }}
+                      </div>
                       <div class="text-sm text-slate-500">Maximum</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
@@ -288,7 +321,8 @@
             <div v-if="totalPages > 1" class="px-6 py-3 border-t border-slate-200 bg-slate-50">
               <div class="flex items-center justify-between">
                 <div class="text-sm text-slate-700">
-                  Showing {{ startIndex + 1 }} to {{ endIndex }} of {{ filteredPolicies.length }} policies
+                  Showing {{ startIndex + 1 }} to {{ endIndex }} of
+                  {{ filteredPolicies.length }} policies
                 </div>
                 <div class="flex items-center space-x-2">
                   <button
@@ -326,9 +360,9 @@
 
     <!-- View Policy Modal -->
     <ViewPolicyModal
-      v-if="showViewModal"
+      v-if="showViewModal && selectedPolicy"
       :policy="selectedPolicy"
-      @close="closeViewModal"
+      @close="showViewModal = false"
       @edit="editFromView"
     />
 
@@ -348,20 +382,20 @@ import ViewPolicyModal from '@/components/admin/ViewPolicyModal.vue'
 import InlineError from '@/components/common/InlineError.vue'
 import ToastContainer from '@/components/common/ToastContainer.vue'
 import AppButton from '@/components/common/AppButton.vue'
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  CheckCircle, 
-  X, 
-  Shield, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  CheckCircle,
+  X,
+  Shield,
   Eye,
   ArrowUpDown,
   RefreshCw,
   TrendingUp,
   IndianRupee,
-  Target
+  Target,
 } from 'lucide-vue-next'
 import type { Policy } from '@/types/policy'
 
@@ -401,16 +435,17 @@ const filteredPolicies = computed(() => {
   // Search filter
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(policy =>
-      policy.name.toLowerCase().includes(query) ||
-      policy.type.toLowerCase().includes(query) ||
-      policy.description.toLowerCase().includes(query)
+    filtered = filtered.filter(
+      (policy) =>
+        policy.name.toLowerCase().includes(query) ||
+        policy.type.toLowerCase().includes(query) ||
+        policy.description.toLowerCase().includes(query),
     )
   }
 
   // Type filter
   if (selectedType.value) {
-    filtered = filtered.filter(policy => policy.type === selectedType.value)
+    filtered = filtered.filter((policy) => policy.type.toLowerCase() === selectedType.value.toLowerCase())
   }
 
   // Sorting
@@ -418,19 +453,15 @@ const filteredPolicies = computed(() => {
     filtered.sort((a, b) => {
       const aVal = a[sortField.value as keyof Policy]
       const bVal = b[sortField.value as keyof Policy]
-      
+
       if (typeof aVal === 'string' && typeof bVal === 'string') {
-        return sortDirection.value === 'asc' 
-          ? aVal.localeCompare(bVal)
-          : bVal.localeCompare(aVal)
+        return sortDirection.value === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
       }
-      
+
       if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortDirection.value === 'asc' 
-          ? aVal - bVal 
-          : bVal - aVal
+        return sortDirection.value === 'asc' ? aVal - bVal : bVal - aVal
       }
-      
+
       return 0
     })
   }
@@ -438,12 +469,19 @@ const filteredPolicies = computed(() => {
   return filtered
 })
 
+const viewPolicy = (policy: Policy) => {
+  selectedPolicy.value = policy
+  showViewModal.value = true
+}
+
 const totalPages = computed(() => Math.ceil(filteredPolicies.value.length / itemsPerPage))
 const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage)
-const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage, filteredPolicies.value.length))
+const endIndex = computed(() =>
+  Math.min(startIndex.value + itemsPerPage, filteredPolicies.value.length),
+)
 
-const paginatedPolicies = computed(() => 
-  filteredPolicies.value.slice(startIndex.value, endIndex.value)
+const paginatedPolicies = computed(() =>
+  filteredPolicies.value.slice(startIndex.value, endIndex.value),
 )
 
 // Methods
@@ -460,7 +498,7 @@ const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 
@@ -470,7 +508,7 @@ const getTypeColor = (type: string): string => {
     Life: 'bg-blue-100 text-blue-800',
     Auto: 'bg-yellow-100 text-yellow-800',
     Home: 'bg-purple-100 text-purple-800',
-    Travel: 'bg-pink-100 text-pink-800'
+    Travel: 'bg-pink-100 text-pink-800',
   }
   return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800'
 }
@@ -506,11 +544,6 @@ const refreshPolicies = async () => {
   }
 }
 
-const viewPolicy = (policy: Policy) => {
-  selectedPolicy.value = policy
-  showViewModal.value = true
-}
-
 const editPolicy = (policy: Policy) => {
   selectedPolicy.value = policy
   showAddPolicyModal.value = true
@@ -528,16 +561,10 @@ const handleSavePolicy = async (policyData: any) => {
   try {
     if (selectedPolicy.value) {
       await adminPolicyStore.updatePolicy(selectedPolicy.value.id, policyData)
-      toast.success(
-        'Policy Updated',
-        `"${policyData.name}" has been successfully updated.`
-      )
+      toast.success('Policy Updated', `"${policyData.name}" has been successfully updated.`)
     } else {
       await adminPolicyStore.createPolicy(policyData)
-      toast.success(
-        'Policy Created',
-        `"${policyData.name}" has been successfully created.`
-      )
+      toast.success('Policy Created', `"${policyData.name}" has been successfully created.`)
     }
     closeModal()
   } catch (error: unknown) {
@@ -569,9 +596,14 @@ onMounted(async () => {
   try {
     await adminPolicyStore.fetchAdminPolicies(1000) // Fetch all policies with size=1000
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to load policies'
-    errorMessage.value = message
-    toast.error('Loading Failed', message)
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any
+      errorMessage.value =
+        err.response?.data?.errorMessage ||
+        err.message ||
+        'Failed to load policies'
+    }
+    toast.error('Loading Failed', errorMessage.value)
   }
 })
 </script>

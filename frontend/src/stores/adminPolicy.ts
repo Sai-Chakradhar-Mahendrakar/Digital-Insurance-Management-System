@@ -2,7 +2,9 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
+import { useAppStore } from './app'
 import type { Policy } from '@/types/policy'
+import type { PolicyUser, PolicyUsersResponse } from '@/types/admin'
 
 export interface CreatePolicyRequest {
   name: string
@@ -16,6 +18,7 @@ export interface CreatePolicyRequest {
 
 export const useAdminPolicyStore = defineStore('adminPolicy', () => {
   const authStore = useAuthStore()
+  const appStore = useAppStore()
   const policies = ref<Policy[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
@@ -25,18 +28,12 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8080/admin/policies', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-        body: JSON.stringify(policyData),
-      })
-      console.log(policyData);
-      console.log(String(response.headers));
+      const response = await appStore.httpClient.post(
+        appStore.apiEndpoints.adminPolicies,
+        policyData
+      )
+      // console.log(policyData)
+      // console.log(String(response.headers))
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -63,12 +60,8 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
     error.value = null
 
     try {
-      const response = await fetch(`http://localhost:8080/policies?size=${size}`, {
-        method: 'GET',
-        headers: {
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-      })
+      const url = `${appStore.apiEndpoints.policies}?size=${size}`
+      const response = await appStore.httpClient.get(url)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch policies: ${response.status} ${response.statusText}`)
@@ -102,16 +95,10 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
     error.value = null
 
     try {
-      const response = await fetch(`http://localhost:8080/admin/policies/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
-        },
-        credentials: 'include',
-        body: JSON.stringify(policyData),
-      })
+      const response = await appStore.httpClient.put(
+        `${appStore.apiEndpoints.adminPolicies}/${id}`,
+        policyData
+      )
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -133,6 +120,29 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
     }
   }
 
+  const fetchPolicyUsers = async (policyId: number) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await appStore.httpClient.get(
+        appStore.apiEndpoints.adminPolicyUsers(policyId)
+      )
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch policy users: ${response.status} ${response.statusText}`)
+      }
+
+      const data: PolicyUsersResponse = await response.json()
+      return data.content || []
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to load policy users'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     policies,
     isLoading,
@@ -140,5 +150,6 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
     createPolicy,
     fetchAdminPolicies,
     updatePolicy,
+    fetchPolicyUsers,
   }
 })

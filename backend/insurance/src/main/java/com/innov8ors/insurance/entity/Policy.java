@@ -6,11 +6,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,12 +36,14 @@ public class Policy {
     private String type;
 
     @Column(name = "description")
+    @NotEmpty
+    @Size(max = 1000, message = "Description cannot exceed 1000 characters")
     private String description;
 
     @Column(name = "premium_amount", nullable = false)
     private BigDecimal premiumAmount;
 
-    @Column(name = "coverage_amount", nullable = false)
+    @Column(name = "coverage_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal coverageAmount;
 
     @Column(name = "duration_months", nullable = false)

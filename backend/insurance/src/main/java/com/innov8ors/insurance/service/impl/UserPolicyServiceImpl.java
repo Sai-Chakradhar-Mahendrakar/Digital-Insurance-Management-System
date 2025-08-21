@@ -4,12 +4,14 @@ import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.User;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
+import com.innov8ors.insurance.exception.BadRequestException;
+import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.exception.AlreadyExistsException;
 import com.innov8ors.insurance.mapper.UserPolicyMapper;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
-import com.innov8ors.insurance.repository.dao.UserDao;
-import com.innov8ors.insurance.repository.dao.PolicyDao;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
+import com.innov8ors.insurance.request.UserPolicyUpdateRequest;
+import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.UserPolicyService;
@@ -22,12 +24,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-import static com.innov8ors.insurance.util.Constant.ErrorMessage.USER_ALREADY_HAS_POLICY;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.PREMIUM_PAID_MUST_EQUAL_TO_PREMIUM_AMOUNT;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.*;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.USER_POLICY_NOT_FOUND;
 import static com.innov8ors.insurance.util.Constant.UserPolicyConstants.START_DATE_PLACEHOLDER;
 
 @Service
@@ -48,34 +52,31 @@ public class UserPolicyServiceImpl implements UserPolicyService {
 
     @Transactional
     @Override
-    public UserPolicy purchasePolicy(String userEmail, PolicyPurchaseRequest request) {
+    public UserPolicyResponse purchasePolicy(String userEmail, PolicyPurchaseRequest request) {
         log.debug("Received request to purchase policy for user: {}", userEmail);
         User user = userService.getByEmail(userEmail);
         return purchasePolicy(user.getId(), request);
     }
 
     @Override
-    public Page<UserPolicyResponse> getUserPolicies(String userEmail, int page, int size) {
+    public UserPolicyPaginatedResponse getUserPolicies(String userEmail, Integer page, Integer size) {
         log.debug("Fetching policies for user: {}", userEmail);
         User user = userService.getByEmail(userEmail);
 
         Page<UserPolicy> userPolicies = userPolicyDao.findByUserIdWithPolicy(user.getId(), PageRequest.of(page, size, Sort.by(START_DATE_PLACEHOLDER).descending()));
 
 
-        return userPolicies.map(UserPolicyMapper::convertToResponse);
+        return UserPolicyMapper.getPolicyPaginatedResponse(userPolicies, page, size);
     }
 
     @Transactional
     @Override
-    public UserPolicy purchasePolicy(Long userId, PolicyPurchaseRequest request) {
+    public UserPolicyResponse purchasePolicy(Long userId, PolicyPurchaseRequest request) {
         Policy policy = policyService.getById(request.getPolicyId());
 
-        if (isExistsByUserIdAndPolicyId(userId, request.getPolicyId())) {
-            log.error("User with ID {} already has policy with ID {}", userId, request.getPolicyId());
-            throw new AlreadyExistsException(USER_ALREADY_HAS_POLICY);
-        }
+        validatePurchaseRequest(userId, request, policy);
 
-        UserPolicy userPolicy = getUserPolicy(userId, request, policy);
+        UserPolicy userPolicy = checkAndGetExistingUserPolicy(userId, request, policy);
 
         log.info("Creating new user policy for user ID: {}, policy ID: {}", userId, request.getPolicyId());
         userPolicy = userPolicyDao.save(userPolicy);
@@ -86,7 +87,18 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         userPolicy.setUser(user);
         userPolicy.setPolicy(policy);
 
-        return userPolicy;
+        return UserPolicyMapper.convertToResponse(userPolicy);
+    }
+
+    private void validatePurchaseRequest(Long userId, PolicyPurchaseRequest request, Policy policy) {
+        if (isExistsByUserIdAndPolicyId(userId, request.getPolicyId())) {
+            log.error("User with ID {} already has policy with ID {}", userId, request.getPolicyId());
+            throw new AlreadyExistsException(USER_ALREADY_HAS_POLICY);
+        }
+        if(request.getPremiumPaid().compareTo(policy.getPremiumAmount()) != 0) {
+            log.error("Premium paid {} must be equal to  {}", request.getPremiumPaid(), policy.getPremiumAmount());
+            throw new BadRequestException(PREMIUM_PAID_MUST_EQUAL_TO_PREMIUM_AMOUNT);
+        }
     }
 
     @Override
@@ -94,7 +106,7 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         return null;
     }
 
-    private UserPolicy getUserPolicy(Long userId, PolicyPurchaseRequest request, Policy policy) {
+    private UserPolicy checkAndGetExistingUserPolicy(Long userId, PolicyPurchaseRequest request, Policy policy) {
         return UserPolicy.builder()
                 .userId(userId)
                 .policyId(request.getPolicyId())
@@ -133,60 +145,110 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     }
 
     @Override
-    public Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size) {
+    public UserPolicyPaginatedResponse getUsersByPolicyId(Long policyId, Integer page, Integer size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<UserPolicy> userPolicies = userPolicyDao.findByPolicyIdWithUser(policyId, pageRequest);
 
-        return userPolicies.map(userPolicy -> UserPolicyResponse.builder()
-                .id(userPolicy.getId())
-                .policyId(userPolicy.getPolicyId())
-                .policyName(userPolicy.getPolicy().getName())
-                .policyType(userPolicy.getPolicy().getType())
-                .userId(userPolicy.getUser().getId())
-                .userName(userPolicy.getUser().getName())
-                .userEmail(userPolicy.getUser().getEmail())
-                .userPhone(userPolicy.getUser().getPhone())
-                .userAddress(userPolicy.getUser().getAddress())
-                .startDate(userPolicy.getStartDate())
-                .endDate(userPolicy.getEndDate())
-                .status(userPolicy.getStatus())
-                .premiumPaid(userPolicy.getPremiumPaid())
-                .build());
+        return UserPolicyMapper.getPolicyPaginatedResponse(userPolicies, page, size);
     }
 
     @Override
-    public UserPolicy updateUserPolicy(Long userId, Long policyId, BigDecimal claimAmount) {
+    public UserPolicy updateUserPolicy(Long userId, Long policyId, UserPolicyUpdateRequest userPolicyUpdateRequest) {
         log.debug("Updating user policy for user ID: {}, policy ID: {}", userId, policyId);
         UserPolicy userPolicy = getByUserIdAndPolicyId(userId, policyId);
 
-        Policy policy = userPolicy.getPolicy();
-        if (policy == null) {
-            log.error("Policy not found for user policy ID: {}", userPolicy.getId());
-            throw new RuntimeException("Policy not found for user policy ID: " + userPolicy.getId());
+        if (userPolicyUpdateRequest.getStartDate() != null) {
+            userPolicy.setStartDate(userPolicyUpdateRequest.getStartDate());
+        }
+        if (userPolicyUpdateRequest.getEndDate() != null) {
+            userPolicy.setEndDate(userPolicyUpdateRequest.getEndDate());
+        }
+        if (userPolicyUpdateRequest.getStatus() != null) {
+            userPolicy.setStatus(userPolicyUpdateRequest.getStatus());
+        }
+        if (userPolicyUpdateRequest.getPremiumPaid() != null) {
+            userPolicy.setPremiumPaid(userPolicyUpdateRequest.getPremiumPaid());
+        }
+        if (userPolicyUpdateRequest.getTotalAmountClaimed() != null) {
+            userPolicy.setTotalAmountClaimed(userPolicyUpdateRequest.getTotalAmountClaimed());
+        }
+        log.info("Saving updated user policy for user ID: {}, policy ID: {}", userId, policyId);
+
+        return userPolicyDao.persist(userPolicy);
+    }
+
+    @Override
+    public UserPolicy getById(Long userPolicyId) {
+        return userPolicyDao.findById(userPolicyId).orElseThrow(() -> {
+            log.error("User Policy not found for ID: {}", userPolicyId);
+            return new NotFoundException(USER_POLICY_NOT_FOUND);
+        });
+    }
+
+    @Transactional
+    @Override
+    public UserPolicyResponse renewPolicy(Long userId, Long policyId) {
+        log.debug("Received request to renew policy ID: {} for user: {}", policyId, userId);
+        UserPolicy existingUserPolicy = checkAndGetExistingUserPolicy(userId, policyId);
+        Policy policy = policyService.getById(policyId);
+
+        validatePolicyForRenewal(existingUserPolicy);
+        UserPolicy renewedUserPolicy = updateUserPolicyForRenewal(existingUserPolicy, policy);
+
+        UserPolicy savedPolicy = userPolicyDao.persist(renewedUserPolicy);
+        log.info("Policy ID: {} renewed successfully for user ID: {}", policyId, userId);
+        return UserPolicyMapper.convertToResponse(savedPolicy);
+    }
+
+    private void validatePolicyForRenewal(UserPolicy existingUserPolicy) {
+
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime thirtyDaysFromNow = currentTime.plusDays(30);
+
+        boolean isExpired = existingUserPolicy.getStatus() == UserPolicyStatus.EXPIRED;
+        boolean isActiveAndExpiringWithin30Days = existingUserPolicy.getStatus() == UserPolicyStatus.ACTIVE &&
+                existingUserPolicy.getEndDate().isBefore(thirtyDaysFromNow);
+
+        if (!isExpired && !isActiveAndExpiringWithin30Days) {
+            log.error("Policy ID: {} is not eligible for renewal. Status: {}, End Date: {}",
+                    existingUserPolicy.getPolicyId(), existingUserPolicy.getStatus(), existingUserPolicy.getEndDate());
+            throw new BadRequestException(NOT_ELIGIBLE_FOR_RENEWAL);
         }
 
-        BigDecimal coverageAmount = policy.getCoverageAmount();
-        BigDecimal currentClaimed = userPolicy.getTotalAmountClaimed() != null
-                ? userPolicy.getTotalAmountClaimed()
-                : BigDecimal.ZERO;
+        log.debug("Policy ID: {} is eligible for renewal. Status: {}, End Date: {}",
+                existingUserPolicy.getPolicyId(), existingUserPolicy.getStatus(), existingUserPolicy.getEndDate());
+    }
 
-        if (claimAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Claim amount must be positive");
-        }
+    private UserPolicy checkAndGetExistingUserPolicy(Long userId, Long policyId) {
+        Optional<UserPolicy> existingPolicyOptional = userPolicyDao.findByUserIdAndPolicyId(userId, policyId);
+        return existingPolicyOptional.orElseThrow(() -> {
+            log.error(POLICY_NOT_FOUND_OR_DOESNT_BELONG_TO_USER);
+            return new NotFoundException(POLICY_NOT_FOUND_OR_DOESNT_BELONG_TO_USER);
+        });
+    }
 
-        BigDecimal remainingAmount = coverageAmount.subtract(currentClaimed);
+    @Override
+    public UserPolicyPaginatedResponse getRenewablePolicies(Long userId, Integer page, Integer size) {
+        log.debug("Fetching renewable policies for user: {}", userId);
 
-        if (claimAmount.compareTo(remainingAmount) > 0) {
-            throw new RuntimeException("Claim amount " + claimAmount +
-                    " exceeds remaining coverage of " + remainingAmount);
-        }
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime thirtyDaysFromNow = currentTime.plusDays(30);
 
-        BigDecimal newTotalClaimed = currentClaimed.add(claimAmount);
-        userPolicy.setTotalAmountClaimed(newTotalClaimed);
+        Page<UserPolicy> renewablePolicies = userPolicyDao.findActiveNearingExpiryOrExpiredPolicies(
+                userId, currentTime, thirtyDaysFromNow, PageRequest.of(page, size, Sort.by(START_DATE_PLACEHOLDER).descending()));
 
-        log.debug("Updated total claimed from {} to {}, remaining: {}",
-                currentClaimed, newTotalClaimed, coverageAmount.subtract(newTotalClaimed));
+        return UserPolicyMapper.getPolicyPaginatedResponse(renewablePolicies, page, size);
+    }
 
-        return userPolicyDao.save(userPolicy);
+    private UserPolicy updateUserPolicyForRenewal(UserPolicy existingUserPolicy, Policy policy) {
+        BigDecimal premiumAmount = policy.getPremiumAmount();
+        BigDecimal renewalRate = policy.getRenewalPremiumRate();
+        BigDecimal renewalPremium = premiumAmount.add(premiumAmount.multiply(renewalRate));
+        existingUserPolicy.setStartDate(LocalDateTime.now());
+        existingUserPolicy.setEndDate(LocalDateTime.now().plusMonths(policy.getDurationMonths()));
+        existingUserPolicy.setStatus(UserPolicyStatus.ACTIVE);
+        existingUserPolicy.setTotalAmountClaimed(BigDecimal.ZERO);
+        existingUserPolicy.setPremiumPaid(existingUserPolicy.getPremiumPaid().add(renewalPremium));
+        return existingUserPolicy;
     }
 }

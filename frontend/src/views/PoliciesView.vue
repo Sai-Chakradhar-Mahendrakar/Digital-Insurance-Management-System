@@ -224,7 +224,7 @@ const filteredPolicies = computed(() => {
 
   // Filter by type
   if (selectedFilter.value !== 'all') {
-    policies = policies.filter((policy) => policy.type === selectedFilter.value)
+    policies = policies.filter((policy) => policy.type.toLowerCase() === selectedFilter.value.toLowerCase())
   }
 
   return policies

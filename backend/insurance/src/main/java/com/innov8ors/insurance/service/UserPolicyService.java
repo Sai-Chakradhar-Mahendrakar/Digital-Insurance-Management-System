@@ -1,28 +1,25 @@
 package com.innov8ors.insurance.service;
 
-import com.innov8ors.insurance.entity.User;
-import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.entity.UserPolicy;
+import com.innov8ors.insurance.request.PolicyPurchaseRequest;
+import com.innov8ors.insurance.request.UserPolicyUpdateRequest;
+import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 
 
 public interface UserPolicyService {
 
 
     @Transactional
-    UserPolicy purchasePolicy(String userEmail, PolicyPurchaseRequest request);
+    UserPolicyResponse purchasePolicy(String userEmail, PolicyPurchaseRequest request);
 
-    Page<UserPolicyResponse> getUserPolicies(String userEmail, int page, int size);
+    UserPolicyPaginatedResponse getUserPolicies(String userEmail, Integer page, Integer size);
 
 
     // Overloaded method to maintain backward compatibility with Long userId
     @Transactional
-    UserPolicy purchasePolicy(Long userId, PolicyPurchaseRequest request);
+    UserPolicyResponse purchasePolicy(Long userId, PolicyPurchaseRequest request);
 
     UserPolicy makePayment(String userEmail, Long policyId);
 
@@ -31,7 +28,13 @@ public interface UserPolicyService {
 
     UserPolicy getByUserIdAndPolicyId(Long userId, Long policyId);
 
-    Page<UserPolicyResponse> getUsersByPolicyId(Long policyId, int page, int size);
+    UserPolicyPaginatedResponse getUsersByPolicyId(Long policyId, Integer page, Integer size);
 
-    UserPolicy updateUserPolicy(Long userId, Long policyId, BigDecimal claimAmount);
+    UserPolicy updateUserPolicy(Long userId, Long policyId, UserPolicyUpdateRequest userPolicyUpdateRequest);
+
+    UserPolicyResponse renewPolicy(Long userId, Long policyId);
+
+    UserPolicyPaginatedResponse getRenewablePolicies(Long userId, Integer page, Integer size);
+
+    UserPolicy getById(Long userPolicyId);
 }

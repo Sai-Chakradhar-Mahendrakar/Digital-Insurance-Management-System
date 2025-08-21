@@ -1,18 +1,11 @@
 package com.innov8ors.insurance.mapper;
 
 import com.innov8ors.insurance.entity.UserPolicy;
+import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
-import com.innov8ors.insurance.enums.UserPolicyStatus;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
-import static com.innov8ors.insurance.util.InsuranceUtil.MAPPER;
+import org.springframework.data.domain.Page;
 
 public class UserPolicyMapper {
-    public static UserPolicyResponse getResponseFromUserPolicy(UserPolicy userPolicy) {
-        return MAPPER.map(userPolicy, UserPolicyResponse.class);
-    }
 
     public static UserPolicyResponse convertToResponse(UserPolicy userPolicy) {
         return UserPolicyResponse.builder()
@@ -24,6 +17,25 @@ public class UserPolicyMapper {
                 .endDate(userPolicy.getEndDate())
                 .status(userPolicy.getStatus())
                 .premiumPaid(userPolicy.getPremiumPaid())
+                .totalAmountClaimed(userPolicy.getTotalAmountClaimed())
+                .userId(userPolicy.getUser().getId())
+                .userName(userPolicy.getUser().getName())
+                .userEmail(userPolicy.getUser().getEmail())
+                .userPhone(userPolicy.getUser().getPhone())
+                .userAddress(userPolicy.getUser().getAddress())
+                .coverageAmount(userPolicy.getPolicy().getCoverageAmount())
+                .build();
+    }
+
+    public static UserPolicyPaginatedResponse getPolicyPaginatedResponse(Page<UserPolicy> userPolicies, Integer page, Integer size) {
+        return UserPolicyPaginatedResponse.builder()
+                .userPolicies(userPolicies.getContent()
+                        .stream().map(UserPolicyMapper::convertToResponse)
+                        .toList())
+                .page(page)
+                .size(size)
+                .totalElements(userPolicies.getTotalElements())
+                .totalPages(userPolicies.getTotalPages())
                 .build();
     }
 }

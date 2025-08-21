@@ -20,4 +20,11 @@ public interface UserPolicyRepository extends BaseRepository<UserPolicy, Long> {
     List<UserPolicy> findByStatusAndEndDateBefore(UserPolicyStatus status, LocalDateTime date);
 
     boolean existsByUserIdAndPolicyId(Long userId, Long policyId);
+
+    @Query("SELECT up FROM UserPolicy up JOIN FETCH up.policy WHERE up.userId = :userId AND ((up.endDate BETWEEN :startDate AND :endDate AND up.status = 'ACTIVE') OR up.status = 'EXPIRED')")
+    Page<UserPolicy> findActiveNearingExpiryOrExpiredPolicies(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable);
 }
