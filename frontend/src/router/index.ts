@@ -98,6 +98,17 @@ const routes = [
     }
   },  
   {
+    path: '/admin/support',
+    name: 'admin-support',
+    component: () => import('@/views/admin/AdminSupportView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      layout: 'admin',
+      title: 'Support Management - Admin'
+    }
+  },
+  {
     path: '/my-policies',
     name: 'my-policies',
     component: () => import('@/views/user/MyPoliciesView.vue'),
@@ -114,6 +125,15 @@ const routes = [
       requiresAuth: true,
       title: 'My Claims',
     },
+  },
+  {
+    path: '/support',
+    name: 'user-support',
+    component: () => import('@/views/user/SupportTicketsView.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Support Center',
+    }
   },
 
   // 404 Not Found - Must be last

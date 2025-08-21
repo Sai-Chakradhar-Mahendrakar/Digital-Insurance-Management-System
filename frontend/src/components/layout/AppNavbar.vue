@@ -125,7 +125,7 @@
                 <!-- Menu Items -->
                 <div class="py-1">
                   <button
-                    @click="navigateTo('/help')"
+                    @click="navigateTo('/support')"
                     class="w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-3"
                   >
                     <HelpCircle class="w-4 h-4" />
