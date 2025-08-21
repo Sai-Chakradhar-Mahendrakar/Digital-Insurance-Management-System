@@ -321,21 +321,12 @@ const handleSubmit = async () => {
     const newTicket = await supportTicketsStore.createSupportTicket(ticketData)
     emit('submitted', newTicket)
   } catch (error: unknown) {
-    console.error('Support ticket creation error:', error)
-    
-    // Try to parse backend validation errors first
-    parseBackendErrors(error)
-    
-    // If no field errors were parsed, show general error
-    if (!hasFieldErrors.value) {
-      if (error instanceof Error) {
-        errorMessage.value = error.message
-      } else if (typeof error === 'object' && error !== null && 'response' in error) {
-        const responseError = error as any
-        errorMessage.value = responseError.response?.data?.errorMessage || 'Failed to create support ticket'
-      } else {
-        errorMessage.value = 'Failed to create support ticket'
-      }
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any
+      errorMessage.value =
+        err.response?.data?.errorMessage ||
+        err.message ||
+        'Failed to create support ticket'
     }
   } finally {
     isLoading.value = false

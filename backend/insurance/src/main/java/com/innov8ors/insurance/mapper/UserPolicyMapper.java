@@ -5,12 +5,7 @@ import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import org.springframework.data.domain.Page;
 
-import static com.innov8ors.insurance.util.InsuranceUtil.MAPPER;
-
 public class UserPolicyMapper {
-    public static UserPolicyResponse getResponseFromUserPolicy(UserPolicy userPolicy) {
-        return MAPPER.map(userPolicy, UserPolicyResponse.class);
-    }
 
     public static UserPolicyResponse convertToResponse(UserPolicy userPolicy) {
         return UserPolicyResponse.builder()

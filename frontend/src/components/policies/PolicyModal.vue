@@ -233,8 +233,14 @@ const handlePurchase = async () => {
     }, 1500)
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to purchase policy'
-    errorMessage.value = message
-    toast.error('Purchase Failed', message)
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any
+      errorMessage.value =
+        err.response?.data?.errorMessage ||
+        err.message ||
+        'Failed to purchase policy'
+    }
+    toast.error('Purchase Failed', errorMessage.value)
   } finally {
     isLoading.value = false
   }

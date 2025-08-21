@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface UserPolicyRepository extends BaseRepository<UserPolicy, Long> {
@@ -22,5 +21,10 @@ public interface UserPolicyRepository extends BaseRepository<UserPolicy, Long> {
 
     boolean existsByUserIdAndPolicyId(Long userId, Long policyId);
 
-    Optional<UserPolicy> findByIdAndUserId(Long id, Long userId);
+    @Query("SELECT up FROM UserPolicy up JOIN FETCH up.policy WHERE up.userId = :userId AND ((up.endDate BETWEEN :startDate AND :endDate AND up.status = 'ACTIVE') OR up.status = 'EXPIRED')")
+    Page<UserPolicy> findActiveNearingExpiryOrExpiredPolicies(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable);
 }

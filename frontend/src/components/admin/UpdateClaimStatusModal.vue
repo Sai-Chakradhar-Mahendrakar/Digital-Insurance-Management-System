@@ -215,7 +215,13 @@ const handleSubmit = async () => {
     const updatedClaim = await adminClaimsStore.updateClaimStatus(props.claim.id, updateData)
     emit('updated', updatedClaim)
   } catch (error: unknown) {
-    errorMessage.value = error instanceof Error ? error.message : 'Failed to update claim'
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any
+      errorMessage.value =
+        err.response?.data?.errorMessage ||
+        err.message ||
+        'Failed to update claim'
+    }
   } finally {
     isLoading.value = false
   }

@@ -1,14 +1,19 @@
 package com.innov8ors.insurance.util;
 
 import com.innov8ors.insurance.entity.Claim;
+import com.innov8ors.insurance.entity.Notification;
 import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.User;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.ClaimStatus;
+import com.innov8ors.insurance.enums.NotificationStatus;
+import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.enums.Role;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
 import com.innov8ors.insurance.request.ClaimCreateRequest;
 import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
+import com.innov8ors.insurance.request.NotificationSendBulkRequest;
+import com.innov8ors.insurance.request.NotificationSendRequest;
 import com.innov8ors.insurance.request.PolicyCreateRequest;
 import com.innov8ors.insurance.request.PolicyPurchaseRequest;
 import com.innov8ors.insurance.request.UserCreateRequest;
@@ -55,6 +60,11 @@ public class TestUtil {
     public static final String TEST_CLAIM_REASON = "Test claim reason";
     public static final ClaimStatus TEST_CLAIM_STATUS = ClaimStatus.PENDING;
     public static final String TEST_CLAIM_REVIEWER_COMMENT = "Initial claim submission";
+    public static final Long TEST_NOTIFICATION_ID = 1L;
+    public static final String TEST_NOTIFICATION_MESSAGE = "Test notification message";
+    public static final NotificationType TEST_NOTIFICATION_TYPE = NotificationType.GENERAL;
+    public static final NotificationStatus TEST_NOTIFICATION_STATUS = NotificationStatus.UNREAD;
+    public static final LocalDateTime TEST_CREATED_AT = LocalDateTime.now();
 
 
     public static User getUser() {
@@ -253,6 +263,7 @@ public class TestUtil {
     public static PolicyPurchaseRequest getPolicyPurchaseRequest() {
         PolicyPurchaseRequest request = new PolicyPurchaseRequest();
         request.setPolicyId(TEST_POLICY_ID);
+        request.setPremiumPaid(TEST_POLICY_PREMIUM_PAID);
         return request;
     }
 
@@ -275,7 +286,7 @@ public class TestUtil {
     public static Claim getClaim() {
         return Claim.builder()
                 .id(TEST_CLAIM_ID)
-                .userPolicyId(TEST_POLICY_ID)
+                .userPolicyId(TEST_USER_POLICY_ID)
                 .claimDate(TEST_CLAIM_DATE)
                 .claimAmount(TEST_CLAIM_AMOUNT)
                 .reason(TEST_CLAIM_REASON)
@@ -294,5 +305,36 @@ public class TestUtil {
 
     public static Page<Claim> getClaimsPage() {
         return new PageImpl<>(List.of(getClaim()));
+    }
+
+    public static Notification getNotification() {
+        return Notification.builder()
+                .id(TEST_NOTIFICATION_ID)
+                .message(TEST_NOTIFICATION_MESSAGE)
+                .type(TEST_NOTIFICATION_TYPE)
+                .status(TEST_NOTIFICATION_STATUS)
+                .createdAt(TEST_CREATED_AT)
+                .readAt(null)
+                .user(getUser())
+                .build();
+    }
+
+    public static NotificationSendRequest getNotificationSendRequest() {
+        return NotificationSendRequest.builder()
+                .userId(TEST_USER_ID)
+                .message(TEST_NOTIFICATION_MESSAGE)
+                .type(TEST_NOTIFICATION_TYPE)
+                .build();
+    }
+
+    public static NotificationSendBulkRequest getNotificationSendBulkRequest() {
+        return NotificationSendBulkRequest.builder()
+                .userId(List.of(TEST_USER_ID))
+                .notificationSendRequest(getNotificationSendRequest())
+                .build();
+    }
+
+    public static List<Notification> getNotifications() {
+        return List.of(getNotification());
     }
 }

@@ -598,9 +598,14 @@ onMounted(async () => {
   try {
     await adminPolicyStore.fetchAdminPolicies(1000) // Fetch all policies with size=1000
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Failed to load policies'
-    errorMessage.value = message
-    toast.error('Loading Failed', message)
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any
+      errorMessage.value =
+        err.response?.data?.errorMessage ||
+        err.message ||
+        'Failed to load policies'
+    }
+    toast.error('Loading Failed', errorMessage.value)
   }
 })
 </script>

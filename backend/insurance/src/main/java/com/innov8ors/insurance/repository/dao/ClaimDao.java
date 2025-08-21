@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,5 +18,9 @@ public interface ClaimDao extends ClaimRepository {
 
     default Optional<Claim> getByClaimIdAndUserId(Long claimId, Long userId) {
         return findByIdAndUserPolicyUserId(claimId, userId);
+    }
+
+    default List<Claim> getByUserPolicyId(Long userPolicyId) {
+        return findByUserPolicyId(userPolicyId);
     }
 }
