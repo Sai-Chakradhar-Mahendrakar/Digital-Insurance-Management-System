@@ -87,11 +87,11 @@ export const useAppStore = defineStore('app', () => {
 
     // User endpoints
     userPolicies: `${config.value.apiBaseUrl}/user/policies`,
-    userClaims: `${config.value.apiBaseUrl}/user/claims`,
+    userClaims: `${config.value.apiBaseUrl}/user/claims?size=10000`,
 
     // Admin endpoints
     adminPolicies: `${config.value.apiBaseUrl}/admin/policies`,
-    adminClaims: `${config.value.apiBaseUrl}/admin/claims`,
+    adminClaims: `${config.value.apiBaseUrl}/admin/claims?size=10000`,
     adminSupport: `${config.value.apiBaseUrl}/admin/support`,
     adminPolicyUsers: (policyId: number) =>
       `${config.value.apiBaseUrl}/admin/policies/${policyId}/users`,

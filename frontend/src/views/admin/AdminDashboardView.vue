@@ -43,7 +43,12 @@
               icon="shield"
               color="blue"
             />
-            <StatsCard title="Active Users" value="100" icon="users" color="green" />
+            <StatsCard
+              title="Active Users"
+              :value="isLoadingActiveUsers ? 'Loading...' : String(activeUsers)"
+              icon="users"
+              color="green"
+            />
             <StatsCard
               title="Claims Processed"
               :value="approvedClaims.toString()"
@@ -116,7 +121,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import StatsCard from '@/components/admin/StatsCard.vue'
 import AppButton from '@/components/common/AppButton.vue'
 import { useAdminPolicyStore } from '@/stores/adminPolicy'
-// import { useAdminUserStore } from '@/stores/adminUser'
+import { useAdminUserStore } from '@/stores/adminUser'
 import { useAdminClaimsStore } from '@/stores/adminClaims'
 
 import {
@@ -138,8 +143,9 @@ const showTokenDetails = ref(false)
 const tokenInfo = computed(() => authStore.tokenInfo)
 const policies = computed(() => adminPolicyStore.policies)
 
-// const adminUserStore = useAdminUserStore()
+const adminUserStore = useAdminUserStore()
 const adminClaimsStore = useAdminClaimsStore()
+const { fetchActiveUsers, activeUsers, isLoadingActiveUsers, errorActiveUsers } = adminUserStore
 
 // const users = computed(() => adminUserStore.users)
 const approvedClaims = computed(
@@ -148,7 +154,7 @@ const approvedClaims = computed(
 const totalPremium = computed(() =>
   adminPolicyStore.policies.reduce((sum, p) => sum + p.premiumAmount, 0),
 )
-
+// const { fetchActiveUsers } = adminUserStore
 const recentActivities = ref([
   { id: 1, type: 'policy', title: 'New health insurance policy created', time: '2 hours ago' },
   { id: 2, type: 'user', title: 'New user registration: John Doe', time: '4 hours ago' },
@@ -171,6 +177,9 @@ const getActivityIcon = (type: string) => {
 
 onMounted(async () => {
   await adminPolicyStore.fetchAdminPolicies()
+})
+onMounted(() => {
+  fetchActiveUsers()
 })
 
 const formatTimestamp = (timestamp?: number) => {

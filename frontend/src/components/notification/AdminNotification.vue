@@ -17,7 +17,7 @@
           </div>
 
           <!-- Send Notification Form -->
-          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+          <!-- <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
             <h3 class="text-lg font-semibold text-slate-900 mb-4">Quick Notification</h3>
             <form @submit.prevent="sendNotification" class="space-y-4">
               <div>
@@ -58,6 +58,74 @@
             <div v-if="notificationStore.error" class="mt-4 text-red-600 font-medium">
               {{ notificationStore.error }}
             </div>
+          </div> -->
+
+          <!-- Bulk Notification Form -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+            <h3 class="text-lg font-semibold text-slate-900 mb-4">Bulk Notification</h3>
+            <form @submit.prevent="sendBulk" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">User IDs (comma separated)</label>
+                <input
+                  v-model="bulkForm.userIds"
+                  type="text"
+                  required
+                  class="w-full border border-slate-300 rounded-lg px-3 py-2"
+                  placeholder="e.g. 2,3,4"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Message</label>
+                <textarea
+                  v-model="bulkForm.message"
+                  required
+                  rows="2"
+                  class="w-full border border-slate-300 rounded-lg px-3 py-2"
+                ></textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                <select v-model="bulkForm.type" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                  <option value="GENERAL">General</option>
+                  <option value="SYSTEM_ALERT">Important</option>
+                </select>
+              </div>
+              <AppButton type="submit" :disabled="notificationStore.isLoading">Send Bulk</AppButton>
+            </form>
+          </div>
+
+          <!-- Policy Notification Form -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+            <h3 class="text-lg font-semibold text-slate-900 mb-4">Policy Notification</h3>
+            <form @submit.prevent="sendByPolicy" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Policy ID</label>
+                <input
+                  v-model="policyForm.policyId"
+                  type="text"
+                  required
+                  class="w-full border border-slate-300 rounded-lg px-3 py-2"
+                  placeholder="e.g. 1"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Message</label>
+                <textarea
+                  v-model="policyForm.message"
+                  required
+                  rows="2"
+                  class="w-full border border-slate-300 rounded-lg px-3 py-2"
+                ></textarea>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                <select v-model="policyForm.type" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+                  <option value="GENERAL">General</option>
+                  <option value="SYSTEM_ALERT">Important</option>
+                </select>
+              </div>
+              <AppButton type="submit" :disabled="notificationStore.isLoading">Send to Policy Users</AppButton>
+            </form>
           </div>
 
           <!-- Recent Notifications -->
@@ -125,6 +193,17 @@ const form = ref({
   important: false,
 })
 
+const bulkForm = ref({
+  userIds: '',
+  message: '',
+  type: 'GENERAL',
+})
+const policyForm = ref({
+  policyId: '',
+  message: '',
+  type: 'GENERAL',
+})
+
 const successMessage = ref('')
 
 const notifications = computed(() => notificationStore.notifications)
@@ -138,7 +217,7 @@ const sendNotification = async () => {
 
   const success = await notificationStore.sendNotification({
     ...form.value,
-    userId: undefined, // or set a specific user/group if needed
+    userId: undefined,
   })
 
   if (success) {
@@ -146,6 +225,36 @@ const sendNotification = async () => {
     form.value = { title: '', message: '', important: false }
     setTimeout(() => (successMessage.value = ''), 3000)
     notificationStore.fetchNotifications()
+  }
+}
+
+const sendBulk = async () => {
+  const userIdArr = bulkForm.value.userIds
+    .split(',')
+    .map((id: string) => Number(id.trim()))
+    .filter(Boolean)
+  const success = await notificationStore.sendBulkNotification({
+    userId: userIdArr,
+    request: { message: bulkForm.value.message, type: bulkForm.value.type },
+  })
+  if (success) {
+    successMessage.value = '✅ Bulk notification sent!'
+    bulkForm.value = { userIds: '', message: '', type: 'GENERAL' }
+    notificationStore.fetchNotifications()
+    setTimeout(() => (successMessage.value = ''), 3000)
+  }
+}
+
+const sendByPolicy = async () => {
+  const success = await notificationStore.sendPolicyNotification({
+    policyId: Number(policyForm.value.policyId),
+    request: { message: policyForm.value.message, type: policyForm.value.type },
+  })
+  if (success) {
+    successMessage.value = '✅ Policy notification sent!'
+    policyForm.value = { policyId: '', message: '', type: 'GENERAL' }
+    notificationStore.fetchNotifications()
+    setTimeout(() => (successMessage.value = ''), 3000)
   }
 }
 
