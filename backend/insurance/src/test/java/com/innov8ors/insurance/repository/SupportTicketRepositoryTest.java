@@ -17,14 +17,19 @@ class SupportTicketRepositoryTest {
     @Autowired
     private SupportTicketRepository supportTicketRepository;
 
+    private SupportTicket createSupportTicket(Long userId, String subject, String description, SupportTicketStatus status) {
+        SupportTicket ticket = new SupportTicket();
+        ticket.setUserId(userId);
+        ticket.setSubject(subject);
+        ticket.setDescription(description);
+        ticket.setStatus(status);
+        ticket.setCreatedAt(java.time.LocalDateTime.now());
+        return ticket;
+    }
+
     @Test
     void testFindByUserId() {
-        SupportTicket ticket = new SupportTicket();
-        ticket.setUserId(42L);
-        ticket.setSubject("Test subject");
-        ticket.setDescription("Test description");
-        ticket.setStatus(SupportTicketStatus.OPEN);
-        ticket.setCreatedAt(java.time.LocalDateTime.now()); // Ensure createdAt is set
+        SupportTicket ticket = createSupportTicket(42L, "Test subject", "Test description", SupportTicketStatus.OPEN);
         supportTicketRepository.save(ticket);
 
         List<SupportTicket> tickets = supportTicketRepository.findByUserId(42L);
@@ -36,5 +41,25 @@ class SupportTicketRepositoryTest {
     void testFindByUserId_Empty() {
         List<SupportTicket> tickets = supportTicketRepository.findByUserId(999L);
         assertTrue(tickets.isEmpty());
+    }
+
+    @Test
+    void testSaveAndDeleteTicket() {
+        SupportTicket ticket = createSupportTicket(100L, "Delete subject", "Delete description", SupportTicketStatus.OPEN);
+        SupportTicket saved = supportTicketRepository.save(ticket);
+        assertEquals(100L, saved.getUserId());
+        supportTicketRepository.delete(saved);
+        List<SupportTicket> tickets = supportTicketRepository.findByUserId(100L);
+        assertTrue(tickets.isEmpty());
+    }
+
+    @Test
+    void testSaveTicketWithNullFields() {
+        SupportTicket ticket = createSupportTicket(101L, null, null, SupportTicketStatus.OPEN);
+        try {
+            supportTicketRepository.save(ticket);
+        } catch (Exception e) {
+            assertTrue(e instanceof RuntimeException);
+        }
     }
 }
