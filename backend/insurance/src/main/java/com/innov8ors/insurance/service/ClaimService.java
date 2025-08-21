@@ -11,7 +11,7 @@ public interface ClaimService {
 
     ClaimPaginatedResponse getUserClaims(Long userId, Integer page, Integer size);
 
-    ClaimResponse updateClaimStatus(Long userId, Long claimId, ClaimStatusUpdateRequest request);
+    ClaimResponse updateClaimStatus(Long claimId, ClaimStatusUpdateRequest request);
 
     ClaimResponse getByClaimIdAndUserId(Long claimId, Long userId);
 

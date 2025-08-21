@@ -8,13 +8,13 @@ import org.springframework.data.domain.Page;
 import static com.innov8ors.insurance.util.InsuranceUtil.MAPPER;
 
 public class PolicyMapper {
-    public static PolicyPaginatedResponse getResponseFromPoliciesPage(Page<Policy> policiesPage) {
+    public static PolicyPaginatedResponse getResponseFromPoliciesPage(Page<Policy> policiesPage, Integer page, Integer size) {
         return PolicyPaginatedResponse.builder()
                 .policies(policiesPage.getContent())
                 .totalElements(policiesPage.getTotalElements())
                 .totalPages(policiesPage.getTotalPages())
-                .page(policiesPage.getPageable().getPageNumber())
-                .size(policiesPage.getSize())
+                .page(page)
+                .size(size)
                 .build();
     }
 

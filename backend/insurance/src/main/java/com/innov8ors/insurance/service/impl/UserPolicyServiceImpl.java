@@ -59,6 +59,7 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     }
 
     @Override
+    @Transactional
     public UserPolicyPaginatedResponse getUserPolicies(String userEmail, Integer page, Integer size) {
         log.debug("Fetching policies for user: {}", userEmail);
         User user = userService.getByEmail(userEmail);

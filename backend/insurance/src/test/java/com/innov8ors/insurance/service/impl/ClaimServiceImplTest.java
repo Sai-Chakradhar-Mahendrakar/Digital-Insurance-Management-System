@@ -176,7 +176,7 @@ class ClaimServiceImplTest {
                 .when(claimDao)
                 .getByUserPolicyId(any());
 
-        ClaimResponse claimResponse = claimService.updateClaimStatus(TEST_USER_ID, TEST_CLAIM_ID, getClaimStatusUpdateRequest());
+        ClaimResponse claimResponse = claimService.updateClaimStatus(TEST_CLAIM_ID, getClaimStatusUpdateRequest());
 
         assertNotNull(claimResponse);
         assertEquals(TEST_CLAIM_ID, claimResponse.getId());
@@ -197,7 +197,7 @@ class ClaimServiceImplTest {
                 .findById(TEST_CLAIM_ID);
 
         try {
-            claimService.updateClaimStatus(TEST_USER_ID, TEST_CLAIM_ID, getClaimStatusUpdateRequest());
+            claimService.updateClaimStatus(TEST_CLAIM_ID, getClaimStatusUpdateRequest());
             fail("Expected exception not thrown");
         } catch (Exception e) {
             assertInstanceOf(NotFoundException.class, e);

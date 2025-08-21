@@ -2,7 +2,6 @@ package com.innov8ors.insurance.controller;
 
 import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.SupportTicket;
-import com.innov8ors.insurance.entity.UserPrincipal;
 import com.innov8ors.insurance.enums.ClaimStatus;
 import com.innov8ors.insurance.request.ClaimStatusUpdateRequest;
 import com.innov8ors.insurance.request.NotificationByPolicyRequest;
@@ -23,7 +22,6 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -56,8 +54,7 @@ public class AdminController {
             SupportTicketService supportTicketService,
             ClaimService claimService,
             NotificationService notificationService,
-            UserService userService)
-    {
+            UserService userService) {
         this.policyService = policyService;
         this.userPolicyService = userPolicyService;
         this.supportTicketService = supportTicketService;
@@ -85,9 +82,8 @@ public class AdminController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/support/{ticketId}")
-    public SupportTicket updateTicketStatus(
-            @PathVariable Long ticketId,
-            @Valid @RequestBody SupportTicketUpdateRequest request) {
+    public SupportTicket updateTicketStatus(@PathVariable Long ticketId,
+                                            @Valid @RequestBody SupportTicketUpdateRequest request) {
         log.info("Updating ticket status to {} for ticketId: {} with response: {}", request.getStatus(), ticketId, request.getResponse());
         SupportTicket ticket = supportTicketService.updateTicketStatus(ticketId, request);
         log.info("Ticket {} status updated to {}", ticketId, ticket.getStatus());
@@ -105,11 +101,10 @@ public class AdminController {
 
     @PutMapping("/claim/{claimId}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ClaimResponse> updateClaimStatus(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                           @PathVariable Long claimId,
+    public ResponseEntity<ClaimResponse> updateClaimStatus(@PathVariable Long claimId,
                                                            @Valid @RequestBody ClaimStatusUpdateRequest request) {
         log.info("Admin updating claim status for claim ID: {} to status: {}", claimId, request.getStatus());
-        ClaimResponse response = claimService.updateClaimStatus(userPrincipal.getId(), claimId, request);
+        ClaimResponse response = claimService.updateClaimStatus(claimId, request);
         return ResponseEntity.ok(response);
     }
 

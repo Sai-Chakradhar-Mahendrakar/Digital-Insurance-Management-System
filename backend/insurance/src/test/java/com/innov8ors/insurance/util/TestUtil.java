@@ -24,8 +24,15 @@ import com.innov8ors.insurance.request.SupportTicketCreateRequest;
 import com.innov8ors.insurance.request.SupportTicketUpdateRequest;
 import com.innov8ors.insurance.request.UserCreateRequest;
 import com.innov8ors.insurance.request.UserLoginRequest;
+import com.innov8ors.insurance.response.ClaimPaginatedResponse;
+import com.innov8ors.insurance.response.ClaimResponse;
+import com.innov8ors.insurance.response.NotificationPaginatedResponse;
+import com.innov8ors.insurance.response.NotificationResponse;
+import com.innov8ors.insurance.response.PolicyPaginatedResponse;
+import com.innov8ors.insurance.response.UserPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
+import com.innov8ors.insurance.response.UserRegisterResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -394,7 +401,7 @@ public class TestUtil {
                 .build();
     }
 
-    private static UserPolicyResponse getUserPolicyResponse() {
+    public static UserPolicyResponse getUserPolicyResponse() {
         return UserPolicyResponse.builder()
                 .id(TEST_USER_POLICY_ID)
                 .policyId(TEST_POLICY_ID)
@@ -449,6 +456,82 @@ public class TestUtil {
         return SupportTicketUpdateRequest.builder()
                 .response(TEST_SUPPORT_TICKET_RESPONSE)
                 .status(SupportTicketStatus.RESOLVED)
+                .build();
+    }
+
+    public static ClaimResponse getClaimResponse() {
+        return ClaimResponse.builder()
+                .id(TEST_CLAIM_ID)
+                .userPolicyId(TEST_USER_POLICY_ID)
+                .claimDate(TEST_CLAIM_DATE)
+                .claimAmount(TEST_CLAIM_AMOUNT)
+                .reason(TEST_CLAIM_REASON)
+                .status(TEST_CLAIM_STATUS)
+                .reviewerComment(TEST_CLAIM_REVIEWER_COMMENT)
+                .build();
+    }
+
+    public static ClaimPaginatedResponse getClaimPaginatedResponse() {
+        return ClaimPaginatedResponse.builder()
+                .claims(List.of(getClaimResponse()))
+                .page(0)
+                .size(10)
+                .totalElements(1L)
+                .totalPages(1)
+                .build();
+    }
+
+    public static NotificationPaginatedResponse getNotificationPaginatedResponse() {
+        return NotificationPaginatedResponse.builder()
+                .notifications(List.of(getNotificationResponse()))
+                .page(0)
+                .size(10)
+                .totalElements(1L)
+                .totalPages(1)
+                .build();
+    }
+
+    public static NotificationResponse getNotificationResponse() {
+        return NotificationResponse.builder()
+                .id(TEST_NOTIFICATION_ID)
+                .message(TEST_NOTIFICATION_MESSAGE)
+                .type(TEST_NOTIFICATION_TYPE)
+                .status(TEST_NOTIFICATION_STATUS)
+                .createdAt(TEST_CREATED_AT)
+                .readAt(null)
+                .userId(TEST_USER_ID)
+                .build();
+    }
+
+    public static PolicyPaginatedResponse getPolicyPaginatedResponse() {
+        return PolicyPaginatedResponse.builder()
+                .policies(List.of(getPolicy()))
+                .page(0)
+                .size(10)
+                .totalElements(1L)
+                .totalPages(1)
+                .build();
+    }
+
+    public static UserRegisterResponse getUserRegisterResponse() {
+        return UserRegisterResponse.builder()
+                .id(TEST_USER_ID)
+                .name(TEST_USER_NAME)
+                .email(TEST_USER_EMAIL)
+                .phone(TEST_USER_PHONE)
+                .address(TEST_USER_ADDRESS)
+                .role(TEST_USER_ROLE.name())
+                .token(TEST_TOKEN)
+                .build();
+    }
+
+    public static UserPaginatedResponse getUserPaginatedResponse() {
+        return UserPaginatedResponse.builder()
+                .users(List.of(getUser()))
+                .page(0)
+                .size(10)
+                .totalElements(1L)
+                .totalPages(1)
                 .build();
     }
 }
