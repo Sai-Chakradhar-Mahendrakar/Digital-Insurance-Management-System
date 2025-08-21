@@ -25,15 +25,6 @@
         </li>
         <li>
           <router-link
-            to="/admin/users"
-            class="flex items-center space-x-3 px-4 py-3 text-slate-700 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
-          >
-            <Users class="w-5 h-5" />
-            <span class="font-medium">Users</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link
             to="/admin/claims"
             class="flex items-center space-x-3 px-4 py-3 text-slate-700 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
           >

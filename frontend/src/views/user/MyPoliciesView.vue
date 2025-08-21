@@ -198,13 +198,16 @@
       <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <PolicyCard
           v-for="userPolicy in paginatedPolicies"
-          :key="userPolicy.id"
-          :user-policy="userPolicy"
+          :key="`policy-${userPolicy.id}-${userPolicy.policyId}`"
+          :userPolicy="userPolicy"
           @view="viewPolicyDetails"
+          @makeClaim="handleMakeClaim"
+          @reapply="handleReapply"
+          @renew="handleRenew"
         />
       </div>
 
-      <!-- Pagination (if needed for large datasets) -->
+      <!-- Pagination -->
       <div v-if="filteredPolicies.length > 10" class="mt-8 flex justify-center">
         <nav class="flex items-center space-x-2">
           <button
@@ -227,8 +230,16 @@
     <!-- Policy Details Modal -->
     <PolicyDetailsModal
       v-if="selectedUserPolicy"
-      :user-policy="selectedUserPolicy"
+      :userPolicy="selectedUserPolicy"
       @close="selectedUserPolicy = null"
+    />
+
+    <!-- Submit Claim Modal -->
+    <SubmitClaimModal
+      v-if="selectedUserPolicyForClaim"
+      :userPolicy="selectedUserPolicyForClaim"
+      @close="selectedUserPolicyForClaim = null"
+      @submitted="handleClaimSubmitted"
     />
 
     <!-- Toast Container -->
@@ -243,6 +254,7 @@ import { useToast } from '@/composables/useToast'
 import AppNavbar from '@/components/layout/AppNavbar.vue'
 import PolicyCard from '@/components/user/PolicyCard.vue'
 import PolicyDetailsModal from '@/components/user/PolicyDetailsModal.vue'
+import SubmitClaimModal from '@/components/claims/SubmitClaimModal.vue'
 import ToastContainer from '@/components/common/ToastContainer.vue'
 import {
   Shield,
@@ -256,12 +268,14 @@ import {
   Search,
 } from 'lucide-vue-next'
 import type { UserPolicy } from '@/stores/userPolicy'
+import type { Claim } from '@/stores/claims'
 import { onUnmounted } from 'vue'
 
 const userPolicyStore = useUserPolicyStore()
 const toast = useToast()
 
 const selectedUserPolicy = ref<UserPolicy | null>(null)
+const selectedUserPolicyForClaim = ref<UserPolicy | null>(null)
 const errorMessage = ref('')
 const successMessage = ref('')
 const statusFilter = ref('')
@@ -269,13 +283,11 @@ const typeFilter = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 10
 
-const userPolicies = computed(() => userPolicyStore.userPolicies)
+const userPolicies = computed(() => userPolicyStore.userPolicies || [])
 const isLoading = computed(() => userPolicyStore.isLoading)
 
 const pendingCount = computed(() => userPolicies.value.filter((p) => p.status === 'PENDING').length)
-
 const activeCount = computed(() => userPolicies.value.filter((p) => p.status === 'ACTIVE').length)
-
 const totalPremium = computed(() => userPolicies.value.reduce((sum, p) => sum + p.premiumPaid, 0))
 
 // Filtered policies based on status and type filters
@@ -314,6 +326,35 @@ const formatINR = (amount: number): string => {
 
 const viewPolicyDetails = (userPolicy: UserPolicy) => {
   selectedUserPolicy.value = userPolicy
+}
+
+const handleMakeClaim = (userPolicy: UserPolicy) => {
+  selectedUserPolicyForClaim.value = userPolicy
+}
+
+const handleReapply = (userPolicy: UserPolicy) => {
+  toast.info(
+    'Reapplication',
+    `Reapplication process for ${userPolicy.policyName} will be available soon.`,
+  )
+}
+
+const handleRenew = (userPolicy: UserPolicy) => {
+  toast.info(
+    'Policy Renewal',
+    `Renewal process for ${userPolicy.policyName} will be available soon.`,
+  )
+}
+
+const handleClaimSubmitted = (claim: Claim) => {
+  selectedUserPolicyForClaim.value = null
+  toast.success(
+    'Claim Submitted Successfully',
+    `Your claim for ${formatINR(claim.claimAmount)} has been submitted for ${claim.policyName} and is under review.`,
+  )
+
+  // Optionally refresh policies to get updated claim amounts
+  refreshPolicies()
 }
 
 const refreshPolicies = async () => {

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
 import type { Policy } from '@/types/policy'
+import type { PolicyUser, PolicyUsersResponse } from '@/types/admin'
 
 export interface CreatePolicyRequest {
   name: string
@@ -35,8 +36,8 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
         credentials: 'include',
         body: JSON.stringify(policyData),
       })
-      console.log(policyData);
-      console.log(String(response.headers));
+      console.log(policyData)
+      console.log(String(response.headers))
 
       if (!response.ok) {
         const errorText = await response.text()
@@ -133,6 +134,34 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
     }
   }
 
+  const fetchPolicyUsers = async (policyId: number) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await fetch(`http://localhost:8080/admin/policies/${policyId}/users`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
+        },
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch policy users: ${response.status} ${response.statusText}`)
+      }
+
+      const data: PolicyUsersResponse = await response.json()
+      return data.content || []
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to load policy users'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     policies,
     isLoading,
@@ -140,5 +169,6 @@ export const useAdminPolicyStore = defineStore('adminPolicy', () => {
     createPolicy,
     fetchAdminPolicies,
     updatePolicy,
+    fetchPolicyUsers,
   }
 })

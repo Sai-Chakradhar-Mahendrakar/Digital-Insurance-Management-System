@@ -23,6 +23,7 @@ public class UserPolicyResponse {
     private UserPolicyStatus status;
     private BigDecimal premiumPaid;
     private BigDecimal totalAmountClaimed;
+    private BigDecimal coverageAmount;
     private Long userId;
     private String userName;
     private String userEmail;

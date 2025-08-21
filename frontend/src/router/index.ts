@@ -88,14 +88,34 @@ const routes = [
     },
   },
   {
+    path: '/admin/claims',
+    name: 'admin-claims',
+    component: () => import('@/views/admin/AdminClaimsView.vue'),
+    meta: {
+      title: 'Claims Management - Admin',
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },  
+  {
     path: '/my-policies',
     name: 'my-policies',
     component: () => import('@/views/user/MyPoliciesView.vue'),
-    meta: { 
+    meta: {
       requiresAuth: true,
-      title: 'My Policies'
-    }
+      title: 'My Policies',
+    },
   },
+  {
+    path: '/claims',
+    name: 'my-claims',
+    component: () => import('@/views/user/ClaimsView.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'My Claims',
+    },
+  },
+
   // 404 Not Found - Must be last
   {
     path: '/:pathMatch(.*)*',
