@@ -2690,11 +2690,6 @@ video {
   --tw-gradient-to: #0D5A9A var(--tw-gradient-to-position);
 }
 
-.hover\:text-blue-500:hover {
-  --tw-text-opacity: 1;
-  color: rgb(59 130 246 / var(--tw-text-opacity, 1));
-}
-
 .hover\:text-blue-700:hover {
   --tw-text-opacity: 1;
   color: rgb(15 103 177 / var(--tw-text-opacity, 1));

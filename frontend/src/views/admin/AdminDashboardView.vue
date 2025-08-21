@@ -68,14 +68,14 @@
                 <Plus class="w-4 h-4" />
                 <span>Add New Policy</span>
               </AppButton>
-              <AppButton variant="secondary" class="flex items-center space-x-2">
+              <!-- <AppButton variant="secondary" class="flex items-center space-x-2">
                 <FileText class="w-4 h-4" />
                 <span>Generate Report</span>
-              </AppButton>
-              <AppButton variant="ghost" class="flex items-center space-x-2">
+              </AppButton> -->
+              <!-- <AppButton variant="ghost" class="flex items-center space-x-2">
                 <Settings class="w-4 h-4" />
                 <span>System Settings</span>
-              </AppButton>
+              </AppButton> -->
             </div>
           </div>
 
