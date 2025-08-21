@@ -2,8 +2,7 @@ package com.innov8ors.insurance.service.impl;
 
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
-import com.innov8ors.insurance.repository.dao.PolicyDao;
-import com.innov8ors.insurance.repository.dao.UserDao;
+import com.innov8ors.insurance.exception.BadRequestException;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
 import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
@@ -15,7 +14,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
@@ -24,25 +25,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.innov8ors.insurance.util.Constant.ErrorMessage.USER_ALREADY_HAS_POLICY;
-import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_COVERAGE_AMOUNT;
-import static com.innov8ors.insurance.util.TestUtil.TEST_POLICY_ID;
-import static com.innov8ors.insurance.util.TestUtil.TEST_USER_EMAIL;
-import static com.innov8ors.insurance.util.TestUtil.TEST_USER_ID;
-import static com.innov8ors.insurance.util.TestUtil.TEST_USER_POLICY_ID;
-import static com.innov8ors.insurance.util.TestUtil.getPolicyPurchaseRequest;
-import static com.innov8ors.insurance.util.TestUtil.getTestPolicy;
-import static com.innov8ors.insurance.util.TestUtil.getTestUser;
-import static com.innov8ors.insurance.util.TestUtil.getUser;
-import static com.innov8ors.insurance.util.TestUtil.getUserPolicy;
-import static com.innov8ors.insurance.util.TestUtil.getUserPolicyPage;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.*;
+import static com.innov8ors.insurance.util.TestUtil.*;
+import static java.util.Optional.empty;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -68,12 +54,6 @@ public class UserPolicyServiceImplTest {
 
     @Mock
     PolicyService policyService;
-
-    @Mock
-    UserDao userDao;
-
-    @Mock
-    PolicyDao policyDao;
 
     AutoCloseable closeable;
 
@@ -141,7 +121,7 @@ public class UserPolicyServiceImplTest {
         verify(userPolicyDao).existsByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
         verify(userPolicyDao).save(any(UserPolicy.class));
         verify(userService).getById(TEST_USER_ID);
-        verifyNoMoreInteractions(userService, policyService, userPolicyDao, userDao, policyDao);
+        verifyNoMoreInteractions(userService, policyService, userPolicyDao);
     }
 
     @Test
@@ -170,7 +150,7 @@ public class UserPolicyServiceImplTest {
         verify(policyService).getById(TEST_POLICY_ID);
         verify(userPolicyDao).existsByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
         verify(userPolicyDao).save(any(UserPolicy.class));
-        verifyNoMoreInteractions(userService, policyService, userPolicyDao, userDao, policyDao);
+        verifyNoMoreInteractions(userService, policyService, userPolicyDao);
     }
 
     @Test
@@ -228,10 +208,6 @@ public class UserPolicyServiceImplTest {
                 .when(userPolicyDao)
                 .save(any(UserPolicy.class));
 
-        doReturn(Optional.of(getTestPolicy()))
-                .when(policyDao)
-                .findById(anyLong());
-
         doReturn(getUser())
                 .when(userService)
                 .getById(any());
@@ -247,7 +223,7 @@ public class UserPolicyServiceImplTest {
         verify(userPolicyDao).existsByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
         verify(userPolicyDao).save(any(UserPolicy.class));
         verify(userService).getById(TEST_USER_ID);
-        verifyNoMoreInteractions(policyService, userPolicyDao, userDao, policyDao);
+        verifyNoMoreInteractions(policyService, userPolicyDao);
     }
 
     @Test
@@ -382,6 +358,84 @@ public class UserPolicyServiceImplTest {
         verify(userPolicyDao).save(any(UserPolicy.class));
         verify(userService).getById(TEST_USER_ID);
         verify(policyService).getById(TEST_POLICY_ID);
-        verifyNoMoreInteractions(policyService, userPolicyDao, userDao, policyDao);
+        verifyNoMoreInteractions(policyService, userPolicyDao);
+    }
+
+    @Test
+    public void testSuccessfulRenewPolicy() {
+        UserPolicy existingUserPolicy = getUserPolicy();
+        existingUserPolicy.setStatus(UserPolicyStatus.EXPIRED);
+        doReturn(Optional.of(existingUserPolicy))
+                .when(userPolicyDao)
+                .findByUserIdAndPolicyId(any(), any());
+        doReturn(getPolicy())
+                .when(policyService)
+                .getById(any());
+        doReturn(getUserPolicy())
+                .when(userPolicyDao)
+                .persist(any());
+
+        UserPolicyResponse userPolicy = userPolicyService.renewPolicy(TEST_USER_ID, TEST_POLICY_ID);
+
+        assertNotNull(userPolicy);
+        assertEquals(TEST_USER_POLICY_ID, userPolicy.getId());
+        assertEquals(UserPolicyStatus.ACTIVE, userPolicy.getStatus());
+        verify(userPolicyDao).findByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
+        verify(policyService).getById(TEST_POLICY_ID);
+        verify(userPolicyDao).persist(any(UserPolicy.class));
+        verifyNoMoreInteractions(userPolicyDao, policyService);
+    }
+    @Test
+    public void testFailureRenewPolicyDueToNotFound(){
+        doReturn(Optional.empty())
+                .when(userPolicyDao)
+                .findByUserIdAndPolicyId(any(),any());
+        try {
+            userPolicyService.renewPolicy(TEST_USER_ID, TEST_POLICY_ID);
+            fail("Expected RuntimeException not thrown");
+        } catch (RuntimeException e) {
+            assertEquals(POLICY_NOT_FOUND_OR_DOESNT_BELONG_TO_USER, e.getMessage());
+            verify(userPolicyDao).findByUserIdAndPolicyId(any(),any());
+            verifyNoMoreInteractions(userPolicyDao);
+        }
+    }
+    @Test
+    public void testFailureRenewPolicyDueToNotEligible(){
+        UserPolicy existingUserPolicy = getUserPolicy();
+        existingUserPolicy.setStatus(UserPolicyStatus.ACTIVE);
+        doReturn(Optional.of(existingUserPolicy))
+                .when(userPolicyDao)
+                .findByUserIdAndPolicyId(any(), any());
+
+        try {
+            userPolicyService.renewPolicy(TEST_USER_ID, TEST_POLICY_ID);
+            fail("Expected RuntimeException not thrown");
+        } catch (RuntimeException e) {
+            assertInstanceOf(BadRequestException.class, e);
+            assertEquals(NOT_ELIGIBLE_FOR_RENEWAL, e.getMessage());
+            verify(userPolicyDao).findByUserIdAndPolicyId(TEST_USER_ID, TEST_POLICY_ID);
+            verifyNoMoreInteractions(userPolicyDao);
+        }
+    }
+
+    @Test
+    public void testSuccessfulGetRenewablePolicies() {
+        Page<UserPolicy> renewablePolicies = new PageImpl<>(Arrays.asList(getUserPolicy(), getUserPolicy()));
+        renewablePolicies.getContent().get(0).setStatus(UserPolicyStatus.EXPIRED);
+        renewablePolicies.getContent().get(1).setStatus(UserPolicyStatus.EXPIRED);
+        doReturn(renewablePolicies)
+                .when(userPolicyDao)
+                .findActiveNearingExpiryOrExpiredPolicies(any(), any(), any(), any());
+
+        UserPolicyPaginatedResponse result = userPolicyService.getRenewablePolicies(TEST_USER_ID, 0, 10);
+
+        assertNotNull(result);
+        assertEquals(2, result.getUserPolicies().size());
+        for (UserPolicyResponse policy : result.getUserPolicies()) {
+            assertEquals(UserPolicyStatus.EXPIRED, policy.getStatus());
+        }
+
+        verify(userPolicyDao).findActiveNearingExpiryOrExpiredPolicies(eq(TEST_USER_ID), any(LocalDateTime.class), any(LocalDateTime.class), any(Pageable.class));
+        verifyNoMoreInteractions(userPolicyDao);
     }
 }

@@ -4,6 +4,8 @@ import com.innov8ors.insurance.entity.Policy;
 import com.innov8ors.insurance.entity.User;
 import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.UserPolicyStatus;
+import com.innov8ors.insurance.exception.BadRequestException;
+import com.innov8ors.insurance.exception.NotFoundException;
 import com.innov8ors.insurance.exception.AlreadyExistsException;
 import com.innov8ors.insurance.mapper.UserPolicyMapper;
 import com.innov8ors.insurance.repository.dao.UserPolicyDao;
@@ -24,8 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-import static com.innov8ors.insurance.util.Constant.ErrorMessage.USER_ALREADY_HAS_POLICY;
+import static com.innov8ors.insurance.util.Constant.ErrorMessage.*;
 import static com.innov8ors.insurance.util.Constant.UserPolicyConstants.START_DATE_PLACEHOLDER;
 
 @Service
@@ -73,7 +76,7 @@ public class UserPolicyServiceImpl implements UserPolicyService {
             throw new AlreadyExistsException(USER_ALREADY_HAS_POLICY);
         }
 
-        UserPolicy userPolicy = getUserPolicy(userId, request, policy);
+        UserPolicy userPolicy = checkAndGetExistingUserPolicy(userId, request, policy);
 
         log.info("Creating new user policy for user ID: {}, policy ID: {}", userId, request.getPolicyId());
         userPolicy = userPolicyDao.save(userPolicy);
@@ -92,7 +95,7 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         return null;
     }
 
-    private UserPolicy getUserPolicy(Long userId, PolicyPurchaseRequest request, Policy policy) {
+    private UserPolicy checkAndGetExistingUserPolicy(Long userId, PolicyPurchaseRequest request, Policy policy) {
         return UserPolicy.builder()
                 .userId(userId)
                 .policyId(request.getPolicyId())
@@ -174,5 +177,72 @@ public class UserPolicyServiceImpl implements UserPolicyService {
         log.info("Saving updated user policy for user ID: {}, policy ID: {}", userId, policyId);
 
         return userPolicyDao.persist(userPolicy);
+    }
+
+    @Transactional
+    @Override
+    public UserPolicyResponse renewPolicy(Long userId, Long policyId) {
+        log.debug("Received request to renew policy ID: {} for user: {}", policyId, userId);
+        UserPolicy existingUserPolicy = checkAndGetExistingUserPolicy(userId, policyId);
+        Policy policy = policyService.getById(policyId);
+
+        validatePolicyForRenewal(existingUserPolicy);
+        UserPolicy renewedUserPolicy = updateUserPolicyForRenewal(existingUserPolicy, policy);
+
+        UserPolicy savedPolicy = userPolicyDao.persist(renewedUserPolicy);
+        log.info("Policy ID: {} renewed successfully for user ID: {}", policyId, userId);
+        return UserPolicyMapper.convertToResponse(savedPolicy);
+    }
+
+    private void validatePolicyForRenewal(UserPolicy existingUserPolicy) {
+
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime thirtyDaysFromNow = currentTime.plusDays(30);
+
+        boolean isExpired = existingUserPolicy.getStatus() == UserPolicyStatus.EXPIRED;
+        boolean isActiveAndExpiringWithin30Days = existingUserPolicy.getStatus() == UserPolicyStatus.ACTIVE &&
+                existingUserPolicy.getEndDate().isBefore(thirtyDaysFromNow);
+
+        if (!isExpired && !isActiveAndExpiringWithin30Days) {
+            log.error("Policy ID: {} is not eligible for renewal. Status: {}, End Date: {}",
+                    existingUserPolicy.getPolicyId(), existingUserPolicy.getStatus(), existingUserPolicy.getEndDate());
+            throw new BadRequestException(NOT_ELIGIBLE_FOR_RENEWAL);
+        }
+
+        log.debug("Policy ID: {} is eligible for renewal. Status: {}, End Date: {}",
+                existingUserPolicy.getPolicyId(), existingUserPolicy.getStatus(), existingUserPolicy.getEndDate());
+    }
+
+    private UserPolicy checkAndGetExistingUserPolicy(Long userId, Long policyId) {
+        Optional<UserPolicy> existingPolicyOptional = userPolicyDao.findByUserIdAndPolicyId(userId, policyId);
+        return existingPolicyOptional.orElseThrow(() -> {
+            log.error(POLICY_NOT_FOUND_OR_DOESNT_BELONG_TO_USER);
+            return new NotFoundException(POLICY_NOT_FOUND_OR_DOESNT_BELONG_TO_USER);
+        });
+    }
+
+    @Override
+    public UserPolicyPaginatedResponse getRenewablePolicies(Long userId, Integer page, Integer size) {
+        log.debug("Fetching renewable policies for user: {}", userId);
+
+        LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime thirtyDaysFromNow = currentTime.plusDays(30);
+
+        Page<UserPolicy> renewablePolicies = userPolicyDao.findActiveNearingExpiryOrExpiredPolicies(
+                userId, currentTime, thirtyDaysFromNow, PageRequest.of(page, size, Sort.by(START_DATE_PLACEHOLDER).descending()));
+
+        return UserPolicyMapper.getPolicyPaginatedResponse(renewablePolicies, page, size);
+    }
+
+    private UserPolicy updateUserPolicyForRenewal(UserPolicy existingUserPolicy, Policy policy) {
+        BigDecimal premiumAmount = policy.getPremiumAmount();
+        BigDecimal renewalRate = policy.getRenewalPremiumRate();
+        BigDecimal renewalPremium = premiumAmount.add(premiumAmount.multiply(renewalRate));
+        existingUserPolicy.setStartDate(LocalDateTime.now());
+        existingUserPolicy.setEndDate(LocalDateTime.now().plusMonths(policy.getDurationMonths()));
+        existingUserPolicy.setStatus(UserPolicyStatus.ACTIVE);
+        existingUserPolicy.setTotalAmountClaimed(BigDecimal.ZERO);
+        existingUserPolicy.setPremiumPaid(existingUserPolicy.getPremiumPaid().add(renewalPremium));
+        return existingUserPolicy;
     }
 }
