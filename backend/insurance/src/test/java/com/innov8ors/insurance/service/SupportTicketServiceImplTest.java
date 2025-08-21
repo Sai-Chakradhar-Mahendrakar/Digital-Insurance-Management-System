@@ -16,6 +16,8 @@ import org.mockito.MockitoAnnotations;
 import java.util.List;
 import java.util.Optional;
 
+import static com.innov8ors.insurance.util.TestUtil.createSupportTicket;
+import static com.innov8ors.insurance.util.TestUtil.getSupportTicketUpdateRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,16 +37,6 @@ class SupportTicketServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-    }
-
-    private SupportTicket createSupportTicket(Long id, Long userId, String subject, SupportTicketStatus status) {
-        SupportTicket ticket = new SupportTicket();
-        ticket.setId(id);
-        ticket.setUserId(userId);
-        ticket.setSubject(subject);
-        ticket.setStatus(status);
-        ticket.setCreatedAt(java.time.LocalDateTime.now());
-        return ticket;
     }
 
     private SupportTicketCreateRequest createSupportTicketCreateRequest(Long policyId, Long claimId, String subject, String description) {
@@ -89,9 +81,7 @@ class SupportTicketServiceImplTest {
         SupportTicket ticket = createSupportTicket(1L, 1L, "Subject", SupportTicketStatus.OPEN);
         Mockito.when(supportTicketRepository.findById(1L)).thenReturn(Optional.of(ticket));
         Mockito.when(supportTicketRepository.save(any(SupportTicket.class))).thenReturn(ticket);
-        SupportTicketUpdateRequest updateRequest = new SupportTicketUpdateRequest();
-        updateRequest.setResponse("Resolved");
-        updateRequest.setStatus(SupportTicketStatus.RESOLVED);
+        SupportTicketUpdateRequest updateRequest = getSupportTicketUpdateRequest();
         SupportTicket updated = supportTicketService.updateTicketStatus(1L, updateRequest);
         assertEquals(SupportTicketStatus.RESOLVED, updated.getStatus());
     }
@@ -107,9 +97,7 @@ class SupportTicketServiceImplTest {
             t.setResolvedAt(java.time.LocalDateTime.now());
             return t;
         });
-        SupportTicketUpdateRequest updateRequest = new SupportTicketUpdateRequest();
-        updateRequest.setResponse("Resolved");
-        updateRequest.setStatus(SupportTicketStatus.RESOLVED);
+        SupportTicketUpdateRequest updateRequest = getSupportTicketUpdateRequest();
         SupportTicket updated = supportTicketService.updateTicketStatus(2L, updateRequest);
         assertEquals(SupportTicketStatus.RESOLVED, updated.getStatus());
         assertTrue(updated.getResolvedAt() != null);
@@ -118,9 +106,7 @@ class SupportTicketServiceImplTest {
     @Test
     void testUpdateTicketStatus_NotFound() {
         Mockito.when(supportTicketRepository.findById(anyLong())).thenReturn(Optional.empty());
-        SupportTicketUpdateRequest updateRequest = new SupportTicketUpdateRequest();
-        updateRequest.setResponse("Response");
-        updateRequest.setStatus(SupportTicketStatus.RESOLVED);
+        SupportTicketUpdateRequest updateRequest = getSupportTicketUpdateRequest();
         Exception exception = assertThrows(RuntimeException.class, () -> {
             supportTicketService.updateTicketStatus(99L, updateRequest);
         });

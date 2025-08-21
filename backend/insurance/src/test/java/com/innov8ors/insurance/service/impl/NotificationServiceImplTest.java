@@ -28,7 +28,6 @@ import static com.innov8ors.insurance.util.TestUtil.getNotificationSendBulkReque
 import static com.innov8ors.insurance.util.TestUtil.getNotificationSendRequest;
 import static com.innov8ors.insurance.util.TestUtil.getNotifications;
 import static com.innov8ors.insurance.util.TestUtil.getUser;
-import static com.innov8ors.insurance.util.TestUtil.getUserPolicy;
 import static com.innov8ors.insurance.util.TestUtil.getUserPolicyPaginatedResponse;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
