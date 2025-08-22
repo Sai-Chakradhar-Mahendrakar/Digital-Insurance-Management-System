@@ -39,6 +39,7 @@ public class Constant {
     }
 
     public static class UserPolicyConstants {
+        public static final String USER_POLICY_STATUS_PLACEHOLDER = "status";
         public static final String START_DATE_PLACEHOLDER = "startDate";
         public static final String END_DATE_PLACEHOLDER = "endDate";
     }
@@ -54,5 +55,6 @@ public class Constant {
         public static final String NOTIFICATION_STATUS_PLACEHOLDER = "status";
         public static final String USER_PLACEHOLDER = "user";
         public static final String ID_PLACEHOLDER = "id";
+        public static final Long EXPIRY_REMINDER_DAYS = 31L;
     }
 }

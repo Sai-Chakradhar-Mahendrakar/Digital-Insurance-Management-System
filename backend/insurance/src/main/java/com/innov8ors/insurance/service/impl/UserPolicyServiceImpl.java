@@ -16,10 +16,12 @@ import com.innov8ors.insurance.response.UserPolicyResponse;
 import com.innov8ors.insurance.service.PolicyService;
 import com.innov8ors.insurance.service.UserPolicyService;
 import com.innov8ors.insurance.service.UserService;
+import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +34,10 @@ import java.util.Optional;
 import static com.innov8ors.insurance.util.Constant.ErrorMessage.PREMIUM_PAID_MUST_EQUAL_TO_PREMIUM_AMOUNT;
 import static com.innov8ors.insurance.util.Constant.ErrorMessage.*;
 import static com.innov8ors.insurance.util.Constant.ErrorMessage.USER_POLICY_NOT_FOUND;
+import static com.innov8ors.insurance.util.Constant.NotificationConstants.EXPIRY_REMINDER_DAYS;
+import static com.innov8ors.insurance.util.Constant.UserPolicyConstants.END_DATE_PLACEHOLDER;
 import static com.innov8ors.insurance.util.Constant.UserPolicyConstants.START_DATE_PLACEHOLDER;
+import static com.innov8ors.insurance.util.Constant.UserPolicyConstants.USER_POLICY_STATUS_PLACEHOLDER;
 
 @Service
 @Slf4j
@@ -122,12 +127,25 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     @Scheduled(cron = "0 * * * * ?")
     public void updateExpiredPolicies() {
         List<UserPolicy> expiredPolicies = userPolicyDao
-                .findByStatusAndEndDateBefore(UserPolicyStatus.ACTIVE, LocalDateTime.now());
+                .findAll(getAboutToExpiredQuery());
 
         expiredPolicies.forEach(policy -> {
             policy.setStatus(UserPolicyStatus.EXPIRED);
             userPolicyDao.save(policy);
         });
+    }
+
+    private Specification<UserPolicy> getAboutToExpiredQuery() {
+        return (root, query, criteriaBuilder) -> {
+            LocalDateTime upperLimit = LocalDateTime.now().plusDays(EXPIRY_REMINDER_DAYS);
+            LocalDateTime lowerLimit = LocalDateTime.now();
+
+            Predicate statusNotExpired = criteriaBuilder.notEqual(root.get(USER_POLICY_STATUS_PLACEHOLDER), UserPolicyStatus.EXPIRED);
+            Predicate endDateBeforeSomeDaysFromNow = criteriaBuilder.lessThanOrEqualTo(root.get(END_DATE_PLACEHOLDER), upperLimit);
+            Predicate endDateAfterNow = criteriaBuilder.greaterThanOrEqualTo(root.get(END_DATE_PLACEHOLDER), lowerLimit);
+
+            return criteriaBuilder.and(statusNotExpired, endDateBeforeSomeDaysFromNow, endDateAfterNow);
+        };
     }
 
     public boolean isExistsByUserIdAndPolicyId(Long userId, Long policyId) {
