@@ -120,16 +120,16 @@
             <!-- Renewal Premium -->
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-2"
-                >Renewal Premium (₹)</label
+                >Renewal Premium Rate</label
               >
               <input
                 v-model.number="form.renewalPremiumRate"
                 type="number"
                 required
-                min="1"
+                min="0"
                 step="0.01"
                 class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                placeholder="48000"
+                placeholder="0.01"
               />
             </div>
           </div>
