@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
@@ -288,7 +289,7 @@ public class UserPolicyServiceImplTest {
 
         doReturn(expiredPolicies)
                 .when(userPolicyDao)
-                .findByStatusAndEndDateBefore(eq(UserPolicyStatus.ACTIVE), any(LocalDateTime.class));
+                .findAll(any(Specification.class));
 
         doReturn(expiredPolicy1)
                 .when(userPolicyDao)
@@ -309,7 +310,7 @@ public class UserPolicyServiceImplTest {
         assertEquals(UserPolicyStatus.EXPIRED, expiredPolicy1.getStatus());
         assertEquals(UserPolicyStatus.EXPIRED, expiredPolicy2.getStatus());
 
-        verify(userPolicyDao).findByStatusAndEndDateBefore(eq(UserPolicyStatus.ACTIVE), any(LocalDateTime.class));
+        verify(userPolicyDao).findAll(any(Specification.class));
         verify(userPolicyDao, times(2)).save(any(UserPolicy.class));
         verifyNoMoreInteractions(userPolicyDao);
     }
@@ -318,7 +319,7 @@ public class UserPolicyServiceImplTest {
     public void testPolicyExpiryStatusUpdateNoExpiredPolicies() {
         doReturn(Collections.emptyList())
                 .when(userPolicyDao)
-                .findByStatusAndEndDateBefore(eq(UserPolicyStatus.ACTIVE), any(LocalDateTime.class));
+                .findAll();
 
         try {
             Method updateExpiredPoliciesMethod = UserPolicyServiceImpl.class.getDeclaredMethod("updateExpiredPolicies");
@@ -328,7 +329,7 @@ public class UserPolicyServiceImplTest {
             fail("Failed to invoke updateExpiredPolicies method: " + e.getMessage());
         }
 
-        verify(userPolicyDao).findByStatusAndEndDateBefore(eq(UserPolicyStatus.ACTIVE), any(LocalDateTime.class));
+        verify(userPolicyDao).findAll(any(Specification.class));
         verify(userPolicyDao, never()).save(any(UserPolicy.class));
         verifyNoMoreInteractions(userPolicyDao);
     }
