@@ -232,14 +232,6 @@
     <!-- Action Buttons -->
     <div class="flex space-x-2 mb-4">
       <AppButton
-        variant="primary"
-        size="medium"
-        @click="$emit('view', userPolicy)"
-        class="flex-1 font-semibold"
-      >
-        View Details
-      </AppButton>
-      <AppButton
         v-if="userPolicy.status === 'ACTIVE'"
         variant="secondary"
         size="medium"
