@@ -252,6 +252,7 @@
     </div>
 
     <!-- Renewal Call-to-Action for Expiring Policies -->
+    <!-- Renewal Call-to-Action for Expiring Policies -->
     <div v-if="userPolicy.status === 'ACTIVE' && isExpiringSoon(userPolicy.endDate)" class="mb-4">
       <div
         class="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-lg p-4"
@@ -268,20 +269,15 @@
               </p>
             </div>
           </div>
-          <AppButton
-            variant="ghost"
-            size="small"
-            @click="confirmRenewal"
-            :disabled="isRenewing"
-            class="flex items-center space-x-2"
-          >
+          <!-- Fixed: Single renew button -->
+          <AppButton @click="confirmRenewal" :disabled="isRenewing" variant="primary" size="small">
             <span v-if="!isRenewing" class="flex items-center">
               <RefreshCw class="w-4 h-4 mr-1" />
               Renew Now
             </span>
             <span v-else class="flex items-center">
               <div
-                class="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin mr-1"
+                class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"
               ></div>
               Renewing...
             </span>
@@ -289,6 +285,7 @@
         </div>
       </div>
     </div>
+
 
     <!-- Status Timeline -->
     <div class="pt-4 border-t border-slate-200">
@@ -343,6 +340,7 @@
         </AppButton>
       </div>
 
+      <!-- Fixed: Single renewal section for expired policies -->
       <div v-else-if="userPolicy.status === 'EXPIRED'" class="space-y-2">
         <div class="flex items-center text-sm text-slate-600 bg-slate-50 p-3 rounded-lg">
           <AlertTriangle class="w-4 h-4 mr-2" />
@@ -353,7 +351,7 @@
         <AppButton
           variant="primary"
           size="small"
-          @click="$emit('renew', userPolicy)"
+          @click="confirmRenewal"
           class="w-full"
           :disabled="isRenewing"
         >
@@ -499,7 +497,7 @@ const emit = defineEmits<{
   (e: 'view', userPolicy: UserPolicy): void
   (e: 'makeClaim', userPolicy: UserPolicy): void
   (e: 'reapply', userPolicy: UserPolicy): void
-  (e: 'renew', userPolicy: UserPolicy): void
+  (e: 'renew', renewedPolicy: any): void // Fixed: single definition for renew event
 }>()
 
 const toast = useToast()
@@ -545,24 +543,25 @@ const closeRenewalModal = () => {
 }
 
 const confirmRenewal = async () => {
-  if (!props.userPolicy?.policyId) return
+  if (!props.userPolicy) {
+    toast.error('Error', 'Policy information is not available')
+    return
+  }
 
-  isRenewing.value = true
   try {
-    // Use the store method instead of direct API call
+    isRenewing.value = true
+    console.log('Renewing policy:', props.userPolicy.policyId) // Debug log
+
     const renewedPolicy = await policyRenewalStore.renewPolicy(props.userPolicy.policyId)
 
-    toast.success(
-      'Policy Renewed Successfully!',
-      `${renewedPolicy.policyName} has been renewed until ${formatDate(renewedPolicy.endDate)}`,
-    )
-
-    // Emit the renew event with the updated policy to refresh parent component
-    emit('renew', renewedPolicy as UserPolicy)
-    closeRenewalModal()
+    toast.success('Policy Renewed Successfully!')
+    emit('renew', renewedPolicy) // Emit the event with renewed policy data
+    closeRenewalModal() // Close modal on success
   } catch (error) {
-    toast.error('Renewal Failed', 'Failed to renew your policy. Please try again.')
-    console.error('Renewal error:', error)
+    console.error('Renewal error:', error) // Debug log
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to renew your policy. Please try again.'
+    toast.error('Renewal Failed', errorMessage)
   } finally {
     isRenewing.value = false
   }

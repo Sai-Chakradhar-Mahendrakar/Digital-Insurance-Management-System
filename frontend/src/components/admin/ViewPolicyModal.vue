@@ -378,7 +378,17 @@ const loadEnrolledUsers = async () => {
     const data = await response.json()
     console.log('API Response:', data)
 
-    enrolledUsers.value = data.content || []
+    // Fix: Handle both possible response structures
+    if (data.userPolicies && Array.isArray(data.userPolicies)) {
+      enrolledUsers.value = data.userPolicies
+    } else if (data.content && Array.isArray(data.content)) {
+      enrolledUsers.value = data.content
+    } else if (Array.isArray(data)) {
+      enrolledUsers.value = data
+    } else {
+      enrolledUsers.value = []
+    }
+
     console.log('Enrolled users loaded:', enrolledUsers.value.length)
 
     if (enrolledUsers.value.length === 0) {

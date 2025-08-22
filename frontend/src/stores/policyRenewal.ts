@@ -68,18 +68,20 @@ export const usePolicyRenewalStore = defineStore('policyRenewal', () => {
     error.value = null
 
     try {
+      console.log('Making API call to renew policy:', policyId) // Debug log
+
       const response = await fetch(`http://localhost:8080/user/policy/${policyId}/renew`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${authStore.token}`,
-          Cookie: 'JSESSIONID=0BA80B06A6DB56DC2ED71E45B28BE2A6',
+          'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: '',
       })
 
       if (!response.ok) {
-        throw new Error(`Failed to renew policy: ${response.status}`)
+        const errorText = await response.text()
+        throw new Error(`Failed to renew policy: ${response.status} - ${errorText}`)
       }
 
       const renewedPolicy: RenewablePolicy = await response.json()
@@ -92,8 +94,10 @@ export const usePolicyRenewalStore = defineStore('policyRenewal', () => {
         renewablePolicies.value[index] = renewedPolicy
       }
 
+      console.log('Policy renewed successfully:', renewedPolicy) // Debug log
       return renewedPolicy
     } catch (err) {
+      console.error('Error renewing policy:', err) // Debug log
       error.value = err instanceof Error ? err.message : 'Failed to renew policy'
       throw err
     } finally {

@@ -196,11 +196,11 @@
       <!-- Policies Grid -->
       <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <PolicyCard
-          v-for="userPolicy in paginatedPolicies"
-          :key="`policy-${userPolicy.id}-${userPolicy.policyId}`"
-          :userPolicy="userPolicy"
-          @view="viewPolicyDetails"
-          @makeClaim="handleMakeClaim"
+          v-for="policy in paginatedPolicies"
+          :key="policy.id"
+          :user-policy="policy"
+          @view="handleViewPolicy"
+          @make-claim="handleMakeClaim"
           @reapply="handleReapply"
           @renew="handlePolicyRenewed"
         />
@@ -379,9 +379,7 @@ const refreshPolicies = async () => {
     if (typeof error === 'object' && error !== null) {
       const err = error as any
       errorMessage.value =
-        err.response?.data?.errorMessage ||
-        err.message ||
-        'Failed to load policies'
+        err.response?.data?.errorMessage || err.message || 'Failed to load policies'
     }
     toast.error('Refresh Failed', errorMessage.value)
   }
