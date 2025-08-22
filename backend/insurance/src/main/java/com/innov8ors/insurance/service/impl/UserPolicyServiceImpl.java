@@ -121,7 +121,6 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     @Transactional
     @Scheduled(cron = "0 * * * * ?")
     public void updateExpiredPolicies() {
-        System.out.println("Running scheduled task to update expired policies...");
         List<UserPolicy> expiredPolicies = userPolicyDao
                 .findByStatusAndEndDateBefore(UserPolicyStatus.ACTIVE, LocalDateTime.now());
 
