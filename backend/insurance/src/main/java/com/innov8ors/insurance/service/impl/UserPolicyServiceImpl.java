@@ -126,13 +126,18 @@ public class UserPolicyServiceImpl implements UserPolicyService {
     @Transactional
     @Scheduled(cron = "0 * * * * ?")
     public void updateExpiredPolicies() {
-        List<UserPolicy> expiredPolicies = userPolicyDao
-                .findAll(getAboutToExpiredQuery());
+        List<UserPolicy> expiredPolicies = getUserPoliciesAboutToExpire();
 
         expiredPolicies.forEach(policy -> {
             policy.setStatus(UserPolicyStatus.EXPIRED);
             userPolicyDao.save(policy);
         });
+    }
+
+    @Override
+    public List<UserPolicy> getUserPoliciesAboutToExpire() {
+        return userPolicyDao
+                .findAll(getAboutToExpiredQuery());
     }
 
     private Specification<UserPolicy> getAboutToExpiredQuery() {

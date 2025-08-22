@@ -7,6 +7,8 @@ import com.innov8ors.insurance.response.UserPolicyPaginatedResponse;
 import com.innov8ors.insurance.response.UserPolicyResponse;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 
 public interface UserPolicyService {
 
@@ -22,6 +24,8 @@ public interface UserPolicyService {
     UserPolicyResponse purchasePolicy(Long userId, PolicyPurchaseRequest request);
 
     UserPolicy makePayment(String userEmail, Long policyId);
+
+    List<UserPolicy> getUserPoliciesAboutToExpire();
 
     boolean isExistsByUserIdAndPolicyId(Long userId, Long policyId);
 

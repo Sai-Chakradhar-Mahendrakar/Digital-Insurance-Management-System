@@ -2,6 +2,7 @@ package com.innov8ors.insurance.service.impl;
 
 import com.innov8ors.insurance.entity.Notification;
 import com.innov8ors.insurance.entity.User;
+import com.innov8ors.insurance.entity.UserPolicy;
 import com.innov8ors.insurance.enums.NotificationStatus;
 import com.innov8ors.insurance.enums.NotificationType;
 import com.innov8ors.insurance.exception.NotFoundException;
@@ -22,7 +23,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -135,6 +138,19 @@ public class NotificationServiceImpl implements NotificationService {
         for (Long userId : request.getUserId()) {
             NotificationRequest notificationRequest = request.getRequest();
             sendNotification(NotificationMapper.createNotificationSendRequest(userId, notificationRequest.getMessage(), notificationRequest.getType()));
+        }
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 * * * * ?")
+    public void sendNotificationsForPoliciesAboutToExpire() {
+        List<UserPolicy> getAboutToExpirePolicies = userPolicyService.getUserPoliciesAboutToExpire();
+
+        for (UserPolicy userPolicy : getAboutToExpirePolicies) {
+            Long userId = userPolicy.getUserId();
+            String message = "Your policy with ID " + userPolicy.getPolicyId() + " is about to expire on " + userPolicy.getEndDate() + ". Please renew it soon.";
+            NotificationSendRequest request = NotificationMapper.createNotificationSendRequest(userId, message, NotificationType.POLICY_RENEWAL);
+            sendNotification(request);
         }
     }
 }
