@@ -62,9 +62,9 @@
                   }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-slate-500">Renewal Premium</span>
+                  <span class="text-slate-500">Renewal Premium Rate</span>
                   <span class="font-semibold text-slate-900">{{
-                    formatINR(policy.renewalPremiumRate)
+                    policy.renewalPremiumRate
                   }}</span>
                 </div>
               </div>
@@ -249,8 +249,8 @@ const formatINR = (amount: number): string => {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount)
 }
 
