@@ -199,7 +199,7 @@
           v-for="policy in paginatedPolicies"
           :key="policy.id"
           :user-policy="policy"
-          @view="handleViewPolicy"
+          @view=""
           @make-claim="handleMakeClaim"
           @reapply="handleReapply"
           @renew="handlePolicyRenewed"
