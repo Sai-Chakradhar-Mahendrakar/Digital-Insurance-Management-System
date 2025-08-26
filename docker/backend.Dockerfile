@@ -3,7 +3,7 @@ WORKDIR /app
 COPY pom.xml .
 # Download all required dependencies
 RUN mvn dependency:go-offline -B
-COPY src ./src
+COPY ../backend/src ./src
 # RUN mvn clean package -DskipTests
 RUN mvn clean verify
 FROM maven:3.9.11-eclipse-temurin-17
