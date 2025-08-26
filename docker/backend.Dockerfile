@@ -1,35 +1,14 @@
-FROM openjdk:17-jdk-slim
-
+# Stage 1: Build
+FROM maven:3.9.11-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY backend/pom.xml .
+RUN mvn dependency:go-offline -B
+COPY backend/src ./src
+RUN mvn clean package -DskipTests
 
-# Copy Maven wrapper and pom.xml from the correct location
-COPY backend/insurance/.mvn ./.mvn
-COPY backend/insurance/mvnw .
-COPY backend/insurance/mvnw.cmd .
-COPY backend/insurance/pom.xml .
-
-# Make Maven wrapper executable
-RUN chmod +x ./mvnw
-
-# Download dependencies (using Maven wrapper)
-RUN ./mvnw dependency:go-offline -B
-
-# Copy source code from the correct location
-COPY backend/insurance/src ./src
-
-# Build the application
-RUN ./mvnw clean package -DskipTests
-
-# Runtime stage
-FROM openjdk:17-jre-slim
-
+# Stage 2: Run
+FROM eclipse-temurin:17-jre
 WORKDIR /app
-
-# Copy the built JAR file
-COPY --from=0 /app/target/insurance-*.jar app.jar
-
-# Expose port (adjust if your app uses a different port)
-EXPOSE 8081
-
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","app.jar"]
