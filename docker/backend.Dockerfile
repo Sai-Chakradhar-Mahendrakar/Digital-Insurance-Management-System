@@ -3,7 +3,7 @@ FROM maven:3.9.11-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY backend/pom.xml .
 RUN mvn dependency:go-offline -B
-COPY backend/src ./src
+COPY backend/insurance/src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Run
