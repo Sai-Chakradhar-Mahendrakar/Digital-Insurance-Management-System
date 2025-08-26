@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: 'https://digital-insurance-management-system.onrender.com',
   withCredentials: true, // This ensures cookies are sent
   headers: {
     'Content-Type': 'application/json',

@@ -71,7 +71,7 @@ export const useAuthStore = defineStore('auth', () => {
   const adminLogin = async (credentials: LoginRequest) => {
     try {
       // Direct fetch for admin login to avoid circular dependency issues
-      const response = await fetch('http://localhost:8080/auth/login', {
+      const response = await fetch('https://digital-insurance-management-system.onrender.com/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

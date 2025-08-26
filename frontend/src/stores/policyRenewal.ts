@@ -40,7 +40,7 @@ export const usePolicyRenewalStore = defineStore('policyRenewal', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8080/user/policy/renewable', {
+      const response = await fetch('https://digital-insurance-management-system.onrender.com/user/policy/renewable', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${authStore.token}`,
@@ -70,7 +70,7 @@ export const usePolicyRenewalStore = defineStore('policyRenewal', () => {
     try {
       console.log('Making API call to renew policy:', policyId) // Debug log
 
-      const response = await fetch(`http://localhost:8080/user/policy/${policyId}/renew`, {
+      const response = await fetch(`https://digital-insurance-management-system.onrender.com/user/policy/${policyId}/renew`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${authStore.token}`,
