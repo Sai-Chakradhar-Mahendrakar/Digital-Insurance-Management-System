@@ -1,6 +1,7 @@
 # Digital Insurance Management System
 
-A modern, scalable platform for managing digital insurance operations. This project uses Docker and PostgreSQL for easy setup and deployment.
+A modern, scalable platform for managing digital insurance operations using SpringBoot(JAVA), VueJS(JAVASCRIPT). This project uses Docker and PostgreSQL for easy setup.
+
 
 ## Features
 
@@ -11,6 +12,27 @@ A modern, scalable platform for managing digital insurance operations. This proj
 - Support ticketing
 - Dockerized local environment with a PostgreSQL database
 - Migration-friendly database setup
+
+## Tech Stack
+
+Adjust the items below to match your exact implementation.
+
+- Frontend:
+  - Framework: Vue
+  - UI: Tailwind CSS 
+  - State & Data: Pinia
+- Backend:
+  - Framework: Java (Spring Boot)
+  - Auth: JWT-based authentication
+  - ORM/Database Toolkit: JPA/Hibernate
+- Database:
+  - PostgreSQL
+  - Migrations: Flyway 
+- DevOps:
+  - Containers: Docker, Docker Compose
+  - CI/CD: GitHub Actions 
+- Testing:
+  - Backend: JUnit
 
 ## About the Project
 
