@@ -362,7 +362,7 @@ const loadEnrolledUsers = async () => {
   errorMessage.value = ''
 
   try {
-    const response = await fetch(`http://localhost:8080/admin/policies/${props.policy.id}/users`, {
+    const response = await fetch(`https://digital-insurance-management-system.onrender.com/admin/policies/${props.policy.id}/users`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${authStore.token}`,
