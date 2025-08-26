@@ -1,0 +1,583 @@
+{
+	"info": {
+		"_postman_id": "ae59f34d-200b-4b9d-b53d-3e0950d54ca8",
+		"name": "insurance",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "44716899"
+	},
+	"item": [
+		{
+			"name": "Claims",
+			"item": [
+				{
+					"name": "Submit Claim - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTcxNTUxMSwiZXhwIjoxNzU1ODAxOTExfQ.0K7xfOl_1sCrtb2KELbWiwnPMFgiH6RH_mY9SB9e1_4"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"policyId\": 4,\n    \"claimDate\": \"2025-08-20\",\n    \"claimAmount\": 1000.00,\n    \"reason\": \"Hospitalization due to Fever\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/claim"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Claims - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTcxMDcyNywiZXhwIjoxNzU1Nzk3MTI3fQ.ROt6yvG5KlRW-GEc3INR9C2S-GzdpBb2TIz8XcUjnIY"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/user/claims"
+					},
+					"response": []
+				},
+				{
+					"name": "Approve/Reject - Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTcxNjI3OCwiZXhwIjoxNzU1ODAyNjc4fQ.JOwhvuNhzJtf6urve18Yzdl_kKVKwwYsXrKqImkTA0k"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"APPROVED\",\n    \"reviewerComment\": \"Claim verified and approved for payment.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/admin/claim/3/status"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Claims- Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTcxNjI3OCwiZXhwIjoxNzU1ODAyNjc4fQ.JOwhvuNhzJtf6urve18Yzdl_kKVKwwYsXrKqImkTA0k"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/admin/claims"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Claims Data - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFsaWNlLnNtaXRoQGV4YW1wbGUub3JnIiwiaWF0IjoxNzU1NzA5NjE5LCJleHAiOjE3NTU3OTYwMTl9.r6ByNPl9QCsmkqjDaGlkEIl-Xh5YeOnwfKiSTQtQCno"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/claim/3"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Policies",
+			"item": [
+				{
+					"name": "policies - All",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NDkwOTQ0NCwiZXhwIjoxNzU0OTk1ODQ0fQ.6KaiZTBTUJWaX-Yk79c1aX-xe-exA_N69OKuSDdmGqA"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/policies"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Policies - Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFsaWNlLnNtaXRoQGV4YW1wbGUub3JnIiwiaWF0IjoxNzU1Njc0OTcwLCJleHAiOjE3NTU3NjEzNzB9.BXc9N99k1_OiLNKT5TB7l4E29-JvpMQUBy-EFT9t504"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "// {\n//     \"name\": \"Comprehensive Health Insurance\",\n//     \"type\": \"Health\",\n//     \"description\": \"Provides full medical coverage including hospitalization and outpatient care.\",\n//     \"premiumAmount\": 5000.00,\n//     \"coverageAmount\": 1000000.00,\n//     \"durationMonths\": 12,\n//     \"renewalPremiumRate\": 4800.00\n// }\n\n\n\n\n{\n    \"name\": \"demo2\",\n    \"type\": \"Health\",\n    \"description\": \"demo\",\n    \"premiumAmount\": 500,\n    \"coverageAmount\": 500000,\n    \"durationMonths\": 12,\n    \"renewalPremiumRate\": 10000\n}\n\n// {\n//     \"name\": \"Demo\",\n//     \"type\": \"Health\",\n//     \"description\": \"Testing\",\n//     \"premiumAmount\": 1000.0,\n//     \"coverageAmount\": 10000.0,\n//     \"durationMonths\": 12,\n//     \"renewalPremiumRate\": 1200\n// }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/admin/policies/1"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Support Ticket",
+			"item": [
+				{
+					"name": "Create Request - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFsaWNlLnNtaXRoQGV4YW1wbGUub3JnIiwiaWF0IjoxNzU1Njc0OTcwLCJleHAiOjE3NTU3NjEzNzB9.BXc9N99k1_OiLNKT5TB7l4E29-JvpMQUBy-EFT9t504"
+							}
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"policyId\": 123, \n    \"claimId\": 456, \n    \"subject\": \"Need help with my policy\", \n    \"description\": \"I have a question about my insurance policy.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/support"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Ticket - Specific User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFsaWNlLnNtaXRoQGV4YW1wbGUub3JnIiwiaWF0IjoxNzU1Njc5NzE0LCJleHAiOjE3NTU3NjYxMTR9.JthxgorMFDgydA4d-jzSoK-_AhnYrFUfEZcsZ0wVT-Q"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/support/user/5"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Tickets of the user - user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFsaWNlLnNtaXRoQGV4YW1wbGUub3JnIiwiaWF0IjoxNzU1Njc0OTcwLCJleHAiOjE3NTU3NjEzNzB9.BXc9N99k1_OiLNKT5TB7l4E29-JvpMQUBy-EFT9t504"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/support/user/getTicketsByUser"
+					},
+					"response": []
+				},
+				{
+					"name": "Respond ticket - Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTc0OTQ5NCwiZXhwIjoxNzU1ODM1ODk0fQ.HZSC9rrg4ln-pjqNwjbuY-YcS5dXX36iTf30am4S2gU"
+							}
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"response\": \"Your issue is resolved\",\n    \"status\": \"RESOLVED\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/admin/support/2"
+					},
+					"response": []
+				},
+				{
+					"name": "Fetch All Tickets - Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTY3OTYzMiwiZXhwIjoxNzU1NzY2MDMyfQ.oyz1tqgTlQBg1d05G8uurW7wJp4jK09Q0lr9Czab7og"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/admin/support/fetchAll"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User Policy",
+			"item": [
+				{
+					"name": "Purchase Policy - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImFsaWNlLnNtaXRoQGV4YW1wbGUub3JnIiwiaWF0IjoxNzU1NzA5NjE5LCJleHAiOjE3NTU3OTYwMTl9.r6ByNPl9QCsmkqjDaGlkEIl-Xh5YeOnwfKiSTQtQCno"
+							}
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTAxMjQ5MSwiZXhwIjoxNzU1MDEyNTk5fQ.qWIHRlpj0Nqp2wA5sziNr9JgS0EGIg2Hwgs-ozySB2I"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"policyId\": 1,\n    \"premiumPaid\": 5000\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/user/policy/purchase"
+					},
+					"response": []
+				},
+				{
+					"name": "Checking Policy - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6IkNoYWtyaUBnbWFpbC5jb20iLCJpYXQiOjE3NTU3ODI2MzYsImV4cCI6MTc1NTg2OTAzNn0.6skJa8gGdebv1hjt__l0fSwhv6-BUGjfBUAKCSg4Po8"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/user/policies?size=1000",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"user",
+								"policies"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "1000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Enrolled Users for Policy - Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTg1ODA5MiwiZXhwIjoxNzU1OTQ0NDkyfQ.twBgF8mremAavdNA8elHBswL1S78wFjIsvAfG3Ik9aU"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/admin/policies/10/users"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Policy Renewal",
+			"item": [
+				{
+					"name": "Get need renewal Policy - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6IkNoYWtyaUBnbWFpbC5jb20iLCJpYXQiOjE3NTU3NjEyMTQsImV4cCI6MTc1NTg0NzYxNH0.JXDH_Km1eikqnmZmYcmtHpcc7HyxMRJ4GoThQv3-xxk"
+							}
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImpvaG4yLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTc1NTIxOSwiZXhwIjoxNzU1ODQxNjE5fQ.iWcllZ3Q5bPSoKoCGqAMhDBVCjvkgZ3bTacWztXAkI4",
+								"disabled": true
+							},
+							{
+								"key": "Cookie",
+								"value": "JSESSIONID=7A4C0B8283A7E8A90A3C305EC60DB839",
+								"disabled": true
+							}
+						],
+						"url": "http://localhost:8080/user/policy/renewable"
+					},
+					"response": []
+				},
+				{
+					"name": "Renewal for policy - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6IkNoYWtyaUBnbWFpbC5jb20iLCJpYXQiOjE3NTU3NjEyMTQsImV4cCI6MTc1NTg0NzYxNH0.JXDH_Km1eikqnmZmYcmtHpcc7HyxMRJ4GoThQv3-xxk"
+							}
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImpvaG4yLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTc1NTIxOSwiZXhwIjoxNzU1ODQxNjE5fQ.iWcllZ3Q5bPSoKoCGqAMhDBVCjvkgZ3bTacWztXAkI4",
+								"disabled": true
+							},
+							{
+								"key": "Cookie",
+								"value": "JSESSIONID=7A4C0B8283A7E8A90A3C305EC60DB839",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/user/policy/7/renew"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Get Notification - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6IkNoYWtyaUBnbWFpbC5jb20iLCJpYXQiOjE3NTU3ODI2MzYsImV4cCI6MTc1NTg2OTAzNn0.6skJa8gGdebv1hjt__l0fSwhv6-BUGjfBUAKCSg4Po8"
+							}
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImpvaG4zLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTc4MjE1MSwiZXhwIjoxNzU1ODY4NTUxfQ.fuGLWKdFcIYtkW9me8n6HpU9Ya_g5TkSIcAXMLHWO-c",
+								"disabled": true
+							},
+							{
+								"key": "Cookie",
+								"value": "JSESSIONID=8C816300B8DED2EFB5EC8DB3DB5448ED",
+								"disabled": true
+							}
+						],
+						"url": "http://localhost:8080/notifications/user"
+					},
+					"response": []
+				},
+				{
+					"name": "Read Notification - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6IkNoYWtyaUBnbWFpbC5jb20iLCJpYXQiOjE3NTU3ODI2MzYsImV4cCI6MTc1NTg2OTAzNn0.6skJa8gGdebv1hjt__l0fSwhv6-BUGjfBUAKCSg4Po8"
+							}
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImpvaG4zLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTc4MjE1MSwiZXhwIjoxNzU1ODY4NTUxfQ.fuGLWKdFcIYtkW9me8n6HpU9Ya_g5TkSIcAXMLHWO-c",
+								"disabled": true
+							},
+							{
+								"key": "Cookie",
+								"value": "JSESSIONID=8C816300B8DED2EFB5EC8DB3DB5448ED",
+								"disabled": true
+							}
+						],
+						"url": "http://localhost:8080/notifications/1/read"
+					},
+					"response": []
+				},
+				{
+					"name": "Read All Notifications - User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6IkNoYWtyaUBnbWFpbC5jb20iLCJpYXQiOjE3NTU3ODI4MzcsImV4cCI6MTc1NTg2OTIzN30.voVEma7BOeV5GquEJRlW6dZl_NoaC7YFLsfngbnObuM"
+							}
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiVVNFUiIsInN1YiI6ImpvaG4yLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTc3NTkyMiwiZXhwIjoxNzU1ODYyMzIyfQ.XDV3U6mTrqNM7AR9Qjlvqos7AJMs7251VR851Jf1G24"
+							},
+							{
+								"key": "Cookie",
+								"value": "JSESSIONID=8C816300B8DED2EFB5EC8DB3DB5448ED"
+							}
+						],
+						"url": "http://localhost:8080/notifications/read-all"
+					},
+					"response": []
+				},
+				{
+					"name": "Send Notification - Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTc4MjUyOSwiZXhwIjoxNzU1ODY4OTI5fQ.3CcFRMcTiDsc-SVuToc06UgOdvQrIwT9q6gKCoCMNaY"
+							}
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"disabled": true
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTc3NjExNywiZXhwIjoxNzU1ODYyNTE3fQ.0UQ96u_n3W_0Lz4MpamqKx8wyIy294POgUz9ZOe_AbY",
+								"disabled": true
+							},
+							{
+								"key": "Cookie",
+								"value": "JSESSIONID=8C816300B8DED2EFB5EC8DB3DB5448ED",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"policyId\": 37,\n  \"request\": {\n    \"message\": \"Your policy has been tested.\",\n    \"type\": \"GENERAL\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/admin/sendNotifications/policy"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"12345678\",\n    \"phone\": \"+1-123-456-7890\",\n    \"address\": \"123 Main Street, Anytown, USA\",\n    \"role\": \"ADMIN\"\n}\n// {\n//     \"name\": \"Alice Smith\",\n//     \"email\": \"alice.smith@example.org\",\n//     \"password\": \"Passw0rd!@#\",\n//     \"phone\": \"+44-7896-123456\",\n//     \"address\": \"42 Baker Street, London, UK\",\n//     \"role\": \"USER\"\n// }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/auth/register"
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"12345678\"\n}\n// {\n//     \"email\": \"alice.smith@example.org\",\n//     \"password\": \"Passw0rd!@#\"\n// }\n\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8080/auth/login"
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Users - Admin",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQURNSU4iLCJzdWIiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTc1NTc3NDg1NCwiZXhwIjoxNzU1ODYxMjU0fQ.-HjCS4QElJjR2cZRWb6yykXEgiL0U7xXsQpTRwM8Ezg"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8080/admin/activeUsers"
+			},
+			"response": []
+		}
+	]
+}
