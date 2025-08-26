@@ -489,7 +489,7 @@ const emit = defineEmits<{
   (e: 'view', userPolicy: UserPolicy): void
   (e: 'makeClaim', userPolicy: UserPolicy): void
   (e: 'reapply', userPolicy: UserPolicy): void
-  (e: 'renew', renewedPolicy: any): void // Fixed: single definition for renew event
+  (e: 'renew', renewedPolicy: any): void 
 }>()
 
 const toast = useToast()

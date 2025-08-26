@@ -294,20 +294,13 @@
                       {{ formatDate(policy.createdAt) }}
                     </td>
                     <td class="px-8 py-4 whitespace-nowrap text-sm font-medium">
-                      <div class="flex items-center space-x-2">
+                      <div class="flex items-center space-x-1">
                         <button
                           @click="viewPolicy(policy)"
                           class="text-blue-600 hover:text-blue-900 transition-colors"
                           title="View policy details"
                         >
                           <Eye class="w-4 h-4" />
-                        </button>
-                        <button
-                          @click="editPolicy(policy)"
-                          class="text-green-600 hover:text-green-900 transition-colors"
-                          title="Edit policy"
-                        >
-                          <Edit class="w-4 h-4" />
                         </button>
                       </div>
                     </td>
