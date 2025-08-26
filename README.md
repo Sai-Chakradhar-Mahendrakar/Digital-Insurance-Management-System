@@ -43,7 +43,7 @@ This repository is organized as a backend + frontend application orchestrated wi
 The backend provides secure APIs for the core insurance domain, including policies, claims, customers, authentication/authorization, and administrative operations.
 
 - Responsibilities:
- - Expose RESTful APIs for the frontend and integrations
+  - Expose RESTful APIs for the frontend and integrations
   - Persist policy, claim, customer, and billing data in PostgreSQL
   - Handle authentication, authorization, and auditing
   - Manage data migrations and validations
