@@ -123,50 +123,6 @@ Below are diagrams and UI flow images from the FunctionalImages directory. If yo
 
 These screenshots provide a quick tour of core user and admin flows. If the ProjectOverview directory resides elsewhere, update the relative paths.
 
-### User Screens
-1. Login  
-![User Login](./ProjectOverview/1.UserLogin.png)
-
-2. Register  
-![User Register](./ProjectOverview/2.UserRegister.png)
-
-3. Dashboard  
-![User Dashboard](./ProjectOverview/4.userDashboard.png)
-
-4. Policies  
-![User Policy](./ProjectOverview/5.userPolicy.png)
-
-5. Claims  
-![User Claims](./ProjectOverview/6.userClaims.png)
-
-6. Claim Submission  
-![User Claim Submission](./ProjectOverview/7.userClaimsSubmission.png)
-
-7. Notifications  
-![User Notifications](./ProjectOverview/8.userNotification.png)
-
-### Admin Screens
-1. Login  
-![Admin Login](./ProjectOverview/3.AdminLogin.png)
-
-2. Dashboard  
-![Admin Dashboard](./ProjectOverview/9.AdminDashboard.png)
-
-3. Policy Management  
-![Admin Policy](./ProjectOverview/10.AdminPolicy.png)
-
-4. Claims Management  
-![Admin Claims](./ProjectOverview/11.AdminClaims.png)
-
-5. Support Tickets  
-![Admin Support Ticket](./ProjectOverview/12.AdminSupportTicket.png)
-
-6. Send Notifications  
-![Admin Send Notification](./ProjectOverview/13.AdminSendNotification.png)
-
-7. Send Notification by Policy  
-![Admin Send Notification by Policy](./ProjectOverview/14.AdminSendNotificationbyPolcy.png)
-
 
 
 ## Getting Started
