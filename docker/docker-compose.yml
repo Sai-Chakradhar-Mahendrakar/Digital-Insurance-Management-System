@@ -63,20 +63,6 @@ services:
     networks:
       - insurance-network
 
-  frontend:
-    container_name: insurance-frontend
-    build:
-      context: ../frontend
-      dockerfile: ../docker/frontend.Dockerfile
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_URL=http://backend:8080
-    depends_on:
-      - backend
-    networks:
-      - insurance-network
-
 networks:
   insurance-network:
     driver: bridge
